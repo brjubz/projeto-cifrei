@@ -2061,6 +2061,7 @@ async function startOnlinePresence() {
   await gravarAcesso();
 
   if(hbInterval) clearInterval(hbInterval);
+  if(_salasRefreshInterval) { clearInterval(_salasRefreshInterval); _salasRefreshInterval = null; }
   // Intervalo de 120s (antes: 60s) — economiza ~14.400 writes/dia com 20 usuários
   hbInterval = setInterval(async () => { await ping(); await gravarAcesso(); }, 120000);
   if(presenceUnsub) presenceUnsub();
@@ -2369,6 +2370,21 @@ async function abrirSala(songIdx, tp) {
       nome: localStorage.getItem('cifrei_username') || '?',
       songIdx, tp, ativo: true, bloqueada: true, ts: Date.now()
     });
+    // Listener de visitantes — só para donos de sala (antes era global para todos)
+    if (!_unsubSalasShared) {
+      _unsubSalasShared = onSnapshot(collection(fbDb, 'salas_shared'), (snap) => {
+        snap.forEach(d => {
+          const data = d.data();
+          if (!data.ativo) return;
+          const partic = data.participantes || [];
+          if (!partic.includes(fbUser?.uid)) return;
+          if (_salaAtualId === d.id) return;
+          if (minhaSalaRef && !S.observandoSala) {
+            _iniciarListenerSalaShared(d.id);
+          }
+        });
+      });
+    }
   } catch(e) {}
 }
 
@@ -2440,6 +2456,7 @@ async function atualizarSala(songIdx, tp, conteudo) {
 
 async function fecharMinhaSala() {
   if (salaUnsub) { salaUnsub(); salaUnsub = null; }
+  if (_unsubSalasShared) { _unsubSalasShared(); _unsubSalasShared = null; }
   if (minhaSalaRef) {
     try { await setDoc(minhaSalaRef, { ativo: false }, { merge: true }); } catch(e) {}
     minhaSalaRef = null;
@@ -2585,39 +2602,36 @@ function sairDaSala(mostrarToast = true) {
 }
 
 let _salasAtivas = {};
-let _unsubSalas = null, _unsubConfigTurno = null, _unsubSalasShared = null;
-async function escutarSalasAtivas() {
-  if (!fbDb || _unsubSalas) return; // já escutando
-  _unsubSalas = onSnapshot(collection(fbDb, 'salas'), (snap) => {
+let _unsubSalasShared = null;
+let _salasRefreshInterval = null;
+
+// Leitura pontual de salas ativas — chamada na inicialização e a cada 30s
+async function _atualizarSalasAtivas() {
+  if (!fbDb) return;
+  try {
+    const snap = await getDocs(collection(fbDb, 'salas'));
     _salasAtivas = {};
     snap.forEach(d => { const data = d.data(); if (data.ativo) _salasAtivas[d.id] = data; });
     renderPresence(_presenceUsers || []);
-  });
+  } catch(e) {}
+}
 
-  // Listener para configuração de divisão Manhã/Noite
-  _unsubConfigTurno = onSnapshot(doc(fbDb, 'salas', 'config_turno'), (snap) => {
-    if (snap.exists() && snap.data().limiteManha != null) {
-      _limiteManha = snap.data().limiteManha;
+async function escutarSalasAtivas() {
+  if (!fbDb || _salasRefreshInterval) return;
+  // config_turno: leitura única — muda só quando o ADM altera a config
+  try {
+    const cfgSnap = await getDoc(doc(fbDb, 'salas', 'config_turno'));
+    if (cfgSnap.exists() && cfgSnap.data().limiteManha != null) {
+      _limiteManha = cfgSnap.data().limiteManha;
     } else {
-      _limiteManha = null; // volta ao fallback
+      _limiteManha = null;
     }
-    if (document.getElementById('view-list')?.classList.contains('active')) {
-      renderList();
-    }
-  });
-  // Dono também escuta salas_shared: quando alguém entrar, inicia listener bidirecional
-  _unsubSalasShared = onSnapshot(collection(fbDb, 'salas_shared'), (snap) => {
-    snap.forEach(d => {
-      const data = d.data();
-      if (!data.ativo) return;
-      const partic = data.participantes || [];
-      if (!partic.includes(fbUser?.uid)) return;
-      if (_salaAtualId === d.id) return;
-      if (minhaSalaRef && !S.observandoSala) {
-        _iniciarListenerSalaShared(d.id);
-      }
-    });
-  });
+    if (document.getElementById('view-list')?.classList.contains('active')) renderList();
+  } catch(e) {}
+  // salas: leitura imediata + refresh a cada 30s (substitui onSnapshot contínuo)
+  await _atualizarSalasAtivas();
+  _salasRefreshInterval = setInterval(_atualizarSalasAtivas, 30000);
+  // salas_shared: listener movido para abrirSala() — só ativo para donos de sala
 }
 let _presenceUsers = [];
 
