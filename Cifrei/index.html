@@ -857,38 +857,26 @@ async function _iniciarSemModulo() {
 
 // Login via REST — independente do módulo ES6
 async function _loginViaRestDireto(loginInput, senhaInput) {
-  var url = '/proxy/firestore/avatars?pageSize=300';
   var dbg = document.getElementById('bv-firebase-status');
   try {
-    var page = 0;
-    while (url) {
-      page++;
-      if (dbg) dbg.textContent = page > 1 ? '🔄 Buscando (pág ' + page + ')...' : '🔄 Verificando...';
-      var res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      var data = await res.json();
-      var docs = data.documents || [];
-      for (var d of docs) {
-        var f = d.fields || {};
-        var loginDoc = (f.login && f.login.stringValue || '').toLowerCase().trim();
-        var nomeDoc  = (f.nome  && f.nome.stringValue  || '').toLowerCase().trim();
-        var senhaDoc = (f.senha && (f.senha.stringValue || String(f.senha.integerValue || ''))).trim();
-        if ((loginDoc === loginInput || nomeDoc === loginInput) && senhaDoc === senhaInput) {
-          return {
-            nome: f.nome && f.nome.stringValue || loginInput,
-            login: f.login && f.login.stringValue || loginInput,
-            foto: f.foto && f.foto.stringValue || '',
-            perm_cifra: f.perm_cifra && f.perm_cifra.booleanValue !== false,
-            perm_letra: f.perm_letra && f.perm_letra.booleanValue !== false,
-            perm_setlist: f.perm_setlist && f.perm_setlist.booleanValue !== false,
-            instrumento: f.instrumento && f.instrumento.stringValue || '',
-          };
-        }
-        if (loginDoc === loginInput || nomeDoc === loginInput) return null;
+    var docs = await _getAvatarsComCache(dbg);
+    for (var d of docs) {
+      var f = d.fields || {};
+      var loginDoc = (f.login && f.login.stringValue || '').toLowerCase().trim();
+      var nomeDoc  = (f.nome  && f.nome.stringValue  || '').toLowerCase().trim();
+      var senhaDoc = (f.senha && (f.senha.stringValue || String(f.senha.integerValue || ''))).trim();
+      if ((loginDoc === loginInput || nomeDoc === loginInput) && senhaDoc === senhaInput) {
+        return {
+          nome: f.nome && f.nome.stringValue || loginInput,
+          login: f.login && f.login.stringValue || loginInput,
+          foto: f.foto && f.foto.stringValue || '',
+          perm_cifra: f.perm_cifra && f.perm_cifra.booleanValue !== false,
+          perm_letra: f.perm_letra && f.perm_letra.booleanValue !== false,
+          perm_setlist: f.perm_setlist && f.perm_setlist.booleanValue !== false,
+          instrumento: f.instrumento && f.instrumento.stringValue || '',
+        };
       }
-      url = data.nextPageToken
-        ? '/proxy/firestore/avatars?pageSize=300&pageToken=' + data.nextPageToken
-        : null;
+      if (loginDoc === loginInput || nomeDoc === loginInput) return null;
     }
     return null;
   } catch(e) { throw e; }
@@ -3697,6 +3685,11 @@ const BANCO_CACHE_KEY = 'cifrei_banco_raw';
 const BANCO_CACHE_TS  = 'cifrei_banco_ts';
 const BANCO_CACHE_TTL = 60 * 60 * 1000; // 1 hora — garante cifras editadas aparecem no F5
 
+// ── CACHE DE AVATARS (login) ──────────────────────────────────────────────────
+const AVATARS_CACHE_KEY = 'cifrei_avatars_docs';
+const AVATARS_CACHE_TS  = 'cifrei_avatars_ts';
+const AVATARS_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 horas
+
 function _salvarCacheBanco(txt) {
   try {
     localStorage.setItem(BANCO_CACHE_KEY, txt);
@@ -4518,60 +4511,72 @@ function _loginPreviewAvatar(login) {
   }, 500);
 }
 
-// ── LOGIN VIA REST — não depende do SDK Firebase ─────────────────────────────
-async function _loginViaRest(loginInput, senhaInput) {
-  const PROJECT = 'cifrei-e37f6';
+// ── CACHE DE AVATARS — busca única por 6h, elimina leituras repetidas no Firestore ──
+async function _getAvatarsComCache(dbgEl) {
+  try {
+    const cached = localStorage.getItem(AVATARS_CACHE_KEY);
+    const ts = parseInt(localStorage.getItem(AVATARS_CACHE_TS) || '0');
+    if (cached && ts && (Date.now() - ts) < AVATARS_CACHE_TTL) {
+      return JSON.parse(cached);
+    }
+  } catch(e) {}
+
+  const allDocs = [];
   let url = '/proxy/firestore/avatars?pageSize=300';
-  const dbg = document.getElementById('bv-firebase-status');
+  let page = 0;
+  while (url) {
+    page++;
+    if (dbgEl) dbgEl.textContent = page > 1 ? `🔄 Buscando (pág ${page})...` : '🔄 Verificando...';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    allDocs.push(...(data.documents || []));
+    url = data.nextPageToken
+      ? `/proxy/firestore/avatars?pageSize=300&pageToken=${data.nextPageToken}`
+      : null;
+  }
 
   try {
-    let pageCount = 0;
-    while (url) {
-      pageCount++;
-      if (dbg) dbg.textContent = `🔄 Buscando usuários (pág ${pageCount})...`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      const docs = data.documents || [];
+    localStorage.setItem(AVATARS_CACHE_KEY, JSON.stringify(allDocs));
+    localStorage.setItem(AVATARS_CACHE_TS, Date.now().toString());
+  } catch(e) {}
 
-      for (const d of docs) {
-        const f = d.fields || {};
-        const loginDoc = (f.login?.stringValue || '').toLowerCase().trim();
-        const nomeDoc  = (f.nome?.stringValue  || '').toLowerCase().trim();
-        // Senha pode ser string ou inteiro
-        const senhaDoc = (f.senha?.stringValue || f.senha?.integerValue || f.senha?.doubleValue || '').toString().trim();
-        const loginOk  = loginDoc === loginInput || nomeDoc === loginInput;
+  return allDocs;
+}
 
-        if (loginOk) {
-          if (dbg) dbg.textContent = `✅ Usuário encontrado. Verificando senha...`;
-          // Debug: mostra o que está sendo comparado
-          console.log('[login]', { loginDoc, nomeDoc, senhaDoc: senhaDoc.replace(/./g,'*'), senhaInput: senhaInput.replace(/./g,'*'), match: senhaDoc === senhaInput });
-          if (senhaDoc === senhaInput) {
-            if (dbg) dbg.textContent = '';
-            return {
-              nome:         f.nome?.stringValue        || loginInput,
-              login:        f.login?.stringValue       || loginInput,
-              senha:        senhaDoc,
-              foto:         f.foto?.stringValue        || '',
-              perm_cifra:   f.perm_cifra?.booleanValue  ?? true,
-              perm_letra:   f.perm_letra?.booleanValue  ?? true,
-              perm_setlist: f.perm_setlist?.booleanValue ?? true,
-              instrumento:  f.instrumento?.stringValue  || '',
-            };
-          } else {
-            if (dbg) dbg.textContent = `❌ Senha não confere (${senhaDoc.length} vs ${senhaInput.length} chars)`;
-            return null; // usuário encontrado mas senha errada
-          }
+// ── LOGIN VIA REST — não depende do SDK Firebase ─────────────────────────────
+async function _loginViaRest(loginInput, senhaInput) {
+  const dbg = document.getElementById('bv-firebase-status');
+  try {
+    const docs = await _getAvatarsComCache(dbg);
+    for (const d of docs) {
+      const f = d.fields || {};
+      const loginDoc = (f.login?.stringValue || '').toLowerCase().trim();
+      const nomeDoc  = (f.nome?.stringValue  || '').toLowerCase().trim();
+      const senhaDoc = (f.senha?.stringValue || f.senha?.integerValue || f.senha?.doubleValue || '').toString().trim();
+      const loginOk  = loginDoc === loginInput || nomeDoc === loginInput;
+      if (loginOk) {
+        if (dbg) dbg.textContent = '✅ Usuário encontrado. Verificando senha...';
+        console.log('[login]', { loginDoc, nomeDoc, senhaDoc: senhaDoc.replace(/./g,'*'), senhaInput: senhaInput.replace(/./g,'*'), match: senhaDoc === senhaInput });
+        if (senhaDoc === senhaInput) {
+          if (dbg) dbg.textContent = '';
+          return {
+            nome:         f.nome?.stringValue        || loginInput,
+            login:        f.login?.stringValue       || loginInput,
+            senha:        senhaDoc,
+            foto:         f.foto?.stringValue        || '',
+            perm_cifra:   f.perm_cifra?.booleanValue  ?? true,
+            perm_letra:   f.perm_letra?.booleanValue  ?? true,
+            perm_setlist: f.perm_setlist?.booleanValue ?? true,
+            instrumento:  f.instrumento?.stringValue  || '',
+          };
+        } else {
+          if (dbg) dbg.textContent = `❌ Senha não confere (${senhaDoc.length} vs ${senhaInput.length} chars)`;
+          return null;
         }
       }
-
-      // Próxima página se existir
-      url = data.nextPageToken
-        ? `/proxy/firestore/avatars?pageSize=300&pageToken=${data.nextPageToken}`
-        : null;
     }
-
-    if (dbg) dbg.textContent = `❌ Usuário não encontrado`;
+    if (dbg) dbg.textContent = '❌ Usuário não encontrado';
     return null;
   } catch(e) {
     throw new Error('Falha na conexão: ' + e.message);
