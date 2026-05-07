@@ -74,11 +74,40 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-lyric);min-he
 .splash-logo{width:110px;height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;filter:drop-shadow(0 0 15px rgba(52,211,153,.3));}
 .splash-logo img{width:100%;height:100%;object-fit:contain;}
 .splash-title{font-family:var(--font-logo);font-size:clamp(40px,8vw,64px);font-weight:800;letter-spacing:-1px;color:#fff;line-height:1;}
-.splash-welcome{font-family:var(--font-chord);font-weight:700;font-size:16px;color:var(--green);margin-top:8px;}
+.splash-welcome{
+  position:relative;
+  background:rgba(52,211,153,.07);
+  border:1px solid rgba(52,211,153,.2);
+  border-radius:20px;
+  padding:16px 22px;
+  margin-top:26px;
+  max-width:300px;
+  font-family:var(--font-chord);
+  font-weight:300;
+  font-size:14.5px;
+  line-height:1.7;
+  color:rgba(255,255,255,.82);
+  text-align:center;
+  letter-spacing:.15px;
+  animation:fadeInUp .5s ease;
+}
+.splash-welcome::after{
+  content:'';
+  position:absolute;
+  top:-7px;
+  left:50%;
+  margin-left:-7px;
+  width:13px;
+  height:13px;
+  background:rgba(52,211,153,.07);
+  border-top:1px solid rgba(52,211,153,.2);
+  border-left:1px solid rgba(52,211,153,.2);
+  transform:rotate(45deg);
+}
 .splash-sub{font-family:var(--font-chord);font-size:15px;font-weight:400;color:var(--muted);margin-top:12px;max-width:320px;line-height:1.4;}
 .splash-desc{font-size:14px;color:var(--faint);margin-top:16px;max-width:320px;line-height:1.6;}
 
-.splash-buttons{margin-top:36px;display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;max-width:280px;}
+.splash-buttons{margin-top:28px;display:flex;flex-direction:column;gap:10px;align-items:center;width:100%;max-width:280px;}
 
 .start-btn{
   width:100%;background:var(--green);color:#000;
