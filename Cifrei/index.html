@@ -9105,7 +9105,7 @@ const _CHORD_ROOT_MAP = {
 const _CHORD_SUFFIX_MAP = {
   // Básicos
   '':'major','M':'major','maj':'major',
-  'm':'minor','min':'minor','-':'minor',
+  'm':'minor','min':'minor','-':'minor','mi':'minor',
   // Tríades alteradas
   'dim':'dim','dim7':'dim7','°':'dim','º':'dim','o':'dim','o7':'dim7',
   'aug':'aug','+':'aug','5+':'aug','aug7':'aug7','7+':'aug7',
@@ -9117,7 +9117,7 @@ const _CHORD_SUFFIX_MAP = {
   '7sus4':'7sus4','7sus':'7sus4',
   'alt':'alt',
   // Maj
-  'maj7':'maj7','M7':'maj7','Δ':'maj7','△':'maj7','^7':'maj7',
+  'maj7':'maj7','M7':'maj7','7M':'maj7','Maj7':'maj7','Δ':'maj7','△':'maj7','^7':'maj7',
   'maj7b5':'maj7b5','maj7#5':'maj7#5','maj7sus2':'maj7sus2',
   // Menores com 7
   'm7':'m7','min7':'m7','-7':'m7',
@@ -9201,15 +9201,17 @@ function _extrairBaixo(nome) {
   return idx >= 0 ? nome.slice(idx + 1) : null;
 }
 
+const _CHORDS_CACHE_KEY = 'cifrei_chords_db_v4'; // incrementar aqui invalida o cache antigo automaticamente
+
 async function _carregarChordsDb() {
   if (_chordsDb) return _chordsDb;
   try {
-    const cached = sessionStorage.getItem('cifrei_chords_db');
+    const cached = sessionStorage.getItem(_CHORDS_CACHE_KEY);
     if (cached) { _chordsDb = JSON.parse(cached); return _chordsDb; }
     const res = await fetch('https://raw.githubusercontent.com/tombatossals/chords-db/master/lib/guitar.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     _chordsDb = await res.json();
-    try { sessionStorage.setItem('cifrei_chords_db', JSON.stringify(_chordsDb)); } catch(e) {}
+    try { sessionStorage.setItem(_CHORDS_CACHE_KEY, JSON.stringify(_chordsDb)); } catch(e) {}
   } catch(e) { _chordsDb = null; }
   return _chordsDb;
 }
@@ -9291,14 +9293,16 @@ function _renderChordPopup() {
         backgroundColor: 'transparent',
         fingerColor: cor,
         fingerTextColor: '#09090b',
-        stringColor: '#52525b',
-        fretColor: '#3f3f46',
-        nutColor: '#e4e4e7',
+        stringColor: '#a1a1aa',
+        fretColor: '#71717a',
+        fretLabelColor: '#f4f4f5',
+        nutColor: '#f4f4f5',
         fontFamily: 'monospace, sans-serif',
         showTuning: false,
         titleFontSize: 0,
         fingerSize: 0.6,
-        strokeWidth: 1.5,
+        strokeWidth: 1,
+        nutWidth: 8,
       })
       .chord({
         fingers: chordData.fingers,
