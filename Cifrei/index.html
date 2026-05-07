@@ -9136,9 +9136,6 @@ async function executarDiagnostico() {
 
   // ── URLs Diretas ──
   section('URLs DIRETAS (externas)');
-  status.textContent = 'Testando googleapis.com...';
-  await testFetch('https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/salas/setlist_musico', 'googleapis.com (Firestore)');
-
   status.textContent = 'Testando gist.githubusercontent.com...';
   await testFetch('https://gist.githubusercontent.com/brjubz/ac2d9ca53f29fa99ac1c5f4be584b2b1/raw?t=' + Date.now(), 'gist.githubusercontent.com');
 
@@ -9148,10 +9145,10 @@ async function executarDiagnostico() {
   status.textContent = 'Testando jsDelivr...';
   await testFetch('https://cdn.jsdelivr.net/npm/firebase@11.6.1/firebase-app.js', 'cdn.jsdelivr.net');
 
-  // ── Escalas Firestore ──
-  section('ESCALA (Firestore REST direto)');
+  // ── Escalas via Proxy ──
+  section('ESCALA (via proxy Netlify)');
   status.textContent = 'Testando escalas...';
-  var r6 = await testFetch('https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/escalas', 'Escalas via REST');
+  var r6 = await testFetch('/proxy/firestore/escalas', 'Escalas via proxy');
   if (r6) {
     try {
       var data = await r6.json();
