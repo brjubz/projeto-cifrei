@@ -1745,30 +1745,39 @@ const avatarColors = ['#34d399', '#60a5fa', '#fbbf24', '#f87171', '#c084fc', '#e
 // Cache de avatares personalizados {nome_lower: {foto, nome}}
 let _avatarsCache = {};
 let _avatarsCacheLoaded = false;
+const _AVATARS_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 horas
 
 async function _carregarAvatarsCache() {
   if (_avatarsCacheLoaded || !fbDb) return;
+  // Tentar localStorage antes de ir ao Firestore
+  try {
+    const raw = localStorage.getItem('cifrei_avatars_cache');
+    const ts  = parseInt(localStorage.getItem('cifrei_avatars_cache_ts') || '0');
+    if (raw && (Date.now() - ts) < _AVATARS_CACHE_TTL) {
+      Object.assign(_avatarsCache, JSON.parse(raw));
+      _avatarsCacheLoaded = true;
+      _reaplicarAvatares();
+      return;
+    }
+  } catch(e) {}
+  // Cache expirado ou inexistente — buscar do Firestore
   try {
     const snap = await getDocs(collection(fbDb, 'avatars_musicos'));
+    const toSave = {};
     snap.forEach(d => {
       const data = d.data();
-      // Indexa por nome E por login para encontrar de qualquer forma
-      if (data.nome)  _avatarsCache[data.nome.toLowerCase().trim()]  = data;
-      if (data.login) _avatarsCache[data.login.toLowerCase().trim()] = data;
+      if (data.nome)  { _avatarsCache[data.nome.toLowerCase().trim()]  = data; toSave[data.nome.toLowerCase().trim()]  = data; }
+      if (data.login) { _avatarsCache[data.login.toLowerCase().trim()] = data; toSave[data.login.toLowerCase().trim()] = data; }
     });
     _avatarsCacheLoaded = true;
-
-    // Atualiza foto do usuário logado no localStorage
-    const nomeLogado  = localStorage.getItem('cifrei_username');
-    const loginLogado = localStorage.getItem('cifrei_login');
-    const chave = (nomeLogado || loginLogado || '').toLowerCase().trim();
-    if (chave && _avatarsCache[chave]?.foto) {
-      localStorage.setItem('cifrei_foto', _avatarsCache[chave].foto);
-    }
-
-    // Re-renderiza presenças para aplicar fotos que chegaram após a primeira renderização
+    try {
+      localStorage.setItem('cifrei_avatars_cache', JSON.stringify(toSave));
+      localStorage.setItem('cifrei_avatars_cache_ts', String(Date.now()));
+    } catch(e) {}
+    const chave = (localStorage.getItem('cifrei_username') || localStorage.getItem('cifrei_login') || '').toLowerCase().trim();
+    if (chave && _avatarsCache[chave]?.foto) localStorage.setItem('cifrei_foto', _avatarsCache[chave].foto);
     _reaplicarAvatares();
-  } catch(e) { /* sem permissão ou offline */ }
+  } catch(e) {}
 }
 
 // Reaplicar fotos em todos os avatares já renderizados quando o cache chegar
@@ -2538,37 +2547,35 @@ function sairDaSala(mostrarToast = true) {
 }
 
 let _salasAtivas = {};
+let _unsubSalas = null, _unsubConfigTurno = null, _unsubSalasShared = null;
 async function escutarSalasAtivas() {
-  if (!fbDb) return;
-  onSnapshot(collection(fbDb, 'salas'), (snap) => {
+  if (!fbDb || _unsubSalas) return; // já escutando
+  _unsubSalas = onSnapshot(collection(fbDb, 'salas'), (snap) => {
     _salasAtivas = {};
     snap.forEach(d => { const data = d.data(); if (data.ativo) _salasAtivas[d.id] = data; });
     renderPresence(_presenceUsers || []);
   });
 
   // Listener para configuração de divisão Manhã/Noite
-  onSnapshot(doc(fbDb, 'salas', 'config_turno'), (snap) => {
+  _unsubConfigTurno = onSnapshot(doc(fbDb, 'salas', 'config_turno'), (snap) => {
     if (snap.exists() && snap.data().limiteManha != null) {
       _limiteManha = snap.data().limiteManha;
     } else {
       _limiteManha = null; // volta ao fallback
     }
-    // Re-renderiza o setlist se estiver visível
     if (document.getElementById('view-list')?.classList.contains('active')) {
       renderList();
     }
   });
   // Dono também escuta salas_shared: quando alguém entrar, inicia listener bidirecional
-  onSnapshot(collection(fbDb, 'salas_shared'), (snap) => {
+  _unsubSalasShared = onSnapshot(collection(fbDb, 'salas_shared'), (snap) => {
     snap.forEach(d => {
       const data = d.data();
       if (!data.ativo) return;
       const partic = data.participantes || [];
       if (!partic.includes(fbUser?.uid)) return;
-      // Sou participante desta sala — iniciar listener se ainda não estiver escutando
-      if (_salaAtualId === d.id) return; // já estou escutando
+      if (_salaAtualId === d.id) return;
       if (minhaSalaRef && !S.observandoSala) {
-        // Sou o dono (tenho minhaSalaRef mas não estou observando ninguém)
         _iniciarListenerSalaShared(d.id);
       }
     });
@@ -4121,33 +4128,28 @@ function voltarTelaInicial() {
 let _loginPreviewTimer = null;
 function _loginPreviewAvatar(login) {
   clearTimeout(_loginPreviewTimer);
-  _loginPreviewTimer = setTimeout(async () => {
-    if (!login.trim() || !fbDb) return;
-    try {
-      const snap = await window._fbGetDocs(window._fbCollection(fbDb, 'avatars_musicos'));
-      let encontrado = null;
-      snap.forEach(d => {
-        const data = d.data();
-        const loginDoc = (data.login||'').toLowerCase().trim();
-        const nomeDoc  = (data.nome||'').toLowerCase().trim();
-        const input    = login.toLowerCase().trim();
-        if (loginDoc === input || nomeDoc === input) encontrado = data;
-      });
-      const el = document.getElementById('login-avatar-preview');
-      if (!el) return;
-      if (encontrado) {
-        if (encontrado.foto) {
-          el.innerHTML = `<img src="${encontrado.foto}" style="width:100%;height:100%;object-fit:cover;">`;
-        } else {
-          const CORES = ['#34d399','#60a5fa','#f472b6','#a78bfa','#fb923c','#facc15'];
-          const cor = CORES[(encontrado.nome||'').length % CORES.length];
-          el.style.background = cor; el.style.color = '#000';
-          el.textContent = (encontrado.nome||'?').charAt(0).toUpperCase();
-        }
-      } else {
-        el.innerHTML = '?'; el.style.background = 'var(--bg3)'; el.style.color = 'var(--faint)';
-      }
-    } catch(e) {}
+  _loginPreviewTimer = setTimeout(() => {
+    const el = document.getElementById('login-avatar-preview');
+    if (!el || !login.trim()) return;
+    const input = login.toLowerCase().trim();
+    // Usa apenas cache local — nunca dispara leitura no Firestore da tela de login
+    let encontrado = _avatarsCache[input] || null;
+    if (!encontrado) {
+      try {
+        const raw = localStorage.getItem('cifrei_avatars_cache');
+        if (raw) encontrado = JSON.parse(raw)[input] || null;
+      } catch(e) {}
+    }
+    if (encontrado?.foto) {
+      el.innerHTML = `<img src="${encontrado.foto}" style="width:100%;height:100%;object-fit:cover;">`;
+    } else if (encontrado) {
+      const CORES = ['#34d399','#60a5fa','#f472b6','#a78bfa','#fb923c','#facc15'];
+      el.style.background = CORES[(encontrado.nome||'').length % CORES.length];
+      el.style.color = '#000';
+      el.textContent = (encontrado.nome||'?').charAt(0).toUpperCase();
+    } else {
+      el.innerHTML = '?'; el.style.background = 'var(--bg3)'; el.style.color = 'var(--faint)';
+    }
   }, 500);
 }
 
