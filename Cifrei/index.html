@@ -410,6 +410,21 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 #edit-area:focus { border-color: var(--green); }
 .chord-line{font-family:var(--font-mono);font-weight:700;font-size:1em;white-space:pre;margin-top:2px;line-height:1.1;}
 .lyric-line{font-family:var(--font-mono);font-weight:400;font-style:normal;font-size:1em;color:#d4d4d8;line-height:1.2;white-space:pre;}
+.chord-token{cursor:pointer;border-radius:3px;transition:opacity .1s;}
+.chord-token:hover{opacity:.75;}
+
+/* ── POPUP DIAGRAMA DE ACORDE ─────────────── */
+#chord-popup{position:fixed;z-index:8000;background:rgba(24,24,27,.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--bg3);border-radius:16px;padding:14px 16px 12px;box-shadow:0 12px 40px rgba(0,0,0,.65);min-width:148px;text-align:center;display:none;animation:fadeInUp .18s ease;pointer-events:auto;}
+#chord-popup.show{display:block;}
+#chord-popup.arrow-down::after{content:'';position:absolute;bottom:-7px;left:var(--arrow-left,50%);transform:translateX(-50%);border:7px solid transparent;border-top-color:var(--bg3);border-bottom:none;}
+#chord-popup.arrow-up::before{content:'';position:absolute;top:-7px;left:var(--arrow-left,50%);transform:translateX(-50%);border:7px solid transparent;border-bottom-color:var(--bg3);border-top:none;}
+#chord-popup .cp-title{font-family:var(--font-mono);font-weight:700;font-size:15px;margin-bottom:8px;}
+#chord-popup .cp-nav{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:6px;}
+#chord-popup .cp-nav button{background:var(--bg3);border:none;color:var(--text);width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;}
+#chord-popup .cp-nav button:disabled{opacity:.2;cursor:default;}
+#chord-popup .cp-dots{display:flex;gap:4px;align-items:center;}
+#chord-popup .cp-dot{width:6px;height:6px;border-radius:50%;background:var(--bg4);transition:background .15s;}
+#chord-popup .cp-dot.active{background:var(--green);}
 
 /* ── BOTÃO FINALIZAR LOUVOR ─────────────── */
 .finalizar-louvor-inline {
@@ -5260,7 +5275,12 @@ function renderCifra(content){
         if(!p.trim()){sp.textContent=p;}
         else{
           const cl=p.replace(/^[|()[\]\-,.:*%]+|[|()[\]\-,.:*%]+$/g,'');
-          if(CRE.test(cl)&&cl){sp.textContent=p.replace(cl,transpChord(cl,S.tp));}
+          if(CRE.test(cl)&&cl){
+            const displayed=transpChord(cl,S.tp);
+            sp.textContent=p.replace(cl,displayed);
+            sp.className='chord-token';
+            sp.dataset.chord=displayed;
+          }
           else{sp.style.color='#52525b';sp.textContent=p;}
         }
         d.appendChild(sp);
@@ -9025,6 +9045,229 @@ window.abrirDiagnostico = abrirDiagnostico;
 window.fecharDiagnostico = fecharDiagnostico;
 window.executarDiagnostico = executarDiagnostico;
 window.copiarDiagnostico = copiarDiagnostico;
+</script>
+
+<!-- ── POPUP DIAGRAMA DE ACORDE ────────────────────────────────────────────── -->
+<div id="chord-popup">
+  <div class="cp-title"></div>
+  <div class="cp-svg"></div>
+  <div class="cp-nav">
+    <button class="cp-prev" onclick="_chordPopupNav(-1)">&#8249;</button>
+    <div class="cp-dots"></div>
+    <button class="cp-next" onclick="_chordPopupNav(1)">&#8250;</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════════
+//   DIAGRAMAS DE ACORDE — popup com SVG + chords-db
+// ══════════════════════════════════════════════════════════════════════════════
+
+let _chordsDb = null;
+let _chordPopupPositions = [];
+let _chordPopupIdx = 0;
+let _chordPopupAnchor = null;
+
+const _CHORD_ENHAR = {Db:'C#',Eb:'D#',Fb:'E',Gb:'F#',Ab:'G#',Bb:'A#',Cb:'B'};
+const _CHORD_SUFFIX_MAP = {
+  '':'major','m':'minor','min':'minor',
+  '7':'7','maj7':'maj7','M7':'maj7','maj9':'maj9',
+  'm7':'m7','min7':'m7','m9':'m9','m11':'m11','m13':'m13',
+  '6':'6','m6':'m6','6/9':'69','69':'69',
+  '2':'sus2','sus2':'sus2',
+  '4':'sus4','sus4':'sus4','sus':'sus4',
+  '7sus4':'7sus4','7sus':'7sus4',
+  'add9':'add9','add2':'add9','add4':'add4','add11':'add4',
+  '9':'9','11':'11','13':'13',
+  'dim':'dim','dim7':'dim7','°':'dim','º':'dim','o':'dim',
+  'aug':'aug','+':'aug','5+':'aug','aug7':'aug7','7+':'aug7','7#5':'aug7',
+  '5':'5',
+  'm7b5':'m7b5','ø':'m7b5','ø7':'m7b5',
+  'mmaj7':'mmaj7','m(maj7)':'mmaj7',
+};
+
+function _parsearAcorde(nome) {
+  const base = nome.split('/')[0];
+  const m = base.match(/^([A-G][b#]?)(.*)/);
+  if (!m) return null;
+  let root = m[1], suffix = m[2].trim();
+  root = _CHORD_ENHAR[root] || root;
+  const dbSuffix = _CHORD_SUFFIX_MAP[suffix];
+  if (dbSuffix === undefined) return null;
+  return { root, suffix: dbSuffix };
+}
+
+function _buscarPosicoesAcorde(nome, db) {
+  const parsed = _parsearAcorde(nome);
+  if (!parsed || !db?.chords) return [];
+  const grupo = db.chords[parsed.root];
+  if (!grupo) return [];
+  const entry = grupo.find(e => e.suffix === parsed.suffix);
+  return entry?.positions || [];
+}
+
+async function _carregarChordsDb() {
+  if (_chordsDb) return _chordsDb;
+  try {
+    const cached = sessionStorage.getItem('cifrei_chords_db');
+    if (cached) { _chordsDb = JSON.parse(cached); return _chordsDb; }
+    const res = await fetch('https://cdn.jsdelivr.net/npm/chords-db/lib/guitar.json');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    _chordsDb = await res.json();
+    try { sessionStorage.setItem('cifrei_chords_db', JSON.stringify(_chordsDb)); } catch(e) {}
+  } catch(e) { _chordsDb = null; }
+  return _chordsDb;
+}
+
+function _svgAcorde(pos, cor) {
+  const { frets, fingers = [], barres = [], baseFret = 1 } = pos;
+  const W = 116, H = 124;
+  const strX = i => 20 + i * 15;
+  const fretY = f => 26 + f * 18;
+
+  let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Indicador de casa base
+  if (baseFret > 1)
+    s += `<text x="6" y="${fretY(1)-4}" font-size="8" fill="#a1a1aa" text-anchor="middle" font-family="monospace">${baseFret}fr</text>`;
+
+  // Nut
+  const nutH = baseFret === 1 ? 3 : 1;
+  s += `<rect x="${strX(0)}" y="${fretY(0)}" width="${strX(5)-strX(0)}" height="${nutH}" fill="${baseFret===1?'#f4f4f5':'#3f3f46'}" rx="1"/>`;
+
+  // Linhas de trastes
+  for (let f = 1; f <= 4; f++)
+    s += `<line x1="${strX(0)}" y1="${fretY(f)}" x2="${strX(5)}" y2="${fretY(f)}" stroke="#3f3f46" stroke-width="1"/>`;
+
+  // Linhas de cordas
+  for (let i = 0; i < 6; i++)
+    s += `<line x1="${strX(i)}" y1="${fretY(0)}" x2="${strX(i)}" y2="${fretY(4)}" stroke="#3f3f46" stroke-width="1"/>`;
+
+  // Barras
+  barres.forEach(b => {
+    const y = fretY(b.fret) - 9;
+    const x1 = strX(b.fromString - 1);
+    const x2 = strX(b.toString - 1);
+    s += `<rect x="${x1-5}" y="${y}" width="${x2-x1+10}" height="14" rx="7" fill="${cor}" opacity=".92"/>`;
+    const fn = fingers[b.fromString - 1];
+    if (fn) s += `<text x="${(x1+x2)/2}" y="${y+10}" font-size="9" font-weight="700" fill="#09090b" text-anchor="middle" font-family="monospace">${fn}</text>`;
+  });
+
+  // Marcadores por corda
+  frets.forEach((f, i) => {
+    const x = strX(i);
+    if (f === -1) {
+      s += `<text x="${x}" y="${fretY(0)-3}" font-size="11" fill="#52525b" text-anchor="middle">×</text>`;
+    } else if (f === 0) {
+      s += `<circle cx="${x}" cy="${fretY(0)-8}" r="5" fill="none" stroke="#a1a1aa" stroke-width="1.5"/>`;
+    } else {
+      const cy = fretY(f) - 9;
+      const isBarra = barres.some(b => b.fret === f && i >= b.fromString-1 && i <= b.toString-1);
+      if (!isBarra) {
+        s += `<circle cx="${x}" cy="${cy}" r="7" fill="${cor}"/>`;
+        const fn = fingers[i];
+        if (fn) s += `<text x="${x}" y="${cy+4}" font-size="9" font-weight="700" fill="#09090b" text-anchor="middle" font-family="monospace">${fn}</text>`;
+      }
+    }
+  });
+
+  s += '</svg>';
+  return s;
+}
+
+function _chordPopupNav(dir) {
+  const n = _chordPopupPositions.length;
+  if (!n) return;
+  _chordPopupIdx = Math.max(0, Math.min(n - 1, _chordPopupIdx + dir));
+  _renderChordPopup();
+}
+
+function _renderChordPopup() {
+  const popup = document.getElementById('chord-popup');
+  if (!popup) return;
+  const pos = _chordPopupPositions[_chordPopupIdx];
+  const cor = (typeof S !== 'undefined' && S.color) ? S.color : '#34d399';
+  popup.querySelector('.cp-svg').innerHTML = _svgAcorde(pos, cor);
+
+  // Dots
+  const dotsEl = popup.querySelector('.cp-dots');
+  dotsEl.innerHTML = _chordPopupPositions.map((_, i) =>
+    `<div class="cp-dot${i === _chordPopupIdx ? ' active' : ''}"></div>`
+  ).join('');
+  popup.querySelector('.cp-prev').disabled = _chordPopupIdx === 0;
+  popup.querySelector('.cp-next').disabled = _chordPopupIdx === _chordPopupPositions.length - 1;
+}
+
+function _posicionarChordPopup(anchor, popup) {
+  const rect = anchor.getBoundingClientRect();
+  const pw = 164;
+  const ph = popup.offsetHeight || 210;
+  let left = rect.left + rect.width / 2 - pw / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - pw - 8));
+  const arrowLeft = (rect.left + rect.width / 2) - left;
+  popup.style.setProperty('--arrow-left', Math.max(16, Math.min(pw - 16, arrowLeft)) + 'px');
+
+  let top = rect.top - ph - 12;
+  popup.classList.remove('arrow-down', 'arrow-up');
+  if (top < 8) {
+    top = rect.bottom + 12;
+    popup.classList.add('arrow-up');
+  } else {
+    popup.classList.add('arrow-down');
+  }
+  popup.style.left = left + 'px';
+  popup.style.top = top + 'px';
+  popup.style.width = pw + 'px';
+}
+
+async function _abrirChordPopup(anchor, nomeAcorde) {
+  const popup = document.getElementById('chord-popup');
+  if (!popup) return;
+  _chordPopupAnchor = anchor;
+
+  popup.querySelector('.cp-title').textContent = nomeAcorde;
+  popup.querySelector('.cp-svg').innerHTML = '<div style="color:#a1a1aa;font-size:11px;padding:18px 0 14px">carregando...</div>';
+  popup.querySelector('.cp-dots').innerHTML = '';
+  popup.querySelector('.cp-prev').disabled = true;
+  popup.querySelector('.cp-next').disabled = true;
+  popup.classList.add('show');
+  _posicionarChordPopup(anchor, popup);
+
+  const db = await _carregarChordsDb();
+  const posicoes = db ? _buscarPosicoesAcorde(nomeAcorde, db) : [];
+
+  if (!posicoes.length) {
+    popup.querySelector('.cp-svg').innerHTML = '<div style="color:#52525b;font-size:11px;padding:14px 0 10px">sem diagrama</div>';
+    return;
+  }
+
+  _chordPopupPositions = posicoes;
+  _chordPopupIdx = 0;
+  _renderChordPopup();
+  _posicionarChordPopup(anchor, popup);
+}
+
+function _fecharChordPopup(e) {
+  const popup = document.getElementById('chord-popup');
+  if (!popup || !popup.classList.contains('show')) return;
+  if (e && popup.contains(e.target)) return;
+  popup.classList.remove('show', 'arrow-down', 'arrow-up');
+}
+
+// Registrar listeners
+(function() {
+  const cifraEl = document.getElementById('cifra');
+  if (cifraEl) {
+    cifraEl.addEventListener('click', e => {
+      const el = e.target.closest('.chord-token');
+      if (!el) { _fecharChordPopup(); return; }
+      e.stopPropagation();
+      _abrirChordPopup(el, el.dataset.chord);
+    });
+  }
+  document.addEventListener('click', _fecharChordPopup, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') _fecharChordPopup(); });
+})();
 </script>
 
 </body>
