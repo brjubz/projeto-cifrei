@@ -780,7 +780,7 @@ async function _loginViaRestDireto(loginInput, senhaInput) {
         var f = d.fields || {};
         var loginDoc = (f.login && f.login.stringValue || '').toLowerCase().trim();
         var nomeDoc  = (f.nome  && f.nome.stringValue  || '').toLowerCase().trim();
-        var senhaDoc = (f.senha && (f.senha.stringValue || String(f.senha.integerValue || ''))).trim();
+        var senhaDoc = (f.senha && (f.senha.stringValue || String(f.senha.integerValue || '')) || '').trim();
         if ((loginDoc === loginInput || nomeDoc === loginInput) && senhaDoc === senhaInput) {
           return {
             nome: f.nome && f.nome.stringValue || loginInput,
