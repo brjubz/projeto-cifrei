@@ -74,39 +74,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-lyric);min-he
 .splash-logo{width:110px;height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;filter:drop-shadow(0 0 15px rgba(52,211,153,.3));}
 .splash-logo img{width:100%;height:100%;object-fit:contain;}
 .splash-title{font-family:var(--font-logo);font-size:clamp(40px,8vw,64px);font-weight:800;letter-spacing:-1px;color:#fff;line-height:1;}
-.splash-welcome{
-  width:100%;
-  max-width:300px;
-  background:rgba(52,211,153,.07);
-  border:1px solid rgba(52,211,153,.18);
-  border-radius:18px;
-  padding:18px 22px;
-  margin-top:22px;
-  text-align:center;
-  animation:fadeInUp .5s ease;
-}
-.splash-welcome-saud{
-  display:block;
-  font-family:var(--font-logo);
-  font-weight:700;
-  font-size:20px;
-  color:var(--green);
-  letter-spacing:-.3px;
-  margin-bottom:8px;
-}
-.splash-welcome-frase{
-  display:block;
-  font-family:var(--font-chord);
-  font-weight:300;
-  font-size:13.5px;
-  line-height:1.7;
-  color:rgba(255,255,255,.68);
-  letter-spacing:.1px;
-}
+.splash-welcome{font-family:var(--font-chord);font-weight:700;font-size:16px;color:var(--green);margin-top:8px;}
 .splash-sub{font-family:var(--font-chord);font-size:15px;font-weight:400;color:var(--muted);margin-top:12px;max-width:320px;line-height:1.4;}
 .splash-desc{font-size:14px;color:var(--faint);margin-top:16px;max-width:320px;line-height:1.6;}
 
-.splash-buttons{margin-top:28px;display:flex;flex-direction:column;gap:10px;align-items:center;width:100%;max-width:280px;}
+.splash-buttons{margin-top:36px;display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;max-width:280px;}
 
 .start-btn{
   width:100%;background:var(--green);color:#000;
@@ -171,64 +143,6 @@ nav.show{display:flex;}
   font-family:var(--font-chord);font-weight:900;font-size:10px;
   padding:1px 5px;border-radius:6px;transform:scale(0.85);transform-origin:top right;
 }
-
-/* ── BOTTOM NAV ──────────────────────────── */
-#bottom-nav{
-  position:fixed;bottom:0;left:0;right:0;z-index:51;
-  background:rgba(9,9,11,.96);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-top:1px solid var(--bg3);
-  display:none;align-items:center;justify-content:space-around;
-  padding:6px 0 max(10px,env(safe-area-inset-bottom,10px));
-}
-#bottom-nav.show{display:flex;}
-.bn-tab{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:6px 4px;background:none;border:none;cursor:pointer;
-  color:var(--faint);font-family:var(--font-chord);font-size:10px;
-  font-weight:700;letter-spacing:.3px;text-transform:uppercase;
-  transition:color .2s;position:relative;
-}
-.bn-tab svg{width:21px;height:21px;stroke-width:1.8;}
-.bn-tab.active{color:var(--green);}
-.bn-tab.active svg{stroke-width:2.2;}
-.bn-badge{
-  position:absolute;top:3px;left:50%;margin-left:4px;
-  background:var(--green);color:#000;
-  font-family:var(--font-chord);font-weight:900;font-size:9px;
-  min-width:15px;height:15px;border-radius:99px;
-  display:flex;align-items:center;justify-content:center;padding:0 3px;
-}
-body.has-bnav main{padding-bottom:84px;}
-
-/* ── VIEW TRANSITIONS ────────────────────── */
-@keyframes viewFadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
-.view.active{animation:viewFadeIn .18s ease;}
-
-/* ── PULL TO REFRESH ─────────────────────── */
-#ptr-wrap{
-  position:fixed;top:0;left:0;right:0;z-index:200;
-  display:flex;justify-content:center;pointer-events:none;
-  height:0;overflow:hidden;transition:height .12s ease;
-}
-#ptr-inner{
-  display:flex;align-items:flex-end;justify-content:center;
-  padding-bottom:8px;color:var(--green);
-}
-#ptr-inner svg{width:18px;height:18px;}
-#ptr-inner.ready svg{animation:spin .65s linear infinite;}
-
-/* ── EMPTY STATES ────────────────────────── */
-.empty-state{display:flex;flex-direction:column;align-items:center;padding:52px 24px;text-align:center;gap:10px;}
-.empty-state-icon{font-size:36px;opacity:.3;line-height:1;}
-.empty-state-title{font-family:var(--font-chord);font-weight:600;color:var(--muted);font-size:15px;}
-.empty-state-sub{color:var(--faint);font-size:13px;line-height:1.6;max-width:220px;}
-
-/* ── SONG PLAYING HIGHLIGHT ──────────────── */
-.song-item{position:relative;}
-.song-item.playing{background:rgba(52,211,153,.05);}
-.song-item.playing::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:var(--green);}
-.song-item.playing .song-num{color:var(--green);}
 
 /* ── MAIN ───────────────────────────────── */
 main{max-width:860px;margin:0 auto;padding:28px 20px;}
@@ -748,9 +662,6 @@ window._d = function(fn) {
       if (splash) { splash.style.opacity='0'; setTimeout(function(){splash.style.display='none';},200); }
       if (app) app.style.display='block';
       if (nav) nav.classList.add('show');
-      var bnav = document.getElementById('bottom-nav');
-      if (bnav) bnav.classList.add('show');
-      document.body.classList.add('has-bnav');
       document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
       var el = document.getElementById('view-'+vid);
       if (el) el.classList.add('active');
@@ -796,9 +707,6 @@ async function _iniciarSemModulo() {
   if (splash) splash.style.display = 'none';
   if (app)    app.style.display = 'block';
   if (nav)    nav.classList.add('show');
-  var bnav = document.getElementById('bottom-nav');
-  if (bnav) bnav.classList.add('show');
-  document.body.classList.add('has-bnav');
   document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
   var listView = document.getElementById('view-list');
   if (listView) listView.classList.add('active');
@@ -855,65 +763,40 @@ async function _iniciarSemModulo() {
   }
 })();
 
-// ── CACHE DE AVATARS — busca única por 6h, elimina leituras repetidas no Firestore ──
-var AVATARS_CACHE_KEY = 'cifrei_avatars_docs';
-var AVATARS_CACHE_TS  = 'cifrei_avatars_ts';
-var AVATARS_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 horas
-
-async function _getAvatarsComCache(dbgEl) {
-  try {
-    var cached = localStorage.getItem(AVATARS_CACHE_KEY);
-    var ts = parseInt(localStorage.getItem(AVATARS_CACHE_TS) || '0');
-    if (cached && ts && (Date.now() - ts) < AVATARS_CACHE_TTL) {
-      return JSON.parse(cached);
-    }
-  } catch(e) {}
-
-  var allDocs = [];
-  var url = '/proxy/firestore/avatars?pageSize=300';
-  var page = 0;
-  while (url) {
-    page++;
-    if (dbgEl) dbgEl.textContent = page > 1 ? '🔄 Buscando (pág ' + page + ')...' : '🔄 Verificando...';
-    var res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    var data = await res.json();
-    allDocs = allDocs.concat(data.documents || []);
-    url = data.nextPageToken
-      ? '/proxy/firestore/avatars?pageSize=300&pageToken=' + data.nextPageToken
-      : null;
-  }
-
-  try {
-    localStorage.setItem(AVATARS_CACHE_KEY, JSON.stringify(allDocs));
-    localStorage.setItem(AVATARS_CACHE_TS, Date.now().toString());
-  } catch(e) {}
-
-  return allDocs;
-}
-
 // Login via REST — independente do módulo ES6
 async function _loginViaRestDireto(loginInput, senhaInput) {
+  var url = 'https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/avatars_musicos?pageSize=300';
   var dbg = document.getElementById('bv-firebase-status');
   try {
-    var docs = await _getAvatarsComCache(dbg);
-    for (var d of docs) {
-      var f = d.fields || {};
-      var loginDoc = (f.login && f.login.stringValue || '').toLowerCase().trim();
-      var nomeDoc  = (f.nome  && f.nome.stringValue  || '').toLowerCase().trim();
-      var senhaDoc = (f.senha && (f.senha.stringValue || String(f.senha.integerValue || ''))).trim();
-      if ((loginDoc === loginInput || nomeDoc === loginInput) && senhaDoc === senhaInput) {
-        return {
-          nome: f.nome && f.nome.stringValue || loginInput,
-          login: f.login && f.login.stringValue || loginInput,
-          foto: f.foto && f.foto.stringValue || '',
-          perm_cifra: f.perm_cifra && f.perm_cifra.booleanValue !== false,
-          perm_letra: f.perm_letra && f.perm_letra.booleanValue !== false,
-          perm_setlist: f.perm_setlist && f.perm_setlist.booleanValue !== false,
-          instrumento: f.instrumento && f.instrumento.stringValue || '',
-        };
+    var page = 0;
+    while (url) {
+      page++;
+      if (dbg) dbg.textContent = page > 1 ? '🔄 Buscando (pág ' + page + ')...' : '🔄 Verificando...';
+      var res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      var docs = data.documents || [];
+      for (var d of docs) {
+        var f = d.fields || {};
+        var loginDoc = (f.login && f.login.stringValue || '').toLowerCase().trim();
+        var nomeDoc  = (f.nome  && f.nome.stringValue  || '').toLowerCase().trim();
+        var senhaDoc = (f.senha && (f.senha.stringValue || String(f.senha.integerValue || ''))).trim();
+        if ((loginDoc === loginInput || nomeDoc === loginInput) && senhaDoc === senhaInput) {
+          return {
+            nome: f.nome && f.nome.stringValue || loginInput,
+            login: f.login && f.login.stringValue || loginInput,
+            foto: f.foto && f.foto.stringValue || '',
+            perm_cifra: f.perm_cifra && f.perm_cifra.booleanValue !== false,
+            perm_letra: f.perm_letra && f.perm_letra.booleanValue !== false,
+            perm_setlist: f.perm_setlist && f.perm_setlist.booleanValue !== false,
+            instrumento: f.instrumento && f.instrumento.stringValue || '',
+          };
+        }
+        if (loginDoc === loginInput || nomeDoc === loginInput) return null;
       }
-      if (loginDoc === loginInput || nomeDoc === loginInput) return null;
+      url = data.nextPageToken
+        ? 'https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/avatars_musicos?pageSize=300&pageToken=' + data.nextPageToken
+        : null;
     }
     return null;
   } catch(e) { throw e; }
@@ -947,7 +830,12 @@ async function _btnEntrarClick() {
     if (usuario.foto) localStorage.setItem('cifrei_foto', usuario.foto);
     else localStorage.removeItem('cifrei_foto');
     document.getElementById('modal-boas-vindas').style.display = 'none';
-    _renderSaudacao(usuario.nome.split(' ')[0]);
+    var welcomeEl = document.getElementById('splash-welcome');
+    if (welcomeEl) {
+      var h = new Date().getHours();
+      welcomeEl.textContent = (h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite') + ', ' + usuario.nome.split(' ')[0] + '! 👋';
+      welcomeEl.style.display = 'block';
+    }
     if (dbg) dbg.textContent = '';
     // Não redireciona — usuário escolhe o que abrir na home
     // Firebase inicia em background
@@ -956,39 +844,6 @@ async function _btnEntrarClick() {
     if (dbg) dbg.textContent = '⚠️ ' + (e.message || 'Erro de conexão');
     btn.innerHTML = 'Entrar'; btn.disabled = false;
   }
-}
-
-async function _loginDiagnostico() {
-  const btn = document.getElementById('bv-diag-btn');
-  const out = document.getElementById('bv-diag-result');
-  if (!out) return;
-  btn.textContent = '🔄 Testando...'; btn.disabled = true;
-  out.style.display = 'block'; out.innerHTML = '';
-
-  const linha = (icon, label, val) => {
-    const d = document.createElement('div');
-    d.textContent = `${icon} ${label}: ${val}`;
-    out.appendChild(d);
-  };
-  const testar = async (label, url) => {
-    const t0 = Date.now();
-    try {
-      const r = await Promise.race([
-        fetch(url),
-        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout 6s')), 6000))
-      ]);
-      linha(r.ok ? '✅' : '❌', label, `HTTP ${r.status} em ${Date.now()-t0}ms`);
-      return r;
-    } catch(e) { linha('❌', label, e.message); return null; }
-  };
-
-  await testar('Proxy /avatars', '/proxy/firestore/avatars?pageSize=1');
-  await testar('Proxy /setlist', '/proxy/firestore/setlist');
-  await testar('googleapis direto', 'https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/salas/setlist_musico');
-  linha('📍', 'Domínio', location.hostname);
-  linha('📶', 'Online', navigator.onLine ? 'sim' : 'não');
-
-  btn.textContent = '🔍 Diagnóstico de conexão'; btn.disabled = false;
 }
 
 // Service Worker
@@ -1061,6 +916,9 @@ window.addEventListener('unhandledrejection', function(e) {
 <div id="splash">
 
   <div class="splash-title">cifrei<sup style="font-size: 0.4em; font-weight: 700; margin-left: 4px;">&reg;</sup></div>
+  
+  <!-- MENSAGEM DE BOAS VINDAS -->
+  <div class="splash-welcome" id="splash-welcome" style="display:none;"></div>
 
   <div class="splash-buttons">
     <button class="start-btn" id="start-btn" onclick="_d('iniciar')">
@@ -1085,12 +943,6 @@ window.addEventListener('unhandledrejection', function(e) {
       </svg>
       Sonoplastia
     </button>
-  </div>
-
-  <!-- MENSAGEM DE BOAS VINDAS -->
-  <div class="splash-welcome" id="splash-welcome" style="display:none;">
-    <span class="splash-welcome-saud" id="splash-welcome-saud"></span>
-    <span class="splash-welcome-frase" id="splash-welcome-frase"></span>
   </div>
 
   <div class="splash-err" id="splash-err">
@@ -1140,13 +992,6 @@ window.addEventListener('unhandledrejection', function(e) {
       Entrar
     </button>
     <div id="bv-firebase-status" style="font-size:11px;color:var(--faint);text-align:center;margin-top:8px;min-height:16px;"></div>
-    <div style="margin-top:10px;text-align:center;">
-      <button onclick="_loginDiagnostico()" id="bv-diag-btn"
-        style="background:none;border:none;color:var(--faint);font-size:11px;cursor:pointer;text-decoration:underline;padding:0;font-family:var(--font-chord);">
-        🔍 Diagnóstico de conexão
-      </button>
-      <div id="bv-diag-result" style="display:none;margin-top:8px;background:var(--bg);border:1px solid var(--bg3);border-radius:10px;padding:10px 12px;text-align:left;font-size:11px;font-family:var(--font-mono);color:var(--muted);line-height:2;"></div>
-    </div>
   </div>
 </div>
 
@@ -1182,30 +1027,6 @@ window.addEventListener('unhandledrejection', function(e) {
       <span class="nav-badge" id="nav-cnt">0</span>
     </button>
   </div>
-</nav>
-
-<!-- Pull to Refresh -->
-<div id="ptr-wrap"><div id="ptr-inner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.35"/></svg></div></div>
-
-<!-- Bottom Navigation -->
-<nav id="bottom-nav">
-  <button class="bn-tab" id="bn-list" onclick="voltarLista()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-    <span class="bn-badge" id="bn-cnt" style="display:none;"></span>
-    Setlist
-  </button>
-  <button class="bn-tab" id="bn-banco" onclick="showView('banco')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-    Banco
-  </button>
-  <button class="bn-tab" id="bn-escala" onclick="showView('escala')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-    Escala
-  </button>
-  <button class="bn-tab" id="bn-som" onclick="showView('sono')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
-    Som
-  </button>
 </nav>
 
 <!-- ══ APP ══════════════════════════════════ -->
@@ -2876,7 +2697,7 @@ function _bootCifrei() {
 
   if (savedName && sessaoValida) {
     const welcomeEl = document.getElementById('splash-welcome');
-    if (welcomeEl) { _renderSaudacao(savedName); }
+    if (welcomeEl) { welcomeEl.textContent = getSaudacao(savedName); welcomeEl.style.display = 'block'; }
     _fbInitPromise = initFirebase();
   } else {
     const modal = document.getElementById('modal-boas-vindas');
@@ -2919,154 +2740,12 @@ function voltarHome(){
 }
 
 function getSaudacao(nome) {
-  const agora = new Date();
-  const h = agora.getHours();
-  const dia = agora.getDay(); // 0=dom, 1=seg, 2=ter, 3=qua, 4=qui, 5=sex, 6=sab
-
-  const periodo = h >= 5 && h < 12 ? 'manhã' : h >= 12 && h < 18 ? 'tarde' : 'noite';
-  const saud = periodo === 'manhã' ? 'Bom dia' : periodo === 'tarde' ? 'Boa tarde' : 'Boa noite';
-  const saudacao = `${saud}, ${nome}!`;
-
-  const frases = {
-    0: { // Domingo
-      manhã: [
-        'Hoje é dia de subir ao altar preparado. Que Deus unja cada nota e transforme o louvor em encontro real com Ele. 🙌',
-        'Domingo chegou! Vai com tudo — que cada acorde seja uma oferta sincera a Deus. 🎶',
-        'Que o Espírito Santo dirija o louvor hoje. Chegue com entrega total e deixa Deus fazer a parte Dele. ✨',
-      ],
-      tarde: [
-        'Que cada música ministrada hoje toque os corações e leve as pessoas à presença de Deus. 🎵',
-        'Domingo de unção! Que o Senhor abençoe o louvor e cada membro sinta a presença Dele. 🙏',
-        'Hoje é dia de dar o melhor para Deus. Que o louvor seja de entrega e não de apresentação. 🎸',
-      ],
-      noite: [
-        'Que o louvor de hoje tenha glorificado a Deus. Descanse — e já começa a ouvir o repertório da próxima semana. 🌙',
-        'Domingo bem vivido! Que os frutos do louvor de hoje permaneçam nos corações. 😌',
-        'Que Deus tenha sido glorificado hoje. Já vai separando as músicas da semana que vem! 🎧',
-      ],
-    },
-    1: { // Segunda
-      manhã: [
-        'Semana nova, oportunidade nova de chegar preparado no ensaio! Que tal já começar a ouvir as músicas hoje? 🎵',
-        'Que Deus inspire sua preparação essa semana. Ouça as músicas com atenção e chegue no ensaio afiado. ✨',
-        'Cada escuta em casa conta muito no ensaio. Começa a semana já se familiarizando com o repertório! 🎧',
-      ],
-      tarde: [
-        'Que tal separar um tempo hoje para ouvir o repertório? A preparação em casa faz toda a diferença. 🎶',
-        'Que Deus te dê disposição para se preparar bem essa semana. Cada músico que treina em casa eleva o louvor. 🙏',
-        'Quanto antes você ouvir as músicas, mais tranquilo chega no ensaio de sábado. Vai adiantando! 🎸',
-      ],
-      noite: [
-        'Antes de dormir, uma ouvida nas músicas da semana já ajuda muito. A preparação começa em casa! 🎧',
-        'Que Deus abençoe sua preparação essa semana. Aproveite os momentos do dia para ouvir e memorizar. 🌙',
-        'A semana está começando — vai adiantando a escuta das músicas para chegar no ensaio tranquilo. 🎵',
-      ],
-    },
-    2: { // Terça
-      manhã: [
-        'Ainda dá tempo de revisar as músicas com calma antes do ensaio. Que tal começar hoje? 🎵',
-        'Que Deus abençoe seu estudo das músicas. Cada minuto de preparação é um ato de respeito ao louvor. 🙏',
-        'Terça de foco! Quanto antes você ouvir o repertório, mais confiante chega no ensaio. 🎸',
-      ],
-      tarde: [
-        'Boa tarde de prática! Que tal praticar as músicas agora? O ensaio de sábado agradece. 🎶',
-        'Se ainda não ouviu o repertório, hoje é um ótimo dia para isso. Chegar preparado faz diferença pra todos. 🎧',
-        'Que o Senhor guie sua preparação essa semana. Dedique um tempo para as músicas e chegue com confiança. ✨',
-      ],
-      noite: [
-        'Uma escutada nas músicas antes de dormir ajuda a fixar. Chegue no ensaio sabendo cada detalhe. 🌙',
-        'Ainda dá tempo de praticar bastante antes do ensaio. Que Deus inspire sua preparação! 🎵',
-        'Noite boa para ouvir o repertório e já ir fixando as letras e melodias. 🎧',
-      ],
-    },
-    3: { // Quarta
-      manhã: [
-        'Meio da semana! Como está a preparação para o ensaio? Ainda dá tempo de chegar muito bem preparado. 💪',
-        'Que Deus renove sua disposição para louvar essa semana. Uma boa preparação honra o ministério. 🙏',
-        'Quarta chegou — aproveite o dia para escutar as músicas com atenção e já ir decorando. 🎶',
-      ],
-      tarde: [
-        'Metade da semana e a preparação em dia? Isso é comprometimento com o louvor! 🎵',
-        'Você já está por dentro das músicas do ensaio? A tarde de quarta é ótima para uma boa revisada. 🎧',
-        'Que o Senhor te capacite para ministrar com unção no ensaio. Prepara o coração também. ✨',
-      ],
-      noite: [
-        'Já passou da metade da semana — aproveite a noite para ouvir as músicas antes de dormir. 🌙',
-        'Quem chega no ensaio preparado honra a Deus e respeita os irmãos. Que sua preparação seja assim. 🙏',
-        'Noite de quarta — ótimo momento para ouvir o repertório e já ir decorando cada parte. 🎵',
-      ],
-    },
-    4: { // Quinta
-      manhã: [
-        'O ensaio de sábado está chegando! Que tal caprichar na preparação hoje? 🎸',
-        'Que Deus te inspire nas práticas de hoje. Chegue no ensaio com as músicas dominadas. 🙏',
-        'Quinta de foco! Quem se prepara durante a semana chega no ensaio com muito mais segurança. 💪',
-      ],
-      tarde: [
-        'Você está por dentro do repertório? Ainda dá tempo de chegar muito bem preparado no ensaio de sábado. 🎶',
-        'Que o Senhor abençoe sua preparação. Pratique hoje e chegue no ensaio com confiança e leveza. ✨',
-        'Quinta à tarde — ótimo momento para uma revisada antes do fim de semana de louvor. 🎧',
-      ],
-      noite: [
-        'Uma boa escutada nas músicas e você chega afiado no ensaio de sábado. Vai lá! 🌙',
-        'Quinta à noite: revisa o repertório, prepara o coração. Que o ensaio de sábado seja de unção. 🙏',
-        'Vai dormir com o repertório na cabeça — sábado vai fluir. Que Deus abençoe! 🎵',
-      ],
-    },
-    5: { // Sexta
-      manhã: [
-        'Amanhã é ensaio! Hoje é dia de caprichar na preparação final. Quem se prepara em casa chega voando. 🎸',
-        'Que Deus te prepare para o ensaio de amanhã. Quem chega bem preparado eleva o louvor de todos. 🙏',
-        'Último dia útil antes do ensaio! Que tal dar uma revisada geral nas músicas hoje? 💪',
-      ],
-      tarde: [
-        'Amanhã é ensaio — uma última escutada e você chega afiado no sábado. 🎶',
-        'Que o Senhor te dê clareza e foco para o ensaio de amanhã. Prepara-se hoje e descansa bem essa noite. ✨',
-        'Tarde de sexta e o ensaio batendo na porta! Aproveite para finalizar a preparação. 🎧',
-      ],
-      noite: [
-        'Véspera do ensaio! Revisão final feita? Descanse bem e amanhã chega pronto para um ensaio de excelência. 🌙',
-        'Vai dormir com as músicas na cabeça e acorda pronto para louvar amanhã. Que Deus abençoe! 🎵',
-        'Que o Espírito Santo guie cada momento do ensaio de amanhã. Descanse com o coração preparado. 🙏',
-      ],
-    },
-    6: { // Sábado
-      manhã: [
-        'Hoje é dia de ensaio! Chega preparado, com o coração aberto e as músicas dominadas. Que Deus abençoe! 🎶',
-        'Sábado de ensaio! Que o Espírito Santo guie cada músico e cada nota ministrada hoje. 🙌',
-        'Dia de ensaio chegou! Quem se preparou durante a semana vai brilhar — e o louvor de domingo também. 💪',
-      ],
-      tarde: [
-        'Que o Senhor afine não só os instrumentos, mas também os corações de cada um no ensaio. 🎵',
-        'Sábado de preparação pro domingo! Que cada detalhe ensaiado hoje fortaleça o louvor de amanhã. 🎸',
-        'Que Deus esteja no centro do ensaio. Cada detalhe praticado é um passo a mais para um louvor ungido. 🙏',
-      ],
-      noite: [
-        'Ensaio feito! Que a preparação de hoje frutifique no louvor de amanhã. Descanse bem. 🌙',
-        'Que Deus abençoe o que foi ensaiado hoje. Amanhã é dia de entregar tudo a Ele no louvor. 😌',
-        'Sábado de dedicação! O louvor de amanhã vai ser fruto de tudo que foi semeado hoje. 🙏',
-      ],
-    },
-  };
-
-  const opcoes = frases[dia][periodo];
-  const chave = `cifrei_ultima_frase_${dia}_${periodo}`;
-  const ultimoIdx = parseInt(localStorage.getItem(chave) ?? '-1');
-  const candidatos = opcoes.map((_, i) => i).filter(i => i !== ultimoIdx);
-  const idx = candidatos[Math.floor(Math.random() * candidatos.length)];
-  localStorage.setItem(chave, String(idx));
-  return { saudacao, frase: opcoes[idx] };
-}
-
-function _renderSaudacao(nome) {
-  const el = document.getElementById('splash-welcome');
-  if (!el) return;
-  const resultado = getSaudacao(nome);
-  const saudEl = document.getElementById('splash-welcome-saud');
-  const fraseEl = document.getElementById('splash-welcome-frase');
-  if (saudEl) saudEl.textContent = resultado.saudacao;
-  if (fraseEl) fraseEl.textContent = resultado.frase;
-  el.style.display = 'block';
+  const h = new Date().getHours();
+  let periodo;
+  if (h >= 5 && h < 12) periodo = 'Bom dia';
+  else if (h >= 12 && h < 18) periodo = 'Boa tarde';
+  else periodo = 'Boa noite';
+  return `${periodo}, ${nome}!`;
 }
 
 function saveName() {
@@ -3075,7 +2754,9 @@ function saveName() {
    if(val.length < 2) return showToast('Digite um nome válido!');
    localStorage.setItem('cifrei_username', val);
    document.getElementById('name-modal').style.display = 'none';
-   _renderSaudacao(val);
+   const welcomeEl = document.getElementById('splash-welcome');
+   welcomeEl.textContent = getSaudacao(val);
+   welcomeEl.style.display = 'block';
    showToast(`Bem-vindo, ${val}!`);
    _fbInitPromise = initFirebase();
 }
@@ -3441,9 +3122,6 @@ function performEntranceAnimations() {
   nav.style.animation = 'fadeInUp 0.4s ease forwards';
   app.style.display='';
   app.style.animation = 'fadeInUp 0.4s ease forwards';
-  const bnav = document.getElementById('bottom-nav');
-  if (bnav) bnav.classList.add('show');
-  document.body.classList.add('has-bnav');
   setTimeout(() => {
     nav.style.animation = '';
     app.style.animation = '';
@@ -3532,7 +3210,7 @@ async function _carregarSetlistAsync() {
     try {
       const PROJECT = 'cifrei-e37f6';
       const r = await Promise.race([
-        fetch('/proxy/firestore/setlist'),
+        fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/salas/setlist_musico`),
         new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000))
       ]);
       if (r.ok) {
@@ -3722,7 +3400,6 @@ const BANCO_CACHE_KEY = 'cifrei_banco_raw';
 const BANCO_CACHE_TS  = 'cifrei_banco_ts';
 const BANCO_CACHE_TTL = 60 * 60 * 1000; // 1 hora — garante cifras editadas aparecem no F5
 
-
 function _salvarCacheBanco(txt) {
   try {
     localStorage.setItem(BANCO_CACHE_KEY, txt);
@@ -3901,7 +3578,7 @@ function filtrarBanco() {
 
   if (!S.bancoFiltrado.length && q) {
     const listEl2 = document.getElementById('banco-list');
-    if (listEl2) listEl2.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎵</div><div class="empty-state-title">Nenhuma música encontrada</div><div class="empty-state-sub">Tente outro termo de busca.</div></div>';
+    if (listEl2) listEl2.innerHTML = '<div class="banco-empty">Nenhuma música encontrada.</div>';
     if (pag) pag.style.display = 'none';
     return;
   }
@@ -3955,7 +3632,7 @@ function renderBanco(list, reset) {
   if (!c) return;
 
   if (!list.length) {
-    c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎵</div><div class="empty-state-title">Nenhuma música encontrada</div><div class="empty-state-sub">Tente outro termo de busca.</div></div>';
+    c.innerHTML = '<div class="banco-empty">Nenhuma música encontrada.</div>';
     if (pag) pag.style.display = 'none';
     return;
   }
@@ -4292,10 +3969,10 @@ function showView(n){
     // Se escalas ainda não foram carregadas (entrada via home, não via splash de escala)
     if (!_escalasCache?.length) {
       const track = document.getElementById('escala-track');
-      if (track) track.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-title">Carregando escalas...</div></div>';
+      if (track) track.innerHTML = '<div style="text-align:center;padding:40px;color:var(--faint);">⏳ Carregando escalas...</div>';
       _carregarEscalas().then(escalas => {
         if (escalas.length) _renderEscalaView(escalas);
-        else if (track) track.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Nenhuma escala cadastrada</div><div class="empty-state-sub">O responsável ainda não cadastrou escalas. Consulte o líder do louvor.</div></div>';
+        else if (track) track.innerHTML = '<div style="text-align:center;padding:40px;color:var(--faint);font-size:13px;">Nenhuma escala cadastrada ainda.<br>Consulte o líder do louvor.</div>';
       });
     }
   }
@@ -4322,82 +3999,12 @@ function showView(n){
   const isList = n === 'list' || (n === 'reader' && !S.preview);
   document.getElementById('nav-banco-btn').classList.toggle('active', isBanco);
   document.getElementById('nav-list-btn').classList.toggle('active', isList);
-  _syncBottomNav(n);
   if(n !== 'reader') {
     document.getElementById('finalizar-louvor-bar').classList.remove('visible');
     pausarTimers();
   }
   history.pushState({ view: n }, '');
 }
-
-// ── BOTTOM NAV HELPERS ───────────────────────────────────────────────────────
-function _syncBottomNav(viewName) {
-  const map = {list:'bn-list', banco:'bn-banco', escala:'bn-escala', sono:'bn-som', reader:'bn-list'};
-  document.querySelectorAll('.bn-tab').forEach(t => t.classList.remove('active'));
-  const id = map[viewName];
-  if (id) document.getElementById(id)?.classList.add('active');
-}
-
-function _syncBnCnt(n) {
-  const el = document.getElementById('bn-cnt');
-  if (!el) return;
-  if (n > 0) { el.textContent = n; el.style.display = 'flex'; }
-  else { el.style.display = 'none'; }
-}
-
-// Observa mudanças no nav-cnt e espelha no bn-cnt automaticamente
-(function() {
-  const observe = () => {
-    const src = document.getElementById('nav-cnt');
-    if (!src) return;
-    new MutationObserver(() => _syncBnCnt(parseInt(src.textContent) || 0))
-      .observe(src, { childList: true, characterData: true, subtree: true });
-  };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', observe);
-  else observe();
-})();
-
-// ── PULL TO REFRESH ──────────────────────────────────────────────────────────
-(function() {
-  let startY = 0, curY = 0, pulling = false;
-  const THRESHOLD = 68;
-
-  function _ptrEl() { return document.getElementById('ptr-wrap'); }
-  function _activeView() { return document.querySelector('.view.active')?.id; }
-  function _canPtr() { return window.scrollY === 0 && ['view-list','view-banco'].includes(_activeView()); }
-
-  document.addEventListener('touchstart', e => {
-    if (!_canPtr()) return;
-    startY = e.touches[0].clientY; pulling = true;
-  }, { passive: true });
-
-  document.addEventListener('touchmove', e => {
-    if (!pulling) return;
-    curY = e.touches[0].clientY;
-    const pull = Math.max(0, curY - startY);
-    const wrap = _ptrEl();
-    if (!wrap) return;
-    const h = Math.min(pull * 0.45, 46);
-    wrap.style.height = h + 'px';
-    const inner = document.getElementById('ptr-inner');
-    if (inner) inner.classList.toggle('ready', pull >= THRESHOLD);
-  }, { passive: true });
-
-  document.addEventListener('touchend', () => {
-    if (!pulling) return;
-    const pull = curY - startY;
-    const wrap = _ptrEl();
-    if (wrap) wrap.style.height = '0';
-    const inner = document.getElementById('ptr-inner');
-    if (inner) inner.classList.remove('ready');
-    if (pull >= THRESHOLD) {
-      const v = _activeView();
-      if (v === 'view-banco') carregarBanco();
-      else handleRefresh();
-    }
-    pulling = false; startY = 0; curY = 0;
-  }, { passive: true });
-})();
 
 function _recarregarDeckEscala() {
   if (!_deckEscalas.length) return;
@@ -4546,37 +4153,58 @@ function _loginPreviewAvatar(login) {
 
 // ── LOGIN VIA REST — não depende do SDK Firebase ─────────────────────────────
 async function _loginViaRest(loginInput, senhaInput) {
+  const PROJECT = 'cifrei-e37f6';
+  let url = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/avatars_musicos?pageSize=300`;
   const dbg = document.getElementById('bv-firebase-status');
+
   try {
-    const docs = await _getAvatarsComCache(dbg);
-    for (const d of docs) {
-      const f = d.fields || {};
-      const loginDoc = (f.login?.stringValue || '').toLowerCase().trim();
-      const nomeDoc  = (f.nome?.stringValue  || '').toLowerCase().trim();
-      const senhaDoc = (f.senha?.stringValue || f.senha?.integerValue || f.senha?.doubleValue || '').toString().trim();
-      const loginOk  = loginDoc === loginInput || nomeDoc === loginInput;
-      if (loginOk) {
-        if (dbg) dbg.textContent = '✅ Usuário encontrado. Verificando senha...';
-        console.log('[login]', { loginDoc, nomeDoc, senhaDoc: senhaDoc.replace(/./g,'*'), senhaInput: senhaInput.replace(/./g,'*'), match: senhaDoc === senhaInput });
-        if (senhaDoc === senhaInput) {
-          if (dbg) dbg.textContent = '';
-          return {
-            nome:         f.nome?.stringValue        || loginInput,
-            login:        f.login?.stringValue       || loginInput,
-            senha:        senhaDoc,
-            foto:         f.foto?.stringValue        || '',
-            perm_cifra:   f.perm_cifra?.booleanValue  ?? true,
-            perm_letra:   f.perm_letra?.booleanValue  ?? true,
-            perm_setlist: f.perm_setlist?.booleanValue ?? true,
-            instrumento:  f.instrumento?.stringValue  || '',
-          };
-        } else {
-          if (dbg) dbg.textContent = `❌ Senha não confere (${senhaDoc.length} vs ${senhaInput.length} chars)`;
-          return null;
+    let pageCount = 0;
+    while (url) {
+      pageCount++;
+      if (dbg) dbg.textContent = `🔄 Buscando usuários (pág ${pageCount})...`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const docs = data.documents || [];
+
+      for (const d of docs) {
+        const f = d.fields || {};
+        const loginDoc = (f.login?.stringValue || '').toLowerCase().trim();
+        const nomeDoc  = (f.nome?.stringValue  || '').toLowerCase().trim();
+        // Senha pode ser string ou inteiro
+        const senhaDoc = (f.senha?.stringValue || f.senha?.integerValue || f.senha?.doubleValue || '').toString().trim();
+        const loginOk  = loginDoc === loginInput || nomeDoc === loginInput;
+
+        if (loginOk) {
+          if (dbg) dbg.textContent = `✅ Usuário encontrado. Verificando senha...`;
+          // Debug: mostra o que está sendo comparado
+          console.log('[login]', { loginDoc, nomeDoc, senhaDoc: senhaDoc.replace(/./g,'*'), senhaInput: senhaInput.replace(/./g,'*'), match: senhaDoc === senhaInput });
+          if (senhaDoc === senhaInput) {
+            if (dbg) dbg.textContent = '';
+            return {
+              nome:         f.nome?.stringValue        || loginInput,
+              login:        f.login?.stringValue       || loginInput,
+              senha:        senhaDoc,
+              foto:         f.foto?.stringValue        || '',
+              perm_cifra:   f.perm_cifra?.booleanValue  ?? true,
+              perm_letra:   f.perm_letra?.booleanValue  ?? true,
+              perm_setlist: f.perm_setlist?.booleanValue ?? true,
+              instrumento:  f.instrumento?.stringValue  || '',
+            };
+          } else {
+            if (dbg) dbg.textContent = `❌ Senha não confere (${senhaDoc.length} vs ${senhaInput.length} chars)`;
+            return null; // usuário encontrado mas senha errada
+          }
         }
       }
+
+      // Próxima página se existir
+      url = data.nextPageToken
+        ? `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/avatars_musicos?pageSize=300&pageToken=${data.nextPageToken}`
+        : null;
     }
-    if (dbg) dbg.textContent = '❌ Usuário não encontrado';
+
+    if (dbg) dbg.textContent = `❌ Usuário não encontrado`;
     return null;
   } catch(e) {
     throw new Error('Falha na conexão: ' + e.message);
@@ -4644,7 +4272,9 @@ async function confirmarBoasVindas() {
     }
 
     document.getElementById('modal-boas-vindas').style.display = 'none';
-    _renderSaudacao(usuario.nome.split(' ')[0]);
+    const welcomeEl = document.getElementById('splash-welcome');
+    welcomeEl.textContent = getSaudacao(usuario.nome);
+    welcomeEl.style.display = 'block';
 
   } catch(e) {
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Entrar';
@@ -5427,7 +5057,6 @@ async function _salvarLetraPermanente(s) {
 
 async function openSong(i){
   S.preview=null; stopScroll(); S.idx=i;
-  document.querySelectorAll('#song-list .song-item').forEach((el,idx) => el.classList.toggle('playing', idx === i));
   const songAtual = S.songs[i];
 
   // O setlist já tem o content editado — só complementa com letra/verified do banco
@@ -7405,7 +7034,9 @@ async function salvarNomePerfil() {
   // Não deleta doc antigo — admin controla os cadastros
   const welcomeEl = document.getElementById('splash-welcome');
   if (welcomeEl && welcomeEl.style.display !== 'none') {
-    _renderSaudacao(novoNome.split(' ')[0]);
+    const hora = new Date().getHours();
+    const saud = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+    welcomeEl.textContent = `${saud}, ${novoNome}! \u{1F44B}`;
   }
   if (typeof startOnlinePresence === 'function') startOnlinePresence();
   showToast(temNovaFoto ? 'Perfil atualizado \u2713' : `Nome alterado para "${novoNome}" \u2713`);
@@ -7484,10 +7115,11 @@ async function _carregarEscalas() {
     }
   }
 
-  // Caminho 2: Firestore REST via proxy Netlify (evita 429 no googleapis.com)
+  // Caminho 2: Firestore REST API direto (fallback — funciona em todos os browsers)
   try {
+    const PROJECT = 'cifrei-e37f6';
     const res = await Promise.race([
-      fetch('/proxy/firestore/escalas'),
+      fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/escalas`),
       new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout REST 8s')), 8000))
     ]);
     if (!res.ok) throw new Error(`REST HTTP ${res.status}`);
@@ -7536,7 +7168,7 @@ async function abrirEscala() {
     track.innerHTML = '<div style="text-align:center;padding:40px;color:var(--faint);">⏳ Carregando...</div>';
     const escalas = await _carregarEscalas();
     if (!escalas.length) {
-      track.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Nenhuma escala cadastrada</div><div class="empty-state-sub">O responsável ainda não cadastrou escalas. Consulte o líder do louvor.</div></div>';
+      track.innerHTML = '<div style="text-align:center;padding:40px;color:var(--faint);font-size:13px;">Nenhuma escala cadastrada ainda.<br>Consulte o líder do louvor.</div>';
       return;
     }
     await _renderEscalaView(escalas);
@@ -7573,7 +7205,7 @@ async function _renderEscalaView(escalas) {
   // Ordem: passadas (antigas→recentes) + proximas (recentes→futuras)
   _deckEscalas = [...passadas30.reverse(), ...proximas];
   if (!_deckEscalas.length) {
-    track.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">Nenhuma escala programada</div><div class="empty-state-sub">Ainda não há escalas para os próximos dias.</div></div>';
+    track.innerHTML = '<div style="text-align:center;padding:40px;color:var(--faint);font-size:13px;">Nenhuma escala programada.</div>';
     return;
   }
 
@@ -9343,6 +8975,9 @@ async function executarDiagnostico() {
 
   // ── URLs Diretas ──
   section('URLs DIRETAS (externas)');
+  status.textContent = 'Testando googleapis.com...';
+  await testFetch('https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/salas/setlist_musico', 'googleapis.com (Firestore)');
+
   status.textContent = 'Testando gist.githubusercontent.com...';
   await testFetch('https://gist.githubusercontent.com/brjubz/ac2d9ca53f29fa99ac1c5f4be584b2b1/raw?t=' + Date.now(), 'gist.githubusercontent.com');
 
@@ -9352,10 +8987,10 @@ async function executarDiagnostico() {
   status.textContent = 'Testando jsDelivr...';
   await testFetch('https://cdn.jsdelivr.net/npm/firebase@11.6.1/firebase-app.js', 'cdn.jsdelivr.net');
 
-  // ── Escalas via Proxy ──
-  section('ESCALA (via proxy Netlify)');
+  // ── Escalas Firestore ──
+  section('ESCALA (Firestore REST direto)');
   status.textContent = 'Testando escalas...';
-  var r6 = await testFetch('/proxy/firestore/escalas', 'Escalas via proxy');
+  var r6 = await testFetch('https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/escalas', 'Escalas via REST');
   if (r6) {
     try {
       var data = await r6.json();

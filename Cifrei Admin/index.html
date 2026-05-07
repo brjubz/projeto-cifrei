@@ -1627,6 +1627,21 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
           </div>
         </div>
       </details>
+      <!-- Groq (provider rápido) -->
+      <details style="margin-top:8px;">
+        <summary style="cursor:pointer;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;list-style:none;padding:6px 0;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          ⚙ Configuração do Groq (provider rápido)
+        </summary>
+        <div class="card" style="margin-top:10px;border-color:rgba(251,191,36,.25);">
+          <div style="font-size:12px;font-weight:700;color:#fbbf24;margin-bottom:8px;">Chave da API Groq</div>
+          <div style="display:flex;gap:8px;">
+            <input id="ia-groq-key" type="password" class="form-input" placeholder="gsk_..." style="flex:1;font-family:var(--font-mono);font-size:12px;" oninput="salvarChaveGroq()" />
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('ia-groq-key').type=document.getElementById('ia-groq-key').type==='password'?'text':'password'">👁</button>
+          </div>
+          <div style="font-size:11px;color:var(--faint);margin-top:8px;">Obtenha gratuitamente em <strong style="color:#fbbf24;">console.groq.com</strong> → API Keys → Create API Key.</div>
+        </div>
+      </details>
       <!-- OpenRouter (provider extra gratuito) -->
       <details style="margin-top:8px;">
         <summary style="cursor:pointer;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;list-style:none;padding:6px 0;">
@@ -2252,8 +2267,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
 const CREDENCIAIS = { user: 'julioyatra', pass: 'alexnaguitarra' };
 const GIST_SETLIST_DEFAULT = '4ddc9a95ef4e523dcafff049a31caeb2';
 const GIST_BANCO_DEFAULT   = 'ac2d9ca53f29fa99ac1c5f4be584b2b1';
-// Token fixo — já configurado, não precisa preencher manualmente
-const GITHUB_TOKEN_DEFAULT = localStorage.getItem('cifrei_github_token') || '';
+const GITHUB_TOKEN_DEFAULT = localStorage.getItem('adm_token') || '';
 
 // ── FIREBASE (mesmo projeto do app) ──────────────────────────────────────────
 const FB_CONFIG = {
@@ -5376,9 +5390,9 @@ ${horariosTop}
 }
 
 // ── CONFIGURAÇÃO DE PROVIDERS ────────────────────────────────────────────────
-const IA_CHAVE_GROQ    = localStorage.getItem('cifrei_groq_key') || '';
-const IA_CHAVE_GEMINI  = localStorage.getItem('cifrei_gemini_key') || '';
-const IA_CHAVE_CEREBRAS = localStorage.getItem('cifrei_cerebras_key') || '';
+const IA_CHAVE_GROQ    = '';
+const IA_CHAVE_GEMINI  = 'AIzaSyCZ8B19BcWThIubTvHk5CHHFmYNQkhxWHo';
+const IA_CHAVE_CEREBRAS = 'csk-j6nrnc26r2ypdn6def42963t4nj63ynh9y8nptne6589xkv8';
 
 const IA_CEREBRAS_MODELOS = [
   'llama-3.3-70b',   // melhor qualidade, 30 req/min sem limite diário
@@ -5448,7 +5462,7 @@ async function _iaChamarGroq(mensagens, sistemaTexto) {
       ];
       const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${IA_CHAVE_GROQ}` },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('cifrei_groq_key') || IA_CHAVE_GROQ}` },
         body: JSON.stringify({ model: modelo, messages: msgs, temperature: 0.8, max_tokens: 2048 })
       });
       if (res.status === 429) { _iaModelosLimitados['groq_'+modelo] = agora; continue; }
@@ -5504,8 +5518,14 @@ function salvarChaveOpenRouter() {
   if (val) localStorage.setItem('cifrei_openrouter_key', val);
 }
 
+function salvarChaveGroq() {
+  const val = document.getElementById('ia-groq-key')?.value?.trim();
+  if (val) localStorage.setItem('cifrei_groq_key', val);
+  else localStorage.removeItem('cifrei_groq_key');
+}
+
 // Chave OpenRouter — provider extra com modelos gratuitos
-const IA_CHAVE_OPENROUTER = localStorage.getItem('cifrei_openrouter_key') || '';
+const IA_CHAVE_OPENROUTER = '';
 
 const IA_OPENROUTER_MODELOS = [
   'meta-llama/llama-3.1-8b-instruct:free',
@@ -6094,6 +6114,11 @@ function goToIA() {
     const status = document.getElementById('ia-key-status');
     if (status) status.innerHTML = '<span style="color:var(--green);font-weight:700;">✓ Chave salva</span>';
   }
+  const inpGroq = document.getElementById('ia-groq-key');
+  if (inpGroq) inpGroq.value = localStorage.getItem('cifrei_groq_key') || '';
+  const inpOr = document.getElementById('ia-openrouter-key');
+  if (inpOr) inpOr.value = localStorage.getItem('cifrei_openrouter_key') || '';
+
   const modelo = localStorage.getItem('cifrei_gemini_model');
   if (modelo) {
     _iaAtualizarStatus(modelo);
