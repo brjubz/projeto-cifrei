@@ -425,6 +425,7 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 #chord-popup .cp-dots{display:flex;gap:4px;align-items:center;}
 #chord-popup .cp-dot{width:6px;height:6px;border-radius:50%;background:var(--bg4);transition:background .15s;}
 #chord-popup .cp-dot.active{background:var(--green);}
+#chord-popup .cp-bass{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:.3px;}
 
 /* ── BOTÃO FINALIZAR LOUVOR ─────────────── */
 .finalizar-louvor-inline {
@@ -9068,6 +9069,7 @@ window.copiarDiagnostico = copiarDiagnostico;
 <div id="chord-popup">
   <div class="cp-title"></div>
   <div class="cp-svg"></div>
+  <div class="cp-bass"></div>
   <div class="cp-nav">
     <button class="cp-prev" onclick="_chordPopupNav(-1)">&#8249;</button>
     <div class="cp-dots"></div>
@@ -9084,6 +9086,7 @@ let _chordsDb = null;
 let _chordPopupPositions = [];
 let _chordPopupIdx = 0;
 let _chordPopupAnchor = null;
+let _chordPopupBaixo = null;
 
 // Mapeamento para as chaves EXATAS do chords-db (Csharp, Eb, Fsharp, Ab, Bb...)
 const _CHORD_ROOT_MAP = {
@@ -9124,13 +9127,29 @@ function _parsearAcorde(nome) {
   return { root, suffix: dbSuffix };
 }
 
+function _dificuldadeAcorde(pos) {
+  let score = 0;
+  score += (pos.barres || []).length * 3;                        // pestana = mais difícil
+  score += Math.max(0, (pos.baseFret || 1) - 1) * 0.4;          // casas mais altas
+  score += pos.frets.filter(f => f > 4).length * 0.5;           // trastes muito altos
+  score += new Set(pos.fingers.filter(f => f > 0)).size * 0.3;  // mais dedos = mais difícil
+  return score;
+}
+
 function _buscarPosicoesAcorde(nome, db) {
   const parsed = _parsearAcorde(nome);
   if (!parsed || !db?.chords) return [];
   const grupo = db.chords[parsed.root];
   if (!grupo) return [];
   const entry = grupo.find(e => e.suffix === parsed.suffix);
-  return entry?.positions || [];
+  const positions = entry?.positions || [];
+  // Ordena da mais fácil para a mais difícil
+  return [...positions].sort((a, b) => _dificuldadeAcorde(a) - _dificuldadeAcorde(b));
+}
+
+function _extrairBaixo(nome) {
+  const idx = nome.indexOf('/');
+  return idx >= 0 ? nome.slice(idx + 1) : null;
 }
 
 async function _carregarChordsDb() {
@@ -9223,6 +9242,8 @@ function _renderChordPopup() {
   ).join('');
   popup.querySelector('.cp-prev').disabled = _chordPopupIdx === 0;
   popup.querySelector('.cp-next').disabled = _chordPopupIdx === _chordPopupPositions.length - 1;
+  const bassEl = popup.querySelector('.cp-bass');
+  bassEl.textContent = _chordPopupBaixo ? 'baixo: ' + _chordPopupBaixo : '';
 }
 
 function _posicionarChordPopup(anchor, popup) {
@@ -9251,6 +9272,7 @@ async function _abrirChordPopup(anchor, nomeAcorde) {
   const popup = document.getElementById('chord-popup');
   if (!popup) return;
   _chordPopupAnchor = anchor;
+  _chordPopupBaixo = _extrairBaixo(nomeAcorde);
 
   popup.querySelector('.cp-title').textContent = nomeAcorde;
   popup.querySelector('.cp-svg').innerHTML = '<div style="color:#a1a1aa;font-size:11px;padding:18px 0 14px">carregando...</div>';
