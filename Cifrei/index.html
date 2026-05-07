@@ -802,43 +802,29 @@ function _loginViaCacheLocal(loginInput, senhaInput) {
   } catch(e) { return undefined; } // erro → forçar REST
 }
 
-// Login via REST — independente do módulo ES6
+// Login via REST — busca direta por documento (1 leitura, não varre a coleção)
 async function _loginViaRestDireto(loginInput, senhaInput) {
-  var url = 'https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/avatars_musicos?pageSize=300';
+  var PROJECT = 'cifrei-e37f6';
   var dbg = document.getElementById('bv-firebase-status');
   try {
-    var page = 0;
-    while (url) {
-      page++;
-      if (dbg) dbg.textContent = page > 1 ? '🔄 Buscando (pág ' + page + ')...' : '🔄 Verificando...';
-      var res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      var data = await res.json();
-      var docs = data.documents || [];
-      for (var d of docs) {
-        var f = d.fields || {};
-        var loginDoc = (f.login && f.login.stringValue || '').toLowerCase().trim();
-        var nomeDoc  = (f.nome  && f.nome.stringValue  || '').toLowerCase().trim();
-        var senhaDoc = (f.senha && (f.senha.stringValue || String(f.senha.integerValue || '')) || '').trim();
-        if ((loginDoc === loginInput || nomeDoc === loginInput) && senhaDoc === senhaInput) {
-          return {
-            nome: f.nome && f.nome.stringValue || loginInput,
-            login: f.login && f.login.stringValue || loginInput,
-            foto: f.foto && f.foto.stringValue || '',
-            perm_cifra: f.perm_cifra && f.perm_cifra.booleanValue !== false,
-            perm_letra: f.perm_letra && f.perm_letra.booleanValue !== false,
-            perm_setlist: f.perm_setlist && f.perm_setlist.booleanValue !== false,
-            instrumento: f.instrumento && f.instrumento.stringValue || '',
-          };
-        }
-        // Saída antecipada só pelo login (ID único) — não pelo nome, que pode repetir
-        if (loginDoc === loginInput && senhaDoc !== senhaInput) return null;
-      }
-      url = data.nextPageToken
-        ? 'https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/avatars_musicos?pageSize=300&pageToken=' + data.nextPageToken
-        : null;
-    }
-    return null;
+    if (dbg) dbg.textContent = '🔄 Verificando...';
+    // GET direto pelo ID do documento (login = document ID) — 1 leitura
+    var res = await fetch('https://firestore.googleapis.com/v1/projects/' + PROJECT + '/databases/(default)/documents/avatars_musicos/' + encodeURIComponent(loginInput));
+    if (res.status === 404) return null; // usuário não existe
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var doc = await res.json();
+    var f = doc.fields || {};
+    var senhaDoc = (f.senha && (f.senha.stringValue || String(f.senha.integerValue || '')) || '').trim();
+    if (senhaDoc !== senhaInput) return null; // senha errada
+    return {
+      nome: f.nome && f.nome.stringValue || loginInput,
+      login: f.login && f.login.stringValue || loginInput,
+      foto: f.foto && f.foto.stringValue || '',
+      perm_cifra: f.perm_cifra ? f.perm_cifra.booleanValue !== false : true,
+      perm_letra: f.perm_letra ? f.perm_letra.booleanValue !== false : true,
+      perm_setlist: f.perm_setlist ? f.perm_setlist.booleanValue !== false : true,
+      instrumento: f.instrumento && f.instrumento.stringValue || '',
+    };
   } catch(e) { throw e; }
 }
 
@@ -9152,7 +9138,7 @@ async function _carregarChordsDb() {
   try {
     const cached = sessionStorage.getItem('cifrei_chords_db');
     if (cached) { _chordsDb = JSON.parse(cached); return _chordsDb; }
-    const res = await fetch('https://cdn.jsdelivr.net/npm/chords-db/lib/guitar.json');
+    const res = await fetch('https://raw.githubusercontent.com/tombatossals/chords-db/master/lib/guitar.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     _chordsDb = await res.json();
     try { sessionStorage.setItem('cifrei_chords_db', JSON.stringify(_chordsDb)); } catch(e) {}
