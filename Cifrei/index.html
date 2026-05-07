@@ -855,6 +855,43 @@ async function _iniciarSemModulo() {
   }
 })();
 
+// ── CACHE DE AVATARS — busca única por 6h, elimina leituras repetidas no Firestore ──
+var AVATARS_CACHE_KEY = 'cifrei_avatars_docs';
+var AVATARS_CACHE_TS  = 'cifrei_avatars_ts';
+var AVATARS_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 horas
+
+async function _getAvatarsComCache(dbgEl) {
+  try {
+    var cached = localStorage.getItem(AVATARS_CACHE_KEY);
+    var ts = parseInt(localStorage.getItem(AVATARS_CACHE_TS) || '0');
+    if (cached && ts && (Date.now() - ts) < AVATARS_CACHE_TTL) {
+      return JSON.parse(cached);
+    }
+  } catch(e) {}
+
+  var allDocs = [];
+  var url = '/proxy/firestore/avatars?pageSize=300';
+  var page = 0;
+  while (url) {
+    page++;
+    if (dbgEl) dbgEl.textContent = page > 1 ? '🔄 Buscando (pág ' + page + ')...' : '🔄 Verificando...';
+    var res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    allDocs = allDocs.concat(data.documents || []);
+    url = data.nextPageToken
+      ? '/proxy/firestore/avatars?pageSize=300&pageToken=' + data.nextPageToken
+      : null;
+  }
+
+  try {
+    localStorage.setItem(AVATARS_CACHE_KEY, JSON.stringify(allDocs));
+    localStorage.setItem(AVATARS_CACHE_TS, Date.now().toString());
+  } catch(e) {}
+
+  return allDocs;
+}
+
 // Login via REST — independente do módulo ES6
 async function _loginViaRestDireto(loginInput, senhaInput) {
   var dbg = document.getElementById('bv-firebase-status');
@@ -3685,10 +3722,6 @@ const BANCO_CACHE_KEY = 'cifrei_banco_raw';
 const BANCO_CACHE_TS  = 'cifrei_banco_ts';
 const BANCO_CACHE_TTL = 60 * 60 * 1000; // 1 hora — garante cifras editadas aparecem no F5
 
-// ── CACHE DE AVATARS (login) ──────────────────────────────────────────────────
-const AVATARS_CACHE_KEY = 'cifrei_avatars_docs';
-const AVATARS_CACHE_TS  = 'cifrei_avatars_ts';
-const AVATARS_CACHE_TTL = 6 * 60 * 60 * 1000; // 6 horas
 
 function _salvarCacheBanco(txt) {
   try {
@@ -4509,39 +4542,6 @@ function _loginPreviewAvatar(login) {
       }
     } catch(e) {}
   }, 500);
-}
-
-// ── CACHE DE AVATARS — busca única por 6h, elimina leituras repetidas no Firestore ──
-async function _getAvatarsComCache(dbgEl) {
-  try {
-    const cached = localStorage.getItem(AVATARS_CACHE_KEY);
-    const ts = parseInt(localStorage.getItem(AVATARS_CACHE_TS) || '0');
-    if (cached && ts && (Date.now() - ts) < AVATARS_CACHE_TTL) {
-      return JSON.parse(cached);
-    }
-  } catch(e) {}
-
-  const allDocs = [];
-  let url = '/proxy/firestore/avatars?pageSize=300';
-  let page = 0;
-  while (url) {
-    page++;
-    if (dbgEl) dbgEl.textContent = page > 1 ? `🔄 Buscando (pág ${page})...` : '🔄 Verificando...';
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    allDocs.push(...(data.documents || []));
-    url = data.nextPageToken
-      ? `/proxy/firestore/avatars?pageSize=300&pageToken=${data.nextPageToken}`
-      : null;
-  }
-
-  try {
-    localStorage.setItem(AVATARS_CACHE_KEY, JSON.stringify(allDocs));
-    localStorage.setItem(AVATARS_CACHE_TS, Date.now().toString());
-  } catch(e) {}
-
-  return allDocs;
 }
 
 // ── LOGIN VIA REST — não depende do SDK Firebase ─────────────────────────────
