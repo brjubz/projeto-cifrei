@@ -778,6 +778,30 @@ async function _iniciarSemModulo() {
   }
 })();
 
+// Valida credenciais usando o cache local de avatars_musicos (evita 429)
+function _loginViaCacheLocal(loginInput, senhaInput) {
+  try {
+    const raw = localStorage.getItem('cifrei_avatars_cache');
+    const ts  = parseInt(localStorage.getItem('cifrei_avatars_cache_ts') || '0');
+    if (!raw || (Date.now() - ts) > 6 * 60 * 60 * 1000) return undefined; // cache expirado
+    const cache = JSON.parse(raw);
+    // Busca por login ou nome
+    const entrada = cache[loginInput] || null;
+    if (!entrada) return null; // usuário não encontrado no cache
+    const senhaDoc = String(entrada.senha || '').trim();
+    if (senhaDoc !== senhaInput) return null; // senha errada
+    return {
+      nome: entrada.nome || loginInput,
+      login: entrada.login || loginInput,
+      foto: entrada.foto || '',
+      perm_cifra: entrada.perm_cifra !== false,
+      perm_letra: entrada.perm_letra !== false,
+      perm_setlist: entrada.perm_setlist !== false,
+      instrumento: entrada.instrumento || '',
+    };
+  } catch(e) { return undefined; } // erro → forçar REST
+}
+
 // Login via REST — independente do módulo ES6
 async function _loginViaRestDireto(loginInput, senhaInput) {
   var url = 'https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/avatars_musicos?pageSize=300';
@@ -833,7 +857,11 @@ async function _btnEntrarClick() {
   btn.disabled = true;
   if (dbg) dbg.textContent = '';
   try {
-    var usuario = await _loginViaRestDireto(login.toLowerCase().trim(), senha.trim());
+    var loginInput = login.toLowerCase().trim();
+    var senhaInput = senha.trim();
+    // Tenta cache local primeiro (evita leitura no Firestore e erro 429)
+    var cacheResult = _loginViaCacheLocal(loginInput, senhaInput);
+    var usuario = (cacheResult !== undefined) ? cacheResult : await _loginViaRestDireto(loginInput, senhaInput);
     if (!usuario) {
       if (dbg) dbg.textContent = '';
       if (erroEl) { erroEl.textContent = '⚠️ Login ou senha incorretos.'; erroEl.style.display = 'block'; }
@@ -4245,9 +4273,12 @@ async function confirmarBoasVindas() {
     const loginInput = login.toLowerCase().trim();
     const senhaInput = senha.trim();
 
-    // Tenta REST primeiro (não depende do SDK — funciona mesmo sem Firebase carregado)
-    let usuario = null;
-    try {
+    // 1. Tenta cache local (evita qualquer leitura no Firestore)
+    const cacheResult = _loginViaCacheLocal(loginInput, senhaInput);
+    let usuario = (cacheResult !== undefined) ? cacheResult : null;
+
+    // 2. Se cache não resolveu, tenta REST
+    if (usuario === null && cacheResult === undefined) try {
       usuario = await _loginViaRest(loginInput, senhaInput);
     } catch(e) {
       // Fallback: tenta via SDK se já estiver carregado
@@ -9068,7 +9099,16 @@ let _chordPopupPositions = [];
 let _chordPopupIdx = 0;
 let _chordPopupAnchor = null;
 
-const _CHORD_ENHAR = {Db:'C#',Eb:'D#',Fb:'E',Gb:'F#',Ab:'G#',Bb:'A#',Cb:'B'};
+// Mapeamento para as chaves EXATAS do chords-db (Csharp, Eb, Fsharp, Ab, Bb...)
+const _CHORD_ROOT_MAP = {
+  'C':'C','C#':'Csharp','Db':'Csharp',
+  'D':'D','D#':'Eb','Eb':'Eb',
+  'E':'E','Fb':'E',
+  'F':'F','F#':'Fsharp','Gb':'Fsharp',
+  'G':'G','G#':'Ab','Ab':'Ab',
+  'A':'A','A#':'Bb','Bb':'Bb',
+  'B':'B','Cb':'B',
+};
 const _CHORD_SUFFIX_MAP = {
   '':'major','m':'minor','min':'minor',
   '7':'7','maj7':'maj7','M7':'maj7','maj9':'maj9',
@@ -9090,8 +9130,9 @@ function _parsearAcorde(nome) {
   const base = nome.split('/')[0];
   const m = base.match(/^([A-G][b#]?)(.*)/);
   if (!m) return null;
-  let root = m[1], suffix = m[2].trim();
-  root = _CHORD_ENHAR[root] || root;
+  const root = _CHORD_ROOT_MAP[m[1]];
+  if (!root) return null;
+  const suffix = m[2].trim();
   const dbSuffix = _CHORD_SUFFIX_MAP[suffix];
   if (dbSuffix === undefined) return null;
   return { root, suffix: dbSuffix };
