@@ -792,7 +792,8 @@ async function _loginViaRestDireto(loginInput, senhaInput) {
             instrumento: f.instrumento && f.instrumento.stringValue || '',
           };
         }
-        if (loginDoc === loginInput || nomeDoc === loginInput) return null;
+        // Saída antecipada só pelo login (ID único) — não pelo nome, que pode repetir
+        if (loginDoc === loginInput && senhaDoc !== senhaInput) return null;
       }
       url = data.nextPageToken
         ? 'https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/avatars_musicos?pageSize=300&pageToken=' + data.nextPageToken
