@@ -3376,7 +3376,7 @@ async function _carregarSetlistAsync() {
     try {
       const PROJECT = 'cifrei-e37f6';
       const r = await Promise.race([
-        fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/salas/setlist_musico`),
+        fetch('/proxy/firestore/setlist'),
         new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000))
       ]);
       if (r.ok) {
@@ -7277,11 +7277,10 @@ async function _carregarEscalas() {
     }
   }
 
-  // Caminho 2: Firestore REST API direto (fallback — funciona em todos os browsers)
+  // Caminho 2: Firestore REST via proxy Netlify (evita 429 no googleapis.com)
   try {
-    const PROJECT = 'cifrei-e37f6';
     const res = await Promise.race([
-      fetch(`https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/escalas`),
+      fetch('/proxy/firestore/escalas'),
       new Promise((_, rej) => setTimeout(() => rej(new Error('Timeout REST 8s')), 8000))
     ]);
     if (!res.ok) throw new Error(`REST HTTP ${res.status}`);
