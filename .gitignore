@@ -1,0 +1,44 @@
+# Sistema operacional
+.DS_Store
+Thumbs.db
+.Thumbs.db
+
+# IDEs e editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.code-workspace
+
+# Node.js (caso venha a ser usado)
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-debug.log*
+yarn-error.log*
+.npm
+
+# Builds e distribuição
+dist/
+build/
+.build/
+*.zip
+*.tar.gz
+
+# Variáveis de ambiente (nunca subir segredos)
+.env
+.env.local
+.env.*.local
+
+# Firebase CLI
+.firebase/
+firebase-debug.log
+.firebaserc
+
+# Cache e temporários
+.cache/
+*.log
+tmp/
+temp/

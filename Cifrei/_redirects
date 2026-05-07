@@ -1,0 +1,11 @@
+# Proxy Gist — contorna bloqueios de CDN (Opera, Safari, redes corporativas)
+# Browser acessa /proxy/gist/:id/raw → Netlify busca no GitHub
+/proxy/gist/:id/raw  https://gist.githubusercontent.com/brjubz/:id/raw  200
+
+# Proxy Firestore REST — setlist lido direto sem Firebase SDK
+/proxy/firestore/setlist  https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/salas/setlist_musico  200
+
+# Proxy Firebase Compat SDK — evita dependência de gstatic.com no cliente
+/sdk/firebase-app.js          https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js          200
+/sdk/firebase-auth.js         https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js         200
+/sdk/firebase-firestore.js    https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js    200

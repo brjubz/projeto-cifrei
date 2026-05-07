@@ -1,0 +1,18 @@
+# Nunca cacheia o HTML — garante versão mais recente sempre
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Service Worker também sem cache
+/sw-cifrei.js
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Assets estáticos podem ser cacheados
+/*.png
+  Cache-Control: public, max-age=86400
+
+/*.ico
+  Cache-Control: public, max-age=86400
