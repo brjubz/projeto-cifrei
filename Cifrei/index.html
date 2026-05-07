@@ -9174,26 +9174,117 @@ function _parsearAcorde(nome) {
 }
 
 function _dificuldadeAcorde(pos) {
+  const barras = _inferirBarras(pos.frets, pos.fingers || []);
   let score = 0;
-  score += (pos.barres || []).length * 3;                        // pestana = mais difícil
-  score += Math.max(0, (pos.baseFret || 1) - 1) * 0.4;          // casas mais altas
-  score += pos.frets.filter(f => f > 4).length * 0.5;           // trastes muito altos
-  score += new Set(pos.fingers.filter(f => f > 0)).size * 0.3;  // mais dedos = mais difícil
+  barras.forEach(b => { score += 1.5 + (b.toStr - b.fromStr) * 0.3; }); // pestanas proporcionais
+  score += Math.max(0, (pos.baseFret || 1) - 1) * 0.35;                 // casa mais alta
+  score += new Set((pos.fingers || []).filter(f => f > 0)).size * 0.2;  // mais dedos
   return score;
+}
+
+// Nota em semitons p/ cada corda em afinação padrão EADGBE
+const _STR_OPEN_NOTE = [4, 9, 2, 7, 11, 4];
+const _CHORD_INTS = {
+  'major':[0,4,7],'minor':[0,3,7],'7':[0,4,7,10],'maj7':[0,4,7,11],
+  'm7':[0,3,7,10],'dim':[0,3,6],'dim7':[0,3,6,9],'aug':[0,4,8],
+  'sus2':[0,2,7],'sus4':[0,5,7],'6':[0,4,7,9],'m6':[0,3,7,9],
+  'add9':[0,4,7,2],'madd9':[0,3,7,2],'9':[0,4,7,10,2],'maj9':[0,4,7,11,2],
+  'm9':[0,3,7,10,2],'5':[0,7],'m7b5':[0,3,6,10],'mmaj7':[0,3,7,11],
+  '7sus4':[0,5,7,10],'aug7':[0,4,8,10],'7b9':[0,4,7,10,1],'7#9':[0,4,7,10,3],
+};
+const _ROOT_NOTE = {
+  'C':0,'Csharp':1,'Db':1,'D':2,'Eb':3,'E':4,'F':5,
+  'Fsharp':6,'Gb':6,'G':7,'Ab':8,'A':9,'Bb':10,'B':11
+};
+
+// Gera posições algoritmicamente varrendo o braço todo
+function _gerarVoicingsAlgo(parsed) {
+  const rootVal = _ROOT_NOTE[parsed.root];
+  if (rootVal === undefined) return [];
+
+  // Para slash chords, usa os intervalos do acorde base
+  let sfx = parsed.suffix;
+  if (sfx.startsWith('/')) sfx = 'major';
+  else if (/^m\//.test(sfx)) sfx = 'minor';
+  else { const s = sfx.indexOf('/'); if (s > 0) sfx = sfx.slice(0, s); }
+
+  const ints = _CHORD_INTS[sfx];
+  if (!ints) return [];
+  const target = new Set(ints.map(i => (rootVal + i) % 12));
+
+  const result = [];
+  const seen = new Set();
+
+  for (let base = 1; base <= 12; base++) {
+    // Para cada corda: encontra nota do acorde no janelamento [base, base+3]
+    const frets = _STR_OPEN_NOTE.map((open, i) => {
+      // Corda solta (só janela baixa)
+      if (base <= 2 && target.has(open % 12)) return 0;
+      for (let f = base; f <= base + 3; f++) {
+        if (target.has((open + f) % 12)) return f;
+      }
+      return -1;
+    });
+
+    const playingIdx = frets.map((f, i) => f >= 0 ? i : -1).filter(i => i >= 0);
+    if (playingIdx.length < 4) continue;
+
+    // Verifica span ≤ 3 trastes
+    const frettedAbs = frets.filter(f => f > 0);
+    if (!frettedAbs.length) continue;
+    if (Math.max(...frettedAbs) - Math.min(...frettedAbs) > 3) continue;
+
+    // Verifica que a raiz está presente
+    const playedNotes = new Set(
+      frets.map((f, i) => f >= 0 ? (_STR_OPEN_NOTE[i] + f) % 12 : -1).filter(n => n >= 0)
+    );
+    if (!playedNotes.has(rootVal)) continue;
+
+    // Muta cordas baixas isoladas antes da primeira corda ativa
+    const firstActive = playingIdx[0];
+    for (let i = 0; i < firstActive; i++) frets[i] = -1;
+
+    // Converte para frets relativos (como o banco usa)
+    const baseFret = frettedAbs.length ? Math.min(...frettedAbs) : base;
+    const relFrets = frets.map(f => f < 0 ? -1 : f === 0 ? 0 : f - baseFret + 1);
+
+    // Deduplica por assinatura
+    const sig = relFrets.join(',') + '@' + baseFret;
+    if (seen.has(sig)) continue;
+    seen.add(sig);
+
+    // Fingers simples: 1→1, 2→2, 3→3, 4→4
+    const fingers = relFrets.map(f => (f <= 0 ? 0 : Math.min(f, 4)));
+
+    result.push({ frets: relFrets, fingers, baseFret, barres: [] });
+  }
+  return result;
 }
 
 function _buscarPosicoesAcorde(nome, db) {
   const parsed = _parsearAcorde(nome);
-  if (!parsed || !db?.chords) return [];
-  const grupo = db.chords[parsed.root];
-  if (!grupo) return [];
-  const entry = grupo.find(e => e.suffix === parsed.suffix);
-  const positions = entry?.positions || [];
-  const filtradas = positions.filter(p => (p.baseFret || 1) <= 5);
-  const source = filtradas.length > 0 ? filtradas : positions;
-  return source
+  if (!parsed) return [];
+
+  // Posições do banco (sem filtro de baseFret — mostra tudo que o DB tem)
+  const dbPositions = (() => {
+    if (!db?.chords) return [];
+    const grupo = db.chords[parsed.root];
+    if (!grupo) return [];
+    const entry = grupo.find(e => e.suffix === parsed.suffix);
+    return entry?.positions || [];
+  })();
+
+  // Posições geradas algoritmicamente (complementam o banco)
+  const algoPositions = _gerarVoicingsAlgo(parsed);
+
+  // Assinaturas das posições do banco para deduplicação
+  const dbSigs = new Set(dbPositions.map(p => p.frets.join(',') + '@' + (p.baseFret || 1)));
+  const extras = algoPositions.filter(p => !dbSigs.has(p.frets.join(',') + '@' + p.baseFret));
+
+  const all = [...dbPositions, ...extras];
+  return all
     .sort((a, b) => _dificuldadeAcorde(a) - _dificuldadeAcorde(b))
-    .slice(0, 4);
+    .slice(0, 8);
 }
 
 function _extrairBaixo(nome) {
