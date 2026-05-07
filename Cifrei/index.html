@@ -2740,12 +2740,137 @@ function voltarHome(){
 }
 
 function getSaudacao(nome) {
-  const h = new Date().getHours();
-  let periodo;
-  if (h >= 5 && h < 12) periodo = 'Bom dia';
-  else if (h >= 12 && h < 18) periodo = 'Boa tarde';
-  else periodo = 'Boa noite';
-  return `${periodo}, ${nome}!`;
+  const agora = new Date();
+  const h = agora.getHours();
+  const dia = agora.getDay(); // 0=dom, 1=seg, 2=ter, 3=qua, 4=qui, 5=sex, 6=sab
+
+  const periodo = h >= 5 && h < 12 ? 'manhã' : h >= 12 && h < 18 ? 'tarde' : 'noite';
+  const saudacao = periodo === 'manhã' ? 'Bom dia' : periodo === 'tarde' ? 'Boa tarde' : 'Boa noite';
+
+  const frases = {
+    0: { // Domingo
+      manhã: [
+        `${saudacao}, ${nome}! É domingo! Que Deus use seu instrumento para transformar vidas hoje. 🙌`,
+        `${saudacao}, ${nome}! Dia de louvor! Que a presença de Deus seja poderosa no culto de hoje. 🎸`,
+        `${saudacao}, ${nome}! Domingo chegou! Vai com tudo — que cada nota seja uma oferta a Deus. 🎶`,
+      ],
+      tarde: [
+        `${saudacao}, ${nome}! Domingo de louvor! Que a unção de Deus marque cada música hoje. 🙏`,
+        `${saudacao}, ${nome}! Tarde de domingo abençoada! Que o louvor de hoje toque muitos corações. 🎵`,
+        `${saudacao}, ${nome}! Como está a preparação para hoje? Que seja um louvor de entrega total. ✨`,
+      ],
+      noite: [
+        `${saudacao}, ${nome}! Como foi o louvor hoje? Que tenha sido cheio de unção! 🙏`,
+        `${saudacao}, ${nome}! Domingo bem vivido! Descanse e já pense na preparação da próxima semana. 😌`,
+        `${saudacao}, ${nome}! Que o louvor de hoje tenha tocado muitos corações. Boa noite! 🌙`,
+      ],
+    },
+    1: { // Segunda
+      manhã: [
+        `${saudacao}, ${nome}! Semana nova, louvor novo. Que Deus abençoe sua preparação esta semana! 🎶`,
+        `${saudacao}, ${nome}! Começando a semana com foco no domingo. Bom estudo das músicas! 🎸`,
+        `${saudacao}, ${nome}! Segunda animada! Já dá para ir ouvindo as músicas do próximo domingo. 🎵`,
+      ],
+      tarde: [
+        `${saudacao}, ${nome}! Segunda de preparação! Ainda dá tempo de revisitar o setlist da semana. 🎶`,
+        `${saudacao}, ${nome}! Boa tarde! Segunda é dia de organizar a semana pensando no domingo. 🙌`,
+        `${saudacao}, ${nome}! Semana começando — quanto antes você olhar as músicas, mais tranquilo chega no domingo! 😊`,
+      ],
+      noite: [
+        `${saudacao}, ${nome}! Aproveite a semana para ir preparando cada música com calma. 🌙`,
+        `${saudacao}, ${nome}! Boa noite! Que tal dar uma ouvida nas músicas de domingo antes de dormir? 🎧`,
+        `${saudacao}, ${nome}! Domingo ainda está longe — mas a preparação começa hoje! 🙏`,
+      ],
+    },
+    2: { // Terça
+      manhã: [
+        `${saudacao}, ${nome}! Terça ainda dá tempo de revisar as músicas com calma. Bom dia! 🎵`,
+        `${saudacao}, ${nome}! Bom dia! Que tal separar um tempinho hoje para praticar? 🎸`,
+        `${saudacao}, ${nome}! Terça de foco! Vai adiantando a preparação do louvor. 💪`,
+      ],
+      tarde: [
+        `${saudacao}, ${nome}! Boa tarde! Bom dia de prática e preparação para o louvor. 🎶`,
+        `${saudacao}, ${nome}! Você já deu uma olhada nas músicas desta semana? Ainda dá tempo! 🙌`,
+        `${saudacao}, ${nome}! Terça à tarde — hora perfeita para revisar o repertório. 🎵`,
+      ],
+      noite: [
+        `${saudacao}, ${nome}! Aproveite para ouvir as músicas de domingo antes de dormir. 🎧`,
+        `${saudacao}, ${nome}! Boa noite! Domingo vem chegando — vai adiantando a preparação. 🌙`,
+        `${saudacao}, ${nome}! Uma revisada nas letras hoje à noite faz toda diferença no domingo! 😊`,
+      ],
+    },
+    3: { // Quarta
+      manhã: [
+        `${saudacao}, ${nome}! Metade da semana já! Como está a preparação para o domingo? 🎶`,
+        `${saudacao}, ${nome}! Quarta-feira — ainda dá tempo de preparar tudo direitinho. 💪`,
+        `${saudacao}, ${nome}! Bom dia! Semana no meio — domingo está chegando, hein! 🎵`,
+      ],
+      tarde: [
+        `${saudacao}, ${nome}! Você já deu uma olhada nas músicas desta semana? A quarta pede isso! 🎸`,
+        `${saudacao}, ${nome}! Boa tarde! Domingo está logo ali — melhor revisar hoje. 🙌`,
+        `${saudacao}, ${nome}! Metade da semana e a preparação em dia? Isso é comprometimento! 🙏`,
+      ],
+      noite: [
+        `${saudacao}, ${nome}! Quarta-feira — hora de revisar tudo para o domingo não chegar de surpresa. 🌙`,
+        `${saudacao}, ${nome}! Boa noite! Aproveite para escutar as músicas antes de dormir. 🎧`,
+        `${saudacao}, ${nome}! Quarta passando — e o ensaio de sexta está chegando! Vai se preparando. 🎶`,
+      ],
+    },
+    4: { // Quinta
+      manhã: [
+        `${saudacao}, ${nome}! Quinta-feira, véspera do ensaio! Vai de revisão hoje? 🎸`,
+        `${saudacao}, ${nome}! Bom dia! O ensaio bate na porta amanhã — bora caprichar na preparação! 💪`,
+        `${saudacao}, ${nome}! Quinta animada! Que tal chegar no ensaio de amanhã já bem preparado? 🎵`,
+      ],
+      tarde: [
+        `${saudacao}, ${nome}! Domingo está logo ali. Melhor repassar as músicas hoje à tarde. 🎶`,
+        `${saudacao}, ${nome}! Boa tarde! Quinta de preparação intensa — o ensaio é amanhã! 🙌`,
+        `${saudacao}, ${nome}! Você está pronto para o ensaio de amanhã? Vai uma revisada rápida? 🎸`,
+      ],
+      noite: [
+        `${saudacao}, ${nome}! Véspera do ensaio — bora dar aquela caprichada nas letras! 🌙`,
+        `${saudacao}, ${nome}! Boa noite! Amanhã é ensaio — chega afiado nas músicas! 💪`,
+        `${saudacao}, ${nome}! Aproveite essa quinta à noite para uma última revisada antes do ensaio. 🎧`,
+      ],
+    },
+    5: { // Sexta
+      manhã: [
+        `${saudacao}, ${nome}! Sextou com ensaio! Chega preparado e vai com tudo. 🎸`,
+        `${saudacao}, ${nome}! Bom dia! Hoje é dia de ensaio — que seja cheio de unção! 🎶`,
+        `${saudacao}, ${nome}! Sexta de louvor! Que o ensaio de hoje alinhe tudo para um domingo incrível. 🙌`,
+      ],
+      tarde: [
+        `${saudacao}, ${nome}! Sextou com ensaio e preparação para o louvor de domingo. Bora! 💪`,
+        `${saudacao}, ${nome}! Boa tarde! Sexta é dia de afinar tudo — o domingo agradece. 🎵`,
+        `${saudacao}, ${nome}! Tarde de sexta e ensaio à vista! Que Deus guie cada acorde hoje. 🙏`,
+      ],
+      noite: [
+        `${saudacao}, ${nome}! Domingo está bem próximo — não deixe para pegar as músicas de última hora! 🌙`,
+        `${saudacao}, ${nome}! Ensaio feito? Descanse, mas já deixa tudo na cabeça para domingo. 😌`,
+        `${saudacao}, ${nome}! Boa noite! Sexta de louvor — que o domingo seja fruto dessa dedicação. 🎶`,
+      ],
+    },
+    6: { // Sábado
+      manhã: [
+        `${saudacao}, ${nome}! Último dia antes do domingo. Que a preparação seja com unção! 🙏`,
+        `${saudacao}, ${nome}! Sábado chegou! Dia de revisão final — amanhã é dia de louvor! 🎵`,
+        `${saudacao}, ${nome}! Bom dia! Sábado é a última chance de chegar afiado no domingo. Bora! 💪`,
+      ],
+      tarde: [
+        `${saudacao}, ${nome}! Sábado à tarde — uma revisada nas músicas e amanhã vai tudo fluir! 🎸`,
+        `${saudacao}, ${nome}! Boa tarde! Já está pronto para o louvor de amanhã? 🙌`,
+        `${saudacao}, ${nome}! Sábado de preparação! Que a dedicação de hoje apareça no louvor de amanhã. 🎶`,
+      ],
+      noite: [
+        `${saudacao}, ${nome}! Boa noite de preparação! Amanhã é dia de ministrar com tudo. 🌙`,
+        `${saudacao}, ${nome}! Véspera de domingo — descanse bem e acorde pronto para louvar! 😌`,
+        `${saudacao}, ${nome}! Última noite antes do culto. Que o louvor de amanhã seja de entrega total. 🙏`,
+      ],
+    },
+  };
+
+  const opcoes = frases[dia][periodo];
+  return opcoes[Math.floor(Math.random() * opcoes.length)];
 }
 
 function saveName() {
