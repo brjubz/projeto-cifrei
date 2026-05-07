@@ -75,34 +75,33 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-lyric);min-he
 .splash-logo img{width:100%;height:100%;object-fit:contain;}
 .splash-title{font-family:var(--font-logo);font-size:clamp(40px,8vw,64px);font-weight:800;letter-spacing:-1px;color:#fff;line-height:1;}
 .splash-welcome{
-  position:relative;
-  background:rgba(52,211,153,.07);
-  border:1px solid rgba(52,211,153,.2);
-  border-radius:20px;
-  padding:16px 22px;
-  margin-top:26px;
+  width:100%;
   max-width:300px;
-  font-family:var(--font-chord);
-  font-weight:300;
-  font-size:14.5px;
-  line-height:1.7;
-  color:rgba(255,255,255,.82);
+  background:rgba(52,211,153,.07);
+  border:1px solid rgba(52,211,153,.18);
+  border-radius:18px;
+  padding:18px 22px;
+  margin-top:22px;
   text-align:center;
-  letter-spacing:.15px;
   animation:fadeInUp .5s ease;
 }
-.splash-welcome::after{
-  content:'';
-  position:absolute;
-  top:-7px;
-  left:50%;
-  margin-left:-7px;
-  width:13px;
-  height:13px;
-  background:rgba(52,211,153,.07);
-  border-top:1px solid rgba(52,211,153,.2);
-  border-left:1px solid rgba(52,211,153,.2);
-  transform:rotate(45deg);
+.splash-welcome-saud{
+  display:block;
+  font-family:var(--font-logo);
+  font-weight:700;
+  font-size:20px;
+  color:var(--green);
+  letter-spacing:-.3px;
+  margin-bottom:8px;
+}
+.splash-welcome-frase{
+  display:block;
+  font-family:var(--font-chord);
+  font-weight:300;
+  font-size:13.5px;
+  line-height:1.7;
+  color:rgba(255,255,255,.68);
+  letter-spacing:.1px;
 }
 .splash-sub{font-family:var(--font-chord);font-size:15px;font-weight:400;color:var(--muted);margin-top:12px;max-width:320px;line-height:1.4;}
 .splash-desc{font-size:14px;color:var(--faint);margin-top:16px;max-width:320px;line-height:1.6;}
@@ -859,12 +858,7 @@ async function _btnEntrarClick() {
     if (usuario.foto) localStorage.setItem('cifrei_foto', usuario.foto);
     else localStorage.removeItem('cifrei_foto');
     document.getElementById('modal-boas-vindas').style.display = 'none';
-    var welcomeEl = document.getElementById('splash-welcome');
-    if (welcomeEl) {
-      var h = new Date().getHours();
-      welcomeEl.textContent = (h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite') + ', ' + usuario.nome.split(' ')[0] + '! 👋';
-      welcomeEl.style.display = 'block';
-    }
+    _renderSaudacao(usuario.nome.split(' ')[0]);
     if (dbg) dbg.textContent = '';
     // Não redireciona — usuário escolhe o que abrir na home
     // Firebase inicia em background
@@ -945,9 +939,6 @@ window.addEventListener('unhandledrejection', function(e) {
 <div id="splash">
 
   <div class="splash-title">cifrei<sup style="font-size: 0.4em; font-weight: 700; margin-left: 4px;">&reg;</sup></div>
-  
-  <!-- MENSAGEM DE BOAS VINDAS -->
-  <div class="splash-welcome" id="splash-welcome" style="display:none;"></div>
 
   <div class="splash-buttons">
     <button class="start-btn" id="start-btn" onclick="_d('iniciar')">
@@ -972,6 +963,12 @@ window.addEventListener('unhandledrejection', function(e) {
       </svg>
       Sonoplastia
     </button>
+  </div>
+
+  <!-- MENSAGEM DE BOAS VINDAS -->
+  <div class="splash-welcome" id="splash-welcome" style="display:none;">
+    <span class="splash-welcome-saud" id="splash-welcome-saud"></span>
+    <span class="splash-welcome-frase" id="splash-welcome-frase"></span>
   </div>
 
   <div class="splash-err" id="splash-err">
@@ -2726,7 +2723,7 @@ function _bootCifrei() {
 
   if (savedName && sessaoValida) {
     const welcomeEl = document.getElementById('splash-welcome');
-    if (welcomeEl) { welcomeEl.textContent = getSaudacao(savedName); welcomeEl.style.display = 'block'; }
+    if (welcomeEl) { _renderSaudacao(savedName); }
     _fbInitPromise = initFirebase();
   } else {
     const modal = document.getElementById('modal-boas-vindas');
@@ -2774,132 +2771,144 @@ function getSaudacao(nome) {
   const dia = agora.getDay(); // 0=dom, 1=seg, 2=ter, 3=qua, 4=qui, 5=sex, 6=sab
 
   const periodo = h >= 5 && h < 12 ? 'manhã' : h >= 12 && h < 18 ? 'tarde' : 'noite';
-  const saudacao = periodo === 'manhã' ? 'Bom dia' : periodo === 'tarde' ? 'Boa tarde' : 'Boa noite';
+  const saud = periodo === 'manhã' ? 'Bom dia' : periodo === 'tarde' ? 'Boa tarde' : 'Boa noite';
+  const saudacao = `${saud}, ${nome}!`;
 
   const frases = {
     0: { // Domingo
       manhã: [
-        `${saudacao}, ${nome}! É domingo! Que Deus use seu instrumento para transformar vidas hoje. 🙌`,
-        `${saudacao}, ${nome}! Dia de louvor! Que a presença de Deus seja poderosa no culto de hoje. 🎸`,
-        `${saudacao}, ${nome}! Domingo chegou! Vai com tudo — que cada nota seja uma oferta a Deus. 🎶`,
+        'Hoje é dia de subir ao altar preparado. Que Deus unja cada nota e transforme o louvor em encontro real com Ele. 🙌',
+        'Domingo chegou! Vai com tudo — que cada acorde seja uma oferta sincera a Deus. 🎶',
+        'Que o Espírito Santo dirija o louvor hoje. Chegue com entrega total e deixa Deus fazer a parte Dele. ✨',
       ],
       tarde: [
-        `${saudacao}, ${nome}! Domingo de louvor! Que a unção de Deus marque cada música hoje. 🙏`,
-        `${saudacao}, ${nome}! Tarde de domingo abençoada! Que o louvor de hoje toque muitos corações. 🎵`,
-        `${saudacao}, ${nome}! Como está a preparação para hoje? Que seja um louvor de entrega total. ✨`,
+        'Que cada música ministrada hoje toque os corações e leve as pessoas à presença de Deus. 🎵',
+        'Domingo de unção! Que o Senhor abençoe o louvor e cada membro sinta a presença Dele. 🙏',
+        'Hoje é dia de dar o melhor para Deus. Que o louvor seja de entrega e não de apresentação. 🎸',
       ],
       noite: [
-        `${saudacao}, ${nome}! Como foi o louvor hoje? Que tenha sido cheio de unção! 🙏`,
-        `${saudacao}, ${nome}! Domingo bem vivido! Descanse e já pense na preparação da próxima semana. 😌`,
-        `${saudacao}, ${nome}! Que o louvor de hoje tenha tocado muitos corações. Boa noite! 🌙`,
+        'Que o louvor de hoje tenha glorificado a Deus. Descanse — e já começa a ouvir o repertório da próxima semana. 🌙',
+        'Domingo bem vivido! Que os frutos do louvor de hoje permaneçam nos corações. 😌',
+        'Que Deus tenha sido glorificado hoje. Já vai separando as músicas da semana que vem! 🎧',
       ],
     },
     1: { // Segunda
       manhã: [
-        `${saudacao}, ${nome}! Semana nova, louvor novo. Que Deus abençoe sua preparação esta semana! 🎶`,
-        `${saudacao}, ${nome}! Começando a semana com foco no domingo. Bom estudo das músicas! 🎸`,
-        `${saudacao}, ${nome}! Segunda animada! Já dá para ir ouvindo as músicas do próximo domingo. 🎵`,
+        'Semana nova, oportunidade nova de chegar preparado no ensaio! Que tal já começar a ouvir as músicas hoje? 🎵',
+        'Que Deus inspire sua preparação essa semana. Ouça as músicas com atenção e chegue no ensaio afiado. ✨',
+        'Cada escuta em casa conta muito no ensaio. Começa a semana já se familiarizando com o repertório! 🎧',
       ],
       tarde: [
-        `${saudacao}, ${nome}! Segunda de preparação! Ainda dá tempo de revisitar o setlist da semana. 🎶`,
-        `${saudacao}, ${nome}! Boa tarde! Segunda é dia de organizar a semana pensando no domingo. 🙌`,
-        `${saudacao}, ${nome}! Semana começando — quanto antes você olhar as músicas, mais tranquilo chega no domingo! 😊`,
+        'Que tal separar um tempo hoje para ouvir o repertório? A preparação em casa faz toda a diferença. 🎶',
+        'Que Deus te dê disposição para se preparar bem essa semana. Cada músico que treina em casa eleva o louvor. 🙏',
+        'Quanto antes você ouvir as músicas, mais tranquilo chega no ensaio de sábado. Vai adiantando! 🎸',
       ],
       noite: [
-        `${saudacao}, ${nome}! Aproveite a semana para ir preparando cada música com calma. 🌙`,
-        `${saudacao}, ${nome}! Boa noite! Que tal dar uma ouvida nas músicas de domingo antes de dormir? 🎧`,
-        `${saudacao}, ${nome}! Domingo ainda está longe — mas a preparação começa hoje! 🙏`,
+        'Antes de dormir, uma ouvida nas músicas da semana já ajuda muito. A preparação começa em casa! 🎧',
+        'Que Deus abençoe sua preparação essa semana. Aproveite os momentos do dia para ouvir e memorizar. 🌙',
+        'A semana está começando — vai adiantando a escuta das músicas para chegar no ensaio tranquilo. 🎵',
       ],
     },
     2: { // Terça
       manhã: [
-        `${saudacao}, ${nome}! Terça ainda dá tempo de revisar as músicas com calma. Bom dia! 🎵`,
-        `${saudacao}, ${nome}! Bom dia! Que tal separar um tempinho hoje para praticar? 🎸`,
-        `${saudacao}, ${nome}! Terça de foco! Vai adiantando a preparação do louvor. 💪`,
+        'Ainda dá tempo de revisar as músicas com calma antes do ensaio. Que tal começar hoje? 🎵',
+        'Que Deus abençoe seu estudo das músicas. Cada minuto de preparação é um ato de respeito ao louvor. 🙏',
+        'Terça de foco! Quanto antes você ouvir o repertório, mais confiante chega no ensaio. 🎸',
       ],
       tarde: [
-        `${saudacao}, ${nome}! Boa tarde! Bom dia de prática e preparação para o louvor. 🎶`,
-        `${saudacao}, ${nome}! Você já deu uma olhada nas músicas desta semana? Ainda dá tempo! 🙌`,
-        `${saudacao}, ${nome}! Terça à tarde — hora perfeita para revisar o repertório. 🎵`,
+        'Boa tarde de prática! Que tal praticar as músicas agora? O ensaio de sábado agradece. 🎶',
+        'Se ainda não ouviu o repertório, hoje é um ótimo dia para isso. Chegar preparado faz diferença pra todos. 🎧',
+        'Que o Senhor guie sua preparação essa semana. Dedique um tempo para as músicas e chegue com confiança. ✨',
       ],
       noite: [
-        `${saudacao}, ${nome}! Aproveite para ouvir as músicas de domingo antes de dormir. 🎧`,
-        `${saudacao}, ${nome}! Boa noite! Domingo vem chegando — vai adiantando a preparação. 🌙`,
-        `${saudacao}, ${nome}! Uma revisada nas letras hoje à noite faz toda diferença no domingo! 😊`,
+        'Uma escutada nas músicas antes de dormir ajuda a fixar. Chegue no ensaio sabendo cada detalhe. 🌙',
+        'Ainda dá tempo de praticar bastante antes do ensaio. Que Deus inspire sua preparação! 🎵',
+        'Noite boa para ouvir o repertório e já ir fixando as letras e melodias. 🎧',
       ],
     },
     3: { // Quarta
       manhã: [
-        `${saudacao}, ${nome}! Metade da semana já! Como está a preparação para o domingo? 🎶`,
-        `${saudacao}, ${nome}! Quarta-feira — ainda dá tempo de preparar tudo direitinho. 💪`,
-        `${saudacao}, ${nome}! Bom dia! Semana no meio — domingo está chegando, hein! 🎵`,
+        'Meio da semana! Como está a preparação para o ensaio? Ainda dá tempo de chegar muito bem preparado. 💪',
+        'Que Deus renove sua disposição para louvar essa semana. Uma boa preparação honra o ministério. 🙏',
+        'Quarta chegou — aproveite o dia para escutar as músicas com atenção e já ir decorando. 🎶',
       ],
       tarde: [
-        `${saudacao}, ${nome}! Você já deu uma olhada nas músicas desta semana? A quarta pede isso! 🎸`,
-        `${saudacao}, ${nome}! Boa tarde! Domingo está logo ali — melhor revisar hoje. 🙌`,
-        `${saudacao}, ${nome}! Metade da semana e a preparação em dia? Isso é comprometimento! 🙏`,
+        'Metade da semana e a preparação em dia? Isso é comprometimento com o louvor! 🎵',
+        'Você já está por dentro das músicas do ensaio? A tarde de quarta é ótima para uma boa revisada. 🎧',
+        'Que o Senhor te capacite para ministrar com unção no ensaio. Prepara o coração também. ✨',
       ],
       noite: [
-        `${saudacao}, ${nome}! Quarta-feira — hora de revisar tudo para o domingo não chegar de surpresa. 🌙`,
-        `${saudacao}, ${nome}! Boa noite! Aproveite para escutar as músicas antes de dormir. 🎧`,
-        `${saudacao}, ${nome}! Quarta passando — e o ensaio de sexta está chegando! Vai se preparando. 🎶`,
+        'Já passou da metade da semana — aproveite a noite para ouvir as músicas antes de dormir. 🌙',
+        'Quem chega no ensaio preparado honra a Deus e respeita os irmãos. Que sua preparação seja assim. 🙏',
+        'Noite de quarta — ótimo momento para ouvir o repertório e já ir decorando cada parte. 🎵',
       ],
     },
     4: { // Quinta
       manhã: [
-        `${saudacao}, ${nome}! Quinta-feira, véspera do ensaio! Vai de revisão hoje? 🎸`,
-        `${saudacao}, ${nome}! Bom dia! O ensaio bate na porta amanhã — bora caprichar na preparação! 💪`,
-        `${saudacao}, ${nome}! Quinta animada! Que tal chegar no ensaio de amanhã já bem preparado? 🎵`,
+        'O ensaio de sábado está chegando! Que tal caprichar na preparação hoje? 🎸',
+        'Que Deus te inspire nas práticas de hoje. Chegue no ensaio com as músicas dominadas. 🙏',
+        'Quinta de foco! Quem se prepara durante a semana chega no ensaio com muito mais segurança. 💪',
       ],
       tarde: [
-        `${saudacao}, ${nome}! Domingo está logo ali. Melhor repassar as músicas hoje à tarde. 🎶`,
-        `${saudacao}, ${nome}! Boa tarde! Quinta de preparação intensa — o ensaio é amanhã! 🙌`,
-        `${saudacao}, ${nome}! Você está pronto para o ensaio de amanhã? Vai uma revisada rápida? 🎸`,
+        'Você está por dentro do repertório? Ainda dá tempo de chegar muito bem preparado no ensaio de sábado. 🎶',
+        'Que o Senhor abençoe sua preparação. Pratique hoje e chegue no ensaio com confiança e leveza. ✨',
+        'Quinta à tarde — ótimo momento para uma revisada antes do fim de semana de louvor. 🎧',
       ],
       noite: [
-        `${saudacao}, ${nome}! Véspera do ensaio — bora dar aquela caprichada nas letras! 🌙`,
-        `${saudacao}, ${nome}! Boa noite! Amanhã é ensaio — chega afiado nas músicas! 💪`,
-        `${saudacao}, ${nome}! Aproveite essa quinta à noite para uma última revisada antes do ensaio. 🎧`,
+        'Uma boa escutada nas músicas e você chega afiado no ensaio de sábado. Vai lá! 🌙',
+        'Quinta à noite: revisa o repertório, prepara o coração. Que o ensaio de sábado seja de unção. 🙏',
+        'Vai dormir com o repertório na cabeça — sábado vai fluir. Que Deus abençoe! 🎵',
       ],
     },
     5: { // Sexta
       manhã: [
-        `${saudacao}, ${nome}! Sextou com ensaio! Chega preparado e vai com tudo. 🎸`,
-        `${saudacao}, ${nome}! Bom dia! Hoje é dia de ensaio — que seja cheio de unção! 🎶`,
-        `${saudacao}, ${nome}! Sexta de louvor! Que o ensaio de hoje alinhe tudo para um domingo incrível. 🙌`,
+        'Amanhã é ensaio! Hoje é dia de caprichar na preparação final. Quem se prepara em casa chega voando. 🎸',
+        'Que Deus te prepare para o ensaio de amanhã. Quem chega bem preparado eleva o louvor de todos. 🙏',
+        'Último dia útil antes do ensaio! Que tal dar uma revisada geral nas músicas hoje? 💪',
       ],
       tarde: [
-        `${saudacao}, ${nome}! Sextou com ensaio e preparação para o louvor de domingo. Bora! 💪`,
-        `${saudacao}, ${nome}! Boa tarde! Sexta é dia de afinar tudo — o domingo agradece. 🎵`,
-        `${saudacao}, ${nome}! Tarde de sexta e ensaio à vista! Que Deus guie cada acorde hoje. 🙏`,
+        'Amanhã é ensaio — uma última escutada e você chega afiado no sábado. 🎶',
+        'Que o Senhor te dê clareza e foco para o ensaio de amanhã. Prepara-se hoje e descansa bem essa noite. ✨',
+        'Tarde de sexta e o ensaio batendo na porta! Aproveite para finalizar a preparação. 🎧',
       ],
       noite: [
-        `${saudacao}, ${nome}! Domingo está bem próximo — não deixe para pegar as músicas de última hora! 🌙`,
-        `${saudacao}, ${nome}! Ensaio feito? Descanse, mas já deixa tudo na cabeça para domingo. 😌`,
-        `${saudacao}, ${nome}! Boa noite! Sexta de louvor — que o domingo seja fruto dessa dedicação. 🎶`,
+        'Véspera do ensaio! Revisão final feita? Descanse bem e amanhã chega pronto para um ensaio de excelência. 🌙',
+        'Vai dormir com as músicas na cabeça e acorda pronto para louvar amanhã. Que Deus abençoe! 🎵',
+        'Que o Espírito Santo guie cada momento do ensaio de amanhã. Descanse com o coração preparado. 🙏',
       ],
     },
     6: { // Sábado
       manhã: [
-        `${saudacao}, ${nome}! Último dia antes do domingo. Que a preparação seja com unção! 🙏`,
-        `${saudacao}, ${nome}! Sábado chegou! Dia de revisão final — amanhã é dia de louvor! 🎵`,
-        `${saudacao}, ${nome}! Bom dia! Sábado é a última chance de chegar afiado no domingo. Bora! 💪`,
+        'Hoje é dia de ensaio! Chega preparado, com o coração aberto e as músicas dominadas. Que Deus abençoe! 🎶',
+        'Sábado de ensaio! Que o Espírito Santo guie cada músico e cada nota ministrada hoje. 🙌',
+        'Dia de ensaio chegou! Quem se preparou durante a semana vai brilhar — e o louvor de domingo também. 💪',
       ],
       tarde: [
-        `${saudacao}, ${nome}! Sábado à tarde — uma revisada nas músicas e amanhã vai tudo fluir! 🎸`,
-        `${saudacao}, ${nome}! Boa tarde! Já está pronto para o louvor de amanhã? 🙌`,
-        `${saudacao}, ${nome}! Sábado de preparação! Que a dedicação de hoje apareça no louvor de amanhã. 🎶`,
+        'Que o Senhor afine não só os instrumentos, mas também os corações de cada um no ensaio. 🎵',
+        'Sábado de preparação pro domingo! Que cada detalhe ensaiado hoje fortaleça o louvor de amanhã. 🎸',
+        'Que Deus esteja no centro do ensaio. Cada detalhe praticado é um passo a mais para um louvor ungido. 🙏',
       ],
       noite: [
-        `${saudacao}, ${nome}! Boa noite de preparação! Amanhã é dia de ministrar com tudo. 🌙`,
-        `${saudacao}, ${nome}! Véspera de domingo — descanse bem e acorde pronto para louvar! 😌`,
-        `${saudacao}, ${nome}! Última noite antes do culto. Que o louvor de amanhã seja de entrega total. 🙏`,
+        'Ensaio feito! Que a preparação de hoje frutifique no louvor de amanhã. Descanse bem. 🌙',
+        'Que Deus abençoe o que foi ensaiado hoje. Amanhã é dia de entregar tudo a Ele no louvor. 😌',
+        'Sábado de dedicação! O louvor de amanhã vai ser fruto de tudo que foi semeado hoje. 🙏',
       ],
     },
   };
 
   const opcoes = frases[dia][periodo];
-  return opcoes[Math.floor(Math.random() * opcoes.length)];
+  return { saudacao, frase: opcoes[Math.floor(Math.random() * opcoes.length)] };
+}
+
+function _renderSaudacao(nome) {
+  const el = document.getElementById('splash-welcome');
+  if (!el) return;
+  const resultado = getSaudacao(nome);
+  const saudEl = document.getElementById('splash-welcome-saud');
+  const fraseEl = document.getElementById('splash-welcome-frase');
+  if (saudEl) saudEl.textContent = resultado.saudacao;
+  if (fraseEl) fraseEl.textContent = resultado.frase;
+  el.style.display = 'block';
 }
 
 function saveName() {
@@ -2908,9 +2917,7 @@ function saveName() {
    if(val.length < 2) return showToast('Digite um nome válido!');
    localStorage.setItem('cifrei_username', val);
    document.getElementById('name-modal').style.display = 'none';
-   const welcomeEl = document.getElementById('splash-welcome');
-   welcomeEl.textContent = getSaudacao(val);
-   welcomeEl.style.display = 'block';
+   _renderSaudacao(val);
    showToast(`Bem-vindo, ${val}!`);
    _fbInitPromise = initFirebase();
 }
@@ -4426,9 +4433,7 @@ async function confirmarBoasVindas() {
     }
 
     document.getElementById('modal-boas-vindas').style.display = 'none';
-    const welcomeEl = document.getElementById('splash-welcome');
-    welcomeEl.textContent = getSaudacao(usuario.nome);
-    welcomeEl.style.display = 'block';
+    _renderSaudacao(usuario.nome.split(' ')[0]);
 
   } catch(e) {
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Entrar';
@@ -7188,9 +7193,7 @@ async function salvarNomePerfil() {
   // Não deleta doc antigo — admin controla os cadastros
   const welcomeEl = document.getElementById('splash-welcome');
   if (welcomeEl && welcomeEl.style.display !== 'none') {
-    const hora = new Date().getHours();
-    const saud = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
-    welcomeEl.textContent = `${saud}, ${novoNome}! \u{1F44B}`;
+    _renderSaudacao(novoNome.split(' ')[0]);
   }
   if (typeof startOnlinePresence === 'function') startOnlinePresence();
   showToast(temNovaFoto ? 'Perfil atualizado \u2713' : `Nome alterado para "${novoNome}" \u2713`);
