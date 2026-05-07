@@ -8,6 +8,9 @@
 # Proxy Firestore REST — escalas (evita 429 no googleapis.com)
 /proxy/firestore/escalas  https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/escalas  200
 
+# Proxy Firestore REST — avatars/login (evita 429 no googleapis.com)
+/proxy/firestore/avatars  https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/avatars_musicos  200
+
 # Proxy Firebase Compat SDK — evita dependência de gstatic.com no cliente
 /sdk/firebase-app.js          https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js          200
 /sdk/firebase-auth.js         https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js         200

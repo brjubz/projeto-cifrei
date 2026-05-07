@@ -857,7 +857,7 @@ async function _iniciarSemModulo() {
 
 // Login via REST — independente do módulo ES6
 async function _loginViaRestDireto(loginInput, senhaInput) {
-  var url = 'https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/avatars_musicos?pageSize=300';
+  var url = '/proxy/firestore/avatars?pageSize=300';
   var dbg = document.getElementById('bv-firebase-status');
   try {
     var page = 0;
@@ -887,7 +887,7 @@ async function _loginViaRestDireto(loginInput, senhaInput) {
         if (loginDoc === loginInput || nomeDoc === loginInput) return null;
       }
       url = data.nextPageToken
-        ? 'https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/avatars_musicos?pageSize=300&pageToken=' + data.nextPageToken
+        ? '/proxy/firestore/avatars?pageSize=300&pageToken=' + data.nextPageToken
         : null;
     }
     return null;
@@ -4481,7 +4481,7 @@ function _loginPreviewAvatar(login) {
 // ── LOGIN VIA REST — não depende do SDK Firebase ─────────────────────────────
 async function _loginViaRest(loginInput, senhaInput) {
   const PROJECT = 'cifrei-e37f6';
-  let url = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/avatars_musicos?pageSize=300`;
+  let url = '/proxy/firestore/avatars?pageSize=300';
   const dbg = document.getElementById('bv-firebase-status');
 
   try {
@@ -4527,7 +4527,7 @@ async function _loginViaRest(loginInput, senhaInput) {
 
       // Próxima página se existir
       url = data.nextPageToken
-        ? `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/avatars_musicos?pageSize=300&pageToken=${data.nextPageToken}`
+        ? `/proxy/firestore/avatars?pageSize=300&pageToken=${data.nextPageToken}`
         : null;
     }
 
