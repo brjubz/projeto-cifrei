@@ -933,6 +933,39 @@ async function _btnEntrarClick() {
   }
 }
 
+async function _loginDiagnostico() {
+  const btn = document.getElementById('bv-diag-btn');
+  const out = document.getElementById('bv-diag-result');
+  if (!out) return;
+  btn.textContent = '🔄 Testando...'; btn.disabled = true;
+  out.style.display = 'block'; out.innerHTML = '';
+
+  const linha = (icon, label, val) => {
+    const d = document.createElement('div');
+    d.textContent = `${icon} ${label}: ${val}`;
+    out.appendChild(d);
+  };
+  const testar = async (label, url) => {
+    const t0 = Date.now();
+    try {
+      const r = await Promise.race([
+        fetch(url),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout 6s')), 6000))
+      ]);
+      linha(r.ok ? '✅' : '❌', label, `HTTP ${r.status} em ${Date.now()-t0}ms`);
+      return r;
+    } catch(e) { linha('❌', label, e.message); return null; }
+  };
+
+  await testar('Proxy /avatars', '/proxy/firestore/avatars?pageSize=1');
+  await testar('Proxy /setlist', '/proxy/firestore/setlist');
+  await testar('googleapis direto', 'https://firestore.googleapis.com/v1/projects/cifrei-e37f6/databases/(default)/documents/salas/setlist_musico');
+  linha('📍', 'Domínio', location.hostname);
+  linha('📶', 'Online', navigator.onLine ? 'sim' : 'não');
+
+  btn.textContent = '🔍 Diagnóstico de conexão'; btn.disabled = false;
+}
+
 // Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw-cifrei.js').catch(function(){});
@@ -1082,6 +1115,13 @@ window.addEventListener('unhandledrejection', function(e) {
       Entrar
     </button>
     <div id="bv-firebase-status" style="font-size:11px;color:var(--faint);text-align:center;margin-top:8px;min-height:16px;"></div>
+    <div style="margin-top:10px;text-align:center;">
+      <button onclick="_loginDiagnostico()" id="bv-diag-btn"
+        style="background:none;border:none;color:var(--faint);font-size:11px;cursor:pointer;text-decoration:underline;padding:0;font-family:var(--font-chord);">
+        🔍 Diagnóstico de conexão
+      </button>
+      <div id="bv-diag-result" style="display:none;margin-top:8px;background:var(--bg);border:1px solid var(--bg3);border-radius:10px;padding:10px 12px;text-align:left;font-size:11px;font-family:var(--font-mono);color:var(--muted);line-height:2;"></div>
+    </div>
   </div>
 </div>
 
