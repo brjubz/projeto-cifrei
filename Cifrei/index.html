@@ -9143,8 +9143,11 @@ function _buscarPosicoesAcorde(nome, db) {
   if (!grupo) return [];
   const entry = grupo.find(e => e.suffix === parsed.suffix);
   const positions = entry?.positions || [];
-  // Ordena da mais fácil para a mais difícil
-  return [...positions].sort((a, b) => _dificuldadeAcorde(a) - _dificuldadeAcorde(b));
+  const filtradas = positions.filter(p => (p.baseFret || 1) <= 5);
+  const source = filtradas.length > 0 ? filtradas : positions;
+  return source
+    .sort((a, b) => _dificuldadeAcorde(a) - _dificuldadeAcorde(b))
+    .slice(0, 4);
 }
 
 function _extrairBaixo(nome) {
@@ -9165,41 +9168,52 @@ async function _carregarChordsDb() {
   return _chordsDb;
 }
 
+// Infere barras a partir do array fingers (o campo barres do chords-db é só [fret], sem fromString/toString)
+function _inferirBarras(frets, fingers) {
+  const barres = [];
+  for (let fn = 1; fn <= 4; fn++) {
+    const group = [];
+    fingers.forEach((f, i) => { if (f === fn && frets[i] > 0) group.push({ i, fret: frets[i] }); });
+    if (group.length < 2) continue;
+    const fret = group[0].fret;
+    if (!group.every(g => g.fret === fret)) continue;
+    const idxs = group.map(g => g.i).sort((a, b) => a - b);
+    if (idxs[idxs.length - 1] - idxs[0] < 1) continue;
+    barres.push({ fret, fromStr: idxs[0], toStr: idxs[idxs.length - 1], finger: fn });
+  }
+  return barres;
+}
+
 function _svgAcorde(pos, cor) {
-  const { frets, fingers = [], barres = [], baseFret = 1 } = pos;
+  const { frets, fingers = [], baseFret = 1 } = pos;
   const W = 116, H = 124;
   const strX = i => 20 + i * 15;
   const fretY = f => 26 + f * 18;
+  const barras = _inferirBarras(frets, fingers);
 
   let s = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
 
-  // Indicador de casa base
   if (baseFret > 1)
     s += `<text x="6" y="${fretY(1)-4}" font-size="8" fill="#a1a1aa" text-anchor="middle" font-family="monospace">${baseFret}fr</text>`;
 
-  // Nut
   const nutH = baseFret === 1 ? 3 : 1;
   s += `<rect x="${strX(0)}" y="${fretY(0)}" width="${strX(5)-strX(0)}" height="${nutH}" fill="${baseFret===1?'#f4f4f5':'#3f3f46'}" rx="1"/>`;
 
-  // Linhas de trastes
   for (let f = 1; f <= 4; f++)
     s += `<line x1="${strX(0)}" y1="${fretY(f)}" x2="${strX(5)}" y2="${fretY(f)}" stroke="#3f3f46" stroke-width="1"/>`;
 
-  // Linhas de cordas
   for (let i = 0; i < 6; i++)
     s += `<line x1="${strX(i)}" y1="${fretY(0)}" x2="${strX(i)}" y2="${fretY(4)}" stroke="#3f3f46" stroke-width="1"/>`;
 
-  // Barras
-  barres.forEach(b => {
-    const y = fretY(b.fret) - 9;
-    const x1 = strX(b.fromString - 1);
-    const x2 = strX(b.toString - 1);
-    s += `<rect x="${x1-5}" y="${y}" width="${x2-x1+10}" height="14" rx="7" fill="${cor}" opacity=".92"/>`;
-    const fn = fingers[b.fromString - 1];
-    if (fn) s += `<text x="${(x1+x2)/2}" y="${y+10}" font-size="9" font-weight="700" fill="#09090b" text-anchor="middle" font-family="monospace">${fn}</text>`;
+  // Barras (pestanas)
+  barras.forEach(b => {
+    const cy = fretY(b.fret) - 9;
+    const x1 = strX(b.fromStr), x2 = strX(b.toStr);
+    s += `<rect x="${x1-5}" y="${cy-5}" width="${x2-x1+10}" height="14" rx="7" fill="${cor}" opacity=".92"/>`;
+    s += `<text x="${(x1+x2)/2}" y="${cy+5}" font-size="9" font-weight="700" fill="#09090b" text-anchor="middle" font-family="monospace">${b.finger}</text>`;
   });
 
-  // Marcadores por corda
+  // Marcadores individuais por corda
   frets.forEach((f, i) => {
     const x = strX(i);
     if (f === -1) {
@@ -9208,8 +9222,8 @@ function _svgAcorde(pos, cor) {
       s += `<circle cx="${x}" cy="${fretY(0)-8}" r="5" fill="none" stroke="#a1a1aa" stroke-width="1.5"/>`;
     } else {
       const cy = fretY(f) - 9;
-      const isBarra = barres.some(b => b.fret === f && i >= b.fromString-1 && i <= b.toString-1);
-      if (!isBarra) {
+      const isBarred = barras.some(b => b.fret === f && i >= b.fromStr && i <= b.toStr);
+      if (!isBarred) {
         s += `<circle cx="${x}" cy="${cy}" r="7" fill="${cor}"/>`;
         const fn = fingers[i];
         if (fn) s += `<text x="${x}" y="${cy+4}" font-size="9" font-weight="700" fill="#09090b" text-anchor="middle" font-family="monospace">${fn}</text>`;
