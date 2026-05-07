@@ -9099,32 +9099,74 @@ const _CHORD_ROOT_MAP = {
   'B':'B','Cb':'B',
 };
 const _CHORD_SUFFIX_MAP = {
-  '':'major','m':'minor','min':'minor',
-  '7':'7','maj7':'maj7','M7':'maj7','maj9':'maj9',
-  'm7':'m7','min7':'m7','m9':'m9','m11':'m11','m13':'m13',
-  '6':'6','m6':'m6','6/9':'69','69':'69',
-  '2':'sus2','sus2':'sus2',
-  '4':'sus4','sus4':'sus4','sus':'sus4',
-  '7sus4':'7sus4','7sus':'7sus4',
-  'add9':'add9','add2':'add9','add4':'add4','add11':'add4',
-  '9':'9','11':'11','13':'13',
-  'dim':'dim','dim7':'dim7','°':'dim','º':'dim','o':'dim',
-  'aug':'aug','+':'aug','5+':'aug','aug7':'aug7','7+':'aug7','7#5':'aug7',
+  // Básicos
+  '':'major','M':'major','maj':'major',
+  'm':'minor','min':'minor','-':'minor',
+  // Tríades alteradas
+  'dim':'dim','dim7':'dim7','°':'dim','º':'dim','o':'dim','o7':'dim7',
+  'aug':'aug','+':'aug','5+':'aug','aug7':'aug7','7+':'aug7',
   '5':'5',
+  // Dominantes
+  '7':'7','dom7':'7','dom':'7',
+  '7b5':'7b5','7#5':'aug7','7+5':'aug7',
+  '7b9':'7b9','7#9':'7#9',
+  '7sus4':'7sus4','7sus':'7sus4',
+  'alt':'alt',
+  // Maj
+  'maj7':'maj7','M7':'maj7','Δ':'maj7','△':'maj7','^7':'maj7',
+  'maj7b5':'maj7b5','maj7#5':'maj7#5','maj7sus2':'maj7sus2',
+  // Menores com 7
+  'm7':'m7','min7':'m7','-7':'m7',
   'm7b5':'m7b5','ø':'m7b5','ø7':'m7b5',
-  'mmaj7':'mmaj7','m(maj7)':'mmaj7',
+  'mmaj7':'mmaj7','m(maj7)':'mmaj7','mM7':'mmaj7','m/maj7':'mmaj7',
+  'mmaj7b5':'mmaj7b5',
+  // Extensões maiores
+  '9':'9','9b5':'9b5','aug9':'aug9','9#11':'9#11',
+  'maj9':'maj9','maj11':'maj11','maj13':'maj13',
+  '11':'11','13':'13',
+  // Extensões menores
+  'm9':'m9','mmaj9':'mmaj9','mmaj11':'mmaj11','m11':'m11',
+  'm6':'m6','m69':'m69',
+  // Sus / Add
+  '2':'sus2','sus2':'sus2',
+  '4':'sus4','sus4':'sus4','sus':'sus4','sus2sus4':'sus2sus4',
+  'add9':'add9','add2':'add9','madd9':'madd9',
+  'add11':'add11','add4':'add11',
+  // 6ths
+  '6':'6','69':'69','6/9':'69','6add9':'69',
+  // Slash chords maiores (root/baixo — todos no banco)
+  '/E':'/E','/F':'/F','/F#':'/F#','/Gb':'/F#',
+  '/G':'/G','/G#':'/G#','/Ab':'/Ab',
+  '/A':'/A','/Bb':'/Bb','/A#':'/Bb',
+  '/B':'/B','/Cb':'/B',
+  '/C':'/C','/C#':'/C#','/Db':'/C#',
+  '/D':'/D','/D#':'/D#','/Eb':'/Eb',
+  // Slash chords menores
+  'm/B':'m/B','m/Bb':'m/Bb','m/A#':'m/Bb',
+  'm/C':'m/C','m/C#':'m/C#','m/Db':'m/C#',
+  'm/D':'m/D','m/D#':'m/D#','m/Eb':'m/Eb',
+  'm/E':'m/E','m/F':'m/F','m/F#':'m/F#','m/Gb':'m/F#',
+  'm/G':'m/G','m/G#':'m/G#','m/Ab':'m/Ab',
+  'm/A':'m/A',
 };
 
 function _parsearAcorde(nome) {
-  const base = nome.split('/')[0];
-  const m = base.match(/^([A-G][b#]?)(.*)/);
+  // Não descarta o "/baixo" antes do regex — o banco tem /F#, m/G etc. como sufixos reais
+  const m = nome.match(/^([A-G][b#]?)(.*)/);
   if (!m) return null;
   const root = _CHORD_ROOT_MAP[m[1]];
   if (!root) return null;
   const suffix = m[2].trim();
   const dbSuffix = _CHORD_SUFFIX_MAP[suffix];
-  if (dbSuffix === undefined) return null;
-  return { root, suffix: dbSuffix };
+  if (dbSuffix !== undefined) return { root, suffix: dbSuffix };
+  // Fallback: se o sufixo complexo não existe (ex: Am7/G), tenta só a parte antes do "/"
+  const slashIdx = suffix.indexOf('/');
+  if (slashIdx > 0) {
+    const base = suffix.slice(0, slashIdx);
+    const dbBase = _CHORD_SUFFIX_MAP[base];
+    if (dbBase !== undefined) return { root, suffix: dbBase };
+  }
+  return null;
 }
 
 function _dificuldadeAcorde(pos) {
