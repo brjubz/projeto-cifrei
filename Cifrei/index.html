@@ -172,6 +172,64 @@ nav.show{display:flex;}
   padding:1px 5px;border-radius:6px;transform:scale(0.85);transform-origin:top right;
 }
 
+/* ── BOTTOM NAV ──────────────────────────── */
+#bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:51;
+  background:rgba(9,9,11,.96);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--bg3);
+  display:none;align-items:center;justify-content:space-around;
+  padding:6px 0 max(10px,env(safe-area-inset-bottom,10px));
+}
+#bottom-nav.show{display:flex;}
+.bn-tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 4px;background:none;border:none;cursor:pointer;
+  color:var(--faint);font-family:var(--font-chord);font-size:10px;
+  font-weight:700;letter-spacing:.3px;text-transform:uppercase;
+  transition:color .2s;position:relative;
+}
+.bn-tab svg{width:21px;height:21px;stroke-width:1.8;}
+.bn-tab.active{color:var(--green);}
+.bn-tab.active svg{stroke-width:2.2;}
+.bn-badge{
+  position:absolute;top:3px;left:50%;margin-left:4px;
+  background:var(--green);color:#000;
+  font-family:var(--font-chord);font-weight:900;font-size:9px;
+  min-width:15px;height:15px;border-radius:99px;
+  display:flex;align-items:center;justify-content:center;padding:0 3px;
+}
+body.has-bnav main{padding-bottom:84px;}
+
+/* ── VIEW TRANSITIONS ────────────────────── */
+@keyframes viewFadeIn{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.view.active{animation:viewFadeIn .18s ease;}
+
+/* ── PULL TO REFRESH ─────────────────────── */
+#ptr-wrap{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;justify-content:center;pointer-events:none;
+  height:0;overflow:hidden;transition:height .12s ease;
+}
+#ptr-inner{
+  display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:8px;color:var(--green);
+}
+#ptr-inner svg{width:18px;height:18px;}
+#ptr-inner.ready svg{animation:spin .65s linear infinite;}
+
+/* ── EMPTY STATES ────────────────────────── */
+.empty-state{display:flex;flex-direction:column;align-items:center;padding:52px 24px;text-align:center;gap:10px;}
+.empty-state-icon{font-size:36px;opacity:.3;line-height:1;}
+.empty-state-title{font-family:var(--font-chord);font-weight:600;color:var(--muted);font-size:15px;}
+.empty-state-sub{color:var(--faint);font-size:13px;line-height:1.6;max-width:220px;}
+
+/* ── SONG PLAYING HIGHLIGHT ──────────────── */
+.song-item{position:relative;}
+.song-item.playing{background:rgba(52,211,153,.05);}
+.song-item.playing::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:0 3px 3px 0;background:var(--green);}
+.song-item.playing .song-num{color:var(--green);}
+
 /* ── MAIN ───────────────────────────────── */
 main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .view{display:none;}
@@ -690,6 +748,9 @@ window._d = function(fn) {
       if (splash) { splash.style.opacity='0'; setTimeout(function(){splash.style.display='none';},200); }
       if (app) app.style.display='block';
       if (nav) nav.classList.add('show');
+      var bnav = document.getElementById('bottom-nav');
+      if (bnav) bnav.classList.add('show');
+      document.body.classList.add('has-bnav');
       document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
       var el = document.getElementById('view-'+vid);
       if (el) el.classList.add('active');
@@ -735,6 +796,9 @@ async function _iniciarSemModulo() {
   if (splash) splash.style.display = 'none';
   if (app)    app.style.display = 'block';
   if (nav)    nav.classList.add('show');
+  var bnav = document.getElementById('bottom-nav');
+  if (bnav) bnav.classList.add('show');
+  document.body.classList.add('has-bnav');
   document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
   var listView = document.getElementById('view-list');
   if (listView) listView.classList.add('active');
@@ -1053,6 +1117,30 @@ window.addEventListener('unhandledrejection', function(e) {
       <span class="nav-badge" id="nav-cnt">0</span>
     </button>
   </div>
+</nav>
+
+<!-- Pull to Refresh -->
+<div id="ptr-wrap"><div id="ptr-inner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.35"/></svg></div></div>
+
+<!-- Bottom Navigation -->
+<nav id="bottom-nav">
+  <button class="bn-tab" id="bn-list" onclick="voltarLista()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    <span class="bn-badge" id="bn-cnt" style="display:none;"></span>
+    Setlist
+  </button>
+  <button class="bn-tab" id="bn-banco" onclick="showView('banco')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    Banco
+  </button>
+  <button class="bn-tab" id="bn-escala" onclick="showView('escala')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Escala
+  </button>
+  <button class="bn-tab" id="bn-som" onclick="showView('sono')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+    Som
+  </button>
 </nav>
 
 <!-- ══ APP ══════════════════════════════════ -->
@@ -3288,6 +3376,9 @@ function performEntranceAnimations() {
   nav.style.animation = 'fadeInUp 0.4s ease forwards';
   app.style.display='';
   app.style.animation = 'fadeInUp 0.4s ease forwards';
+  const bnav = document.getElementById('bottom-nav');
+  if (bnav) bnav.classList.add('show');
+  document.body.classList.add('has-bnav');
   setTimeout(() => {
     nav.style.animation = '';
     app.style.animation = '';
@@ -3744,7 +3835,7 @@ function filtrarBanco() {
 
   if (!S.bancoFiltrado.length && q) {
     const listEl2 = document.getElementById('banco-list');
-    if (listEl2) listEl2.innerHTML = '<div class="banco-empty">Nenhuma música encontrada.</div>';
+    if (listEl2) listEl2.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎵</div><div class="empty-state-title">Nenhuma música encontrada</div><div class="empty-state-sub">Tente outro termo de busca.</div></div>';
     if (pag) pag.style.display = 'none';
     return;
   }
@@ -3798,7 +3889,7 @@ function renderBanco(list, reset) {
   if (!c) return;
 
   if (!list.length) {
-    c.innerHTML = '<div class="banco-empty">Nenhuma música encontrada.</div>';
+    c.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🎵</div><div class="empty-state-title">Nenhuma música encontrada</div><div class="empty-state-sub">Tente outro termo de busca.</div></div>';
     if (pag) pag.style.display = 'none';
     return;
   }
@@ -4135,10 +4226,10 @@ function showView(n){
     // Se escalas ainda não foram carregadas (entrada via home, não via splash de escala)
     if (!_escalasCache?.length) {
       const track = document.getElementById('escala-track');
-      if (track) track.innerHTML = '<div style="text-align:center;padding:40px;color:var(--faint);">⏳ Carregando escalas...</div>';
+      if (track) track.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-title">Carregando escalas...</div></div>';
       _carregarEscalas().then(escalas => {
         if (escalas.length) _renderEscalaView(escalas);
-        else if (track) track.innerHTML = '<div style="text-align:center;padding:40px;color:var(--faint);font-size:13px;">Nenhuma escala cadastrada ainda.<br>Consulte o líder do louvor.</div>';
+        else if (track) track.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Nenhuma escala cadastrada</div><div class="empty-state-sub">O responsável ainda não cadastrou escalas. Consulte o líder do louvor.</div></div>';
       });
     }
   }
@@ -4165,12 +4256,82 @@ function showView(n){
   const isList = n === 'list' || (n === 'reader' && !S.preview);
   document.getElementById('nav-banco-btn').classList.toggle('active', isBanco);
   document.getElementById('nav-list-btn').classList.toggle('active', isList);
+  _syncBottomNav(n);
   if(n !== 'reader') {
     document.getElementById('finalizar-louvor-bar').classList.remove('visible');
     pausarTimers();
   }
   history.pushState({ view: n }, '');
 }
+
+// ── BOTTOM NAV HELPERS ───────────────────────────────────────────────────────
+function _syncBottomNav(viewName) {
+  const map = {list:'bn-list', banco:'bn-banco', escala:'bn-escala', sono:'bn-som', reader:'bn-list'};
+  document.querySelectorAll('.bn-tab').forEach(t => t.classList.remove('active'));
+  const id = map[viewName];
+  if (id) document.getElementById(id)?.classList.add('active');
+}
+
+function _syncBnCnt(n) {
+  const el = document.getElementById('bn-cnt');
+  if (!el) return;
+  if (n > 0) { el.textContent = n; el.style.display = 'flex'; }
+  else { el.style.display = 'none'; }
+}
+
+// Observa mudanças no nav-cnt e espelha no bn-cnt automaticamente
+(function() {
+  const observe = () => {
+    const src = document.getElementById('nav-cnt');
+    if (!src) return;
+    new MutationObserver(() => _syncBnCnt(parseInt(src.textContent) || 0))
+      .observe(src, { childList: true, characterData: true, subtree: true });
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', observe);
+  else observe();
+})();
+
+// ── PULL TO REFRESH ──────────────────────────────────────────────────────────
+(function() {
+  let startY = 0, curY = 0, pulling = false;
+  const THRESHOLD = 68;
+
+  function _ptrEl() { return document.getElementById('ptr-wrap'); }
+  function _activeView() { return document.querySelector('.view.active')?.id; }
+  function _canPtr() { return window.scrollY === 0 && ['view-list','view-banco'].includes(_activeView()); }
+
+  document.addEventListener('touchstart', e => {
+    if (!_canPtr()) return;
+    startY = e.touches[0].clientY; pulling = true;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (!pulling) return;
+    curY = e.touches[0].clientY;
+    const pull = Math.max(0, curY - startY);
+    const wrap = _ptrEl();
+    if (!wrap) return;
+    const h = Math.min(pull * 0.45, 46);
+    wrap.style.height = h + 'px';
+    const inner = document.getElementById('ptr-inner');
+    if (inner) inner.classList.toggle('ready', pull >= THRESHOLD);
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!pulling) return;
+    const pull = curY - startY;
+    const wrap = _ptrEl();
+    if (wrap) wrap.style.height = '0';
+    const inner = document.getElementById('ptr-inner');
+    if (inner) inner.classList.remove('ready');
+    if (pull >= THRESHOLD) {
+      const v = _activeView();
+      if (v === 'view-banco') carregarBanco();
+      else handleRefresh();
+    }
+    pulling = false; startY = 0; curY = 0;
+  }, { passive: true });
+})();
 
 function _recarregarDeckEscala() {
   if (!_deckEscalas.length) return;
@@ -5221,6 +5382,7 @@ async function _salvarLetraPermanente(s) {
 
 async function openSong(i){
   S.preview=null; stopScroll(); S.idx=i;
+  document.querySelectorAll('#song-list .song-item').forEach((el,idx) => el.classList.toggle('playing', idx === i));
   const songAtual = S.songs[i];
 
   // O setlist já tem o content editado — só complementa com letra/verified do banco
@@ -7329,7 +7491,7 @@ async function abrirEscala() {
     track.innerHTML = '<div style="text-align:center;padding:40px;color:var(--faint);">⏳ Carregando...</div>';
     const escalas = await _carregarEscalas();
     if (!escalas.length) {
-      track.innerHTML = '<div style="text-align:center;padding:40px;color:var(--faint);font-size:13px;">Nenhuma escala cadastrada ainda.<br>Consulte o líder do louvor.</div>';
+      track.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">Nenhuma escala cadastrada</div><div class="empty-state-sub">O responsável ainda não cadastrou escalas. Consulte o líder do louvor.</div></div>';
       return;
     }
     await _renderEscalaView(escalas);
@@ -7366,7 +7528,7 @@ async function _renderEscalaView(escalas) {
   // Ordem: passadas (antigas→recentes) + proximas (recentes→futuras)
   _deckEscalas = [...passadas30.reverse(), ...proximas];
   if (!_deckEscalas.length) {
-    track.innerHTML = '<div style="text-align:center;padding:40px;color:var(--faint);font-size:13px;">Nenhuma escala programada.</div>';
+    track.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-title">Nenhuma escala programada</div><div class="empty-state-sub">Ainda não há escalas para os próximos dias.</div></div>';
     return;
   }
 
