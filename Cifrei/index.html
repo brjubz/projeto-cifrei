@@ -1771,6 +1771,8 @@ const GIST_ID_BANCO   = 'ac2d9ca53f29fa99ac1c5f4be584b2b1';
 
 // ── FIREBASE PRESENÇA EM TEMPO REAL ──
 let fbDb, fbAuth, fbUser, hbInterval, presenceUnsub;
+// Unsubscribe handles para listeners de sincronização — evitam leituras orfãs
+let _unsubSetlistSync = null, _unsubAdmUpdate = null;
 let _fbInitPromise = null; // Promise que resolve quando Firebase estiver pronto
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'cifrei-app';
 const avatarColors = ['#34d399', '#60a5fa', '#fbbf24', '#f87171', '#c084fc', '#e879f9'];
@@ -2059,7 +2061,8 @@ async function startOnlinePresence() {
   await gravarAcesso();
 
   if(hbInterval) clearInterval(hbInterval);
-  hbInterval = setInterval(async () => { await ping(); await gravarAcesso(); }, 60000);
+  // Intervalo de 120s (antes: 60s) — economiza ~14.400 writes/dia com 20 usuários
+  hbInterval = setInterval(async () => { await ping(); await gravarAcesso(); }, 120000);
   if(presenceUnsub) presenceUnsub();
   const collRef = collection(fbDb, 'artifacts', appId, 'public', 'data', 'presence');
   presenceUnsub = onSnapshot(collRef, (snap) => {
@@ -2082,7 +2085,8 @@ async function startOnlinePresence() {
   // Escuta mudanças no setlist feitas por outros músicos
   const setlistUserRef = doc(fbDb, 'salas', 'setlist_sync');
   let _ultimoSetlistSync = 0;
-  onSnapshot(setlistUserRef, async (snap) => {
+  if (_unsubSetlistSync) { _unsubSetlistSync(); _unsubSetlistSync = null; }
+  _unsubSetlistSync = onSnapshot(setlistUserRef, async (snap) => {
     if (!snap.exists()) return;
     const d = snap.data();
     const ts = d.ts || 0;
@@ -2108,7 +2112,8 @@ async function startOnlinePresence() {
   // O ADM grava o conteúdo atualizado DIRETAMENTE no Firestore.
   // O app lê do Firestore primeiro (instantâneo) e depois confirma com o Gist.
   const updateRef = doc(fbDb, 'salas', 'adm_update');
-  onSnapshot(updateRef, async (snap) => {
+  if (_unsubAdmUpdate) { _unsubAdmUpdate(); _unsubAdmUpdate = null; }
+  _unsubAdmUpdate = onSnapshot(updateRef, async (snap) => {
     if (!snap.exists()) return;
     const data = snap.data();
     const ts = data.updatedAt || 0;
@@ -3626,6 +3631,33 @@ function filtrarBanco() {
   renderBanco(S.bancoFiltrado, true);
 }
 
+// ── CACHE COMPARTILHADO PARA historico_setlists ──────────────────────────────
+// Evita 2+ leituras separadas por sessão (banco completo — ~100 docs cada)
+const _HIST_CACHE_KEY = 'cifrei_hist_setlists_v1';
+const _HIST_CACHE_TTL = 60 * 60 * 1000; // 1 hora
+let _historicoSetlistsRaw = null;
+
+async function _getHistoricoSetlists() {
+  if (_historicoSetlistsRaw) return _historicoSetlistsRaw;
+  try {
+    const cached = sessionStorage.getItem(_HIST_CACHE_KEY);
+    if (cached) {
+      const obj = JSON.parse(cached);
+      if (Date.now() - obj.ts < _HIST_CACHE_TTL) {
+        _historicoSetlistsRaw = obj.docs;
+        return _historicoSetlistsRaw;
+      }
+    }
+  } catch(e) {}
+  try {
+    const snap = await getDocs(collection(fbDb, 'historico_setlists'));
+    _historicoSetlistsRaw = [];
+    snap.forEach(d => _historicoSetlistsRaw.push(d.data()));
+    sessionStorage.setItem(_HIST_CACHE_KEY, JSON.stringify({ ts: Date.now(), docs: _historicoSetlistsRaw }));
+  } catch(e) { _historicoSetlistsRaw = []; }
+  return _historicoSetlistsRaw;
+}
+
 // Mapa: título (lowercase) → data ISO mais recente que foi tocada
 let _musicasRecentes = null;
 
@@ -3635,14 +3667,12 @@ async function _carregarMusicasRecentes() {
   try {
     const limite = new Date(); limite.setDate(limite.getDate() - 30);
     const limiteISO = limite.toISOString().slice(0, 10);
-    const snap = await getDocs(collection(fbDb, 'historico_setlists'));
-    snap.forEach(d => {
-      const h = d.data();
+    const docs = await _getHistoricoSetlists();
+    docs.forEach(h => {
       if ((h.data || '') >= limiteISO && h.musicas?.length) {
         h.musicas.forEach(m => {
           const titulo = (m.title || m.titulo || '').toLowerCase().trim();
           if (!titulo) return;
-          // Guarda a data mais recente
           const atual = _musicasRecentes.get(titulo);
           if (!atual || h.data > atual) _musicasRecentes.set(titulo, h.data);
         });
@@ -4187,60 +4217,67 @@ function _loginPreviewAvatar(login) {
 }
 
 // ── LOGIN VIA REST — não depende do SDK Firebase ─────────────────────────────
+// Usa runQuery com filtro no servidor — evita escanear toda a coleção (era ~300 leituras/tentativa)
 async function _loginViaRest(loginInput, senhaInput) {
   const PROJECT = 'cifrei-e37f6';
-  let url = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/avatars_musicos?pageSize=300`;
+  const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
   const dbg = document.getElementById('bv-firebase-status');
 
+  // Monta query estruturada para filtrar por campo no servidor
+  const _runQuery = async (fieldPath, value) => {
+    const body = { structuredQuery: {
+      from: [{ collectionId: 'avatars_musicos' }],
+      where: { fieldFilter: { field: { fieldPath }, op: 'EQUAL', value: { stringValue: value } } },
+      limit: 2
+    }};
+    const res = await fetch(`${BASE}:runQuery`, { method: 'POST', body: JSON.stringify(body) });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const rows = await res.json();
+    return rows.filter(r => r.document).map(r => r.document);
+  };
+
+  const _extrairUsuario = (d, loginInput) => {
+    const f = d.fields || {};
+    const senhaDoc = (f.senha?.stringValue || f.senha?.integerValue || f.senha?.doubleValue || '').toString().trim();
+    return { f, senhaDoc };
+  };
+
   try {
-    let pageCount = 0;
-    while (url) {
-      pageCount++;
-      if (dbg) dbg.textContent = `🔄 Buscando usuários (pág ${pageCount})...`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-      const docs = data.documents || [];
+    if (dbg) dbg.textContent = '🔄 Verificando usuário...';
 
-      for (const d of docs) {
-        const f = d.fields || {};
-        const loginDoc = (f.login?.stringValue || '').toLowerCase().trim();
-        const nomeDoc  = (f.nome?.stringValue  || '').toLowerCase().trim();
-        // Senha pode ser string ou inteiro
-        const senhaDoc = (f.senha?.stringValue || f.senha?.integerValue || f.senha?.doubleValue || '').toString().trim();
-        const loginOk  = loginDoc === loginInput || nomeDoc === loginInput;
+    // 1ª tentativa: query por campo "login"
+    let docs = await _runQuery('login', loginInput);
+    // 2ª tentativa: query por campo "nome" (caso login seja o nome completo)
+    if (!docs.length) docs = await _runQuery('nome', loginInput);
 
-        if (loginOk) {
-          if (dbg) dbg.textContent = `✅ Usuário encontrado. Verificando senha...`;
-          // Debug: mostra o que está sendo comparado
-          console.log('[login]', { loginDoc, nomeDoc, senhaDoc: senhaDoc.replace(/./g,'*'), senhaInput: senhaInput.replace(/./g,'*'), match: senhaDoc === senhaInput });
-          if (senhaDoc === senhaInput) {
-            if (dbg) dbg.textContent = '';
-            return {
-              nome:         f.nome?.stringValue        || loginInput,
-              login:        f.login?.stringValue       || loginInput,
-              senha:        senhaDoc,
-              foto:         f.foto?.stringValue        || '',
-              perm_cifra:   f.perm_cifra?.booleanValue  ?? true,
-              perm_letra:   f.perm_letra?.booleanValue  ?? true,
-              perm_setlist: f.perm_setlist?.booleanValue ?? true,
-              instrumento:  f.instrumento?.stringValue  || '',
-            };
-          } else {
-            if (dbg) dbg.textContent = `❌ Senha não confere (${senhaDoc.length} vs ${senhaInput.length} chars)`;
-            return null; // usuário encontrado mas senha errada
-          }
-        }
-      }
-
-      // Próxima página se existir
-      url = data.nextPageToken
-        ? `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents/avatars_musicos?pageSize=300&pageToken=${data.nextPageToken}`
-        : null;
+    if (!docs.length) {
+      if (dbg) dbg.textContent = '❌ Usuário não encontrado';
+      return null;
     }
 
-    if (dbg) dbg.textContent = `❌ Usuário não encontrado`;
-    return null;
+    const d = docs[0];
+    const f = d.fields || {};
+    const senhaDoc = (f.senha?.stringValue || f.senha?.integerValue || f.senha?.doubleValue || '').toString().trim();
+
+    if (dbg) dbg.textContent = '✅ Usuário encontrado. Verificando senha...';
+    console.log('[login]', { senhaDoc: senhaDoc.replace(/./g,'*'), senhaInput: senhaInput.replace(/./g,'*'), match: senhaDoc === senhaInput });
+
+    if (senhaDoc !== senhaInput) {
+      if (dbg) dbg.textContent = `❌ Senha não confere (${senhaDoc.length} vs ${senhaInput.length} chars)`;
+      return null;
+    }
+
+    if (dbg) dbg.textContent = '';
+    return {
+      nome:         f.nome?.stringValue        || loginInput,
+      login:        f.login?.stringValue       || loginInput,
+      senha:        senhaDoc,
+      foto:         f.foto?.stringValue        || '',
+      perm_cifra:   f.perm_cifra?.booleanValue  ?? true,
+      perm_letra:   f.perm_letra?.booleanValue  ?? true,
+      perm_setlist: f.perm_setlist?.booleanValue ?? true,
+      instrumento:  f.instrumento?.stringValue  || '',
+    };
   } catch(e) {
     throw new Error('Falha na conexão: ' + e.message);
   }
@@ -7234,14 +7271,12 @@ async function _renderEscalaView(escalas) {
   const limite30 = new Date(); limite30.setDate(limite30.getDate()-30);
   const passadas30 = passadas.filter(e => e.data >= limite30.toISOString().slice(0,10));
 
-  // Carrega histórico apenas das escalas PASSADAS
+  // Carrega histórico apenas das escalas PASSADAS — usa cache compartilhado (sem leitura dupla)
   let historicoMap = {};
   try {
-    const snap = await getDocs(collection(fbDb, 'historico_setlists'));
-    snap.forEach(d => {
-      const h = d.data();
-      // Só usa histórico para datas que já passaram
-      if (h.data && h.data < hoje) historicoMap[h.data] = h.musicas||[];
+    const docs = await _getHistoricoSetlists();
+    docs.forEach(h => {
+      if (h.data && h.data < hoje) historicoMap[h.data] = h.musicas || [];
     });
   } catch(e) {}
 
