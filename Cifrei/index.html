@@ -2897,7 +2897,12 @@ function getSaudacao(nome) {
   };
 
   const opcoes = frases[dia][periodo];
-  return { saudacao, frase: opcoes[Math.floor(Math.random() * opcoes.length)] };
+  const chave = `cifrei_ultima_frase_${dia}_${periodo}`;
+  const ultimoIdx = parseInt(localStorage.getItem(chave) ?? '-1');
+  const candidatos = opcoes.map((_, i) => i).filter(i => i !== ultimoIdx);
+  const idx = candidatos[Math.floor(Math.random() * candidatos.length)];
+  localStorage.setItem(chave, String(idx));
+  return { saudacao, frase: opcoes[idx] };
 }
 
 function _renderSaudacao(nome) {
