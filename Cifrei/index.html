@@ -4341,10 +4341,11 @@ async function confirmarBoasVindas() {
 
     // 1. Tenta cache local (evita qualquer leitura no Firestore)
     const cacheResult = _loginViaCacheLocal(loginInput, senhaInput);
-    let usuario = (cacheResult !== undefined) ? cacheResult : null;
+    // cacheResult: objeto = achou, null = não achou/senha errada, undefined = cache expirado
+    let usuario = (cacheResult && typeof cacheResult === 'object') ? cacheResult : null;
 
-    // 2. Se cache não resolveu, tenta REST
-    if (usuario === null && cacheResult === undefined) try {
+    // 2. Se cache não resolveu (null ou undefined), tenta REST
+    if (!usuario) try {
       usuario = await _loginViaRest(loginInput, senhaInput);
     } catch(e) {
       // Fallback: tenta via SDK se já estiver carregado
