@@ -4231,13 +4231,13 @@ function _loginPreviewAvatar(login) {
 }
 
 // ── LOGIN VIA REST — não depende do SDK Firebase ─────────────────────────────
-// Usa runQuery com filtro no servidor — evita escanear toda a coleção (era ~300 leituras/tentativa)
 async function _loginViaRest(loginInput, senhaInput) {
   const PROJECT = 'cifrei-e37f6';
   const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
   const dbg = document.getElementById('bv-firebase-status');
 
-  // Monta query estruturada para filtrar por campo no servidor
+  // Tenta query direta por campo (rápido: 2 leituras). Firestore é case-sensitive,
+  // então se o campo estiver em maiúsculo não retorna — o fallback abaixo cobre isso.
   const _runQuery = async (fieldPath, value) => {
     const body = { structuredQuery: {
       from: [{ collectionId: 'avatars_musicos' }],
@@ -4250,29 +4250,55 @@ async function _loginViaRest(loginInput, senhaInput) {
     return rows.filter(r => r.document).map(r => r.document);
   };
 
-  const _extrairUsuario = (d, loginInput) => {
+  // Verifica campos e retorna objeto de usuário se login+senha batem
+  const _checarDoc = (d) => {
     const f = d.fields || {};
+    const loginDoc = (f.login?.stringValue || '').toLowerCase().trim();
+    const nomeDoc  = (f.nome?.stringValue  || '').toLowerCase().trim();
     const senhaDoc = (f.senha?.stringValue || f.senha?.integerValue || f.senha?.doubleValue || '').toString().trim();
+    if (loginDoc !== loginInput && nomeDoc !== loginInput) return null; // não é esse usuário
     return { f, senhaDoc };
   };
 
   try {
     if (dbg) dbg.textContent = '🔄 Verificando usuário...';
 
-    // 1ª tentativa: query por campo "login"
-    let docs = await _runQuery('login', loginInput);
-    // 2ª tentativa: query por campo "nome" (caso login seja o nome completo)
-    if (!docs.length) docs = await _runQuery('nome', loginInput);
+    // Caminho rápido: query exata por "login" e "nome" (funciona quando campo está em minúsculo)
+    let encontrado = null;
+    const queryDocs = [
+      ...(await _runQuery('login', loginInput)),
+      ...(await _runQuery('nome', loginInput)),
+    ];
+    for (const d of queryDocs) {
+      const r = _checarDoc(d);
+      if (r) { encontrado = r; break; }
+    }
 
-    if (!docs.length) {
+    // Fallback: scan completo com comparação case-insensitive no cliente
+    // (usado quando o campo está salvo com maiúsculas, ex: "Julio" vs "julio")
+    if (!encontrado) {
+      if (dbg) dbg.textContent = '🔄 Buscando usuário...';
+      let url = `${BASE}/avatars_musicos?pageSize=300`;
+      while (url && !encontrado) {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        for (const d of (data.documents || [])) {
+          const r = _checarDoc(d);
+          if (r) { encontrado = r; break; }
+        }
+        url = data.nextPageToken
+          ? `${BASE}/avatars_musicos?pageSize=300&pageToken=${data.nextPageToken}`
+          : null;
+      }
+    }
+
+    if (!encontrado) {
       if (dbg) dbg.textContent = '❌ Usuário não encontrado';
       return null;
     }
 
-    const d = docs[0];
-    const f = d.fields || {};
-    const senhaDoc = (f.senha?.stringValue || f.senha?.integerValue || f.senha?.doubleValue || '').toString().trim();
-
+    const { f, senhaDoc } = encontrado;
     if (dbg) dbg.textContent = '✅ Usuário encontrado. Verificando senha...';
     console.log('[login]', { senhaDoc: senhaDoc.replace(/./g,'*'), senhaInput: senhaInput.replace(/./g,'*'), match: senhaDoc === senhaInput });
 
@@ -4283,14 +4309,14 @@ async function _loginViaRest(loginInput, senhaInput) {
 
     if (dbg) dbg.textContent = '';
     return {
-      nome:         f.nome?.stringValue        || loginInput,
-      login:        f.login?.stringValue       || loginInput,
+      nome:         f.nome?.stringValue         || loginInput,
+      login:        f.login?.stringValue        || loginInput,
       senha:        senhaDoc,
-      foto:         f.foto?.stringValue        || '',
-      perm_cifra:   f.perm_cifra?.booleanValue  ?? true,
-      perm_letra:   f.perm_letra?.booleanValue  ?? true,
+      foto:         f.foto?.stringValue         || '',
+      perm_cifra:   f.perm_cifra?.booleanValue   ?? true,
+      perm_letra:   f.perm_letra?.booleanValue   ?? true,
       perm_setlist: f.perm_setlist?.booleanValue ?? true,
-      instrumento:  f.instrumento?.stringValue  || '',
+      instrumento:  f.instrumento?.stringValue   || '',
     };
   } catch(e) {
     throw new Error('Falha na conexão: ' + e.message);
