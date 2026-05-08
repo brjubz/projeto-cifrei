@@ -850,7 +850,9 @@ async function _btnEntrarClick() {
     var senhaInput = senha.trim();
     // Tenta cache local primeiro (evita leitura no Firestore e erro 429)
     var cacheResult = _loginViaCacheLocal(loginInput, senhaInput);
-    var usuario = (cacheResult !== undefined) ? cacheResult : await _loginViaRestDireto(loginInput, senhaInput);
+    // cacheResult: objeto = achou, null = não achou/senha errada, undefined = cache expirado
+    // Em qualquer caso que não seja um objeto, consulta o servidor
+    var usuario = (cacheResult && typeof cacheResult === 'object') ? cacheResult : await _loginViaRest(loginInput, senhaInput);
     if (!usuario) {
       if (dbg) dbg.textContent = '';
       if (erroEl) { erroEl.textContent = '⚠️ Login ou senha incorretos.'; erroEl.style.display = 'block'; }
