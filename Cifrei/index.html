@@ -2138,7 +2138,7 @@ async function startOnlinePresence() {
     const online = [];
     snap.forEach(d => {
       const data = d.data();
-      if (now - data.lastActive < 10 * 60 * 1000) {
+      if (now - data.lastActive < 60 * 60 * 1000) { // 1h (era 10min) — reduz leituras de presença
         // id = nome_lower (chave), uid = uid real do Firebase (para salas)
         // Se o documento tem o uid do próprio usuário, usa-o para lógica de salas
         const uid = data.uid || d.id;

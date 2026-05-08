@@ -2303,11 +2303,13 @@ async function initFirebaseAdm() {
     window._fbOnSnapshot= onSnapshot;
     window._fbDeleteDoc = deleteDoc;
 
-    // Carrega cache de avatares PRIMEIRO (antes do listener de presença)
+    // Carrega cache de avatares uma única vez (sem stream — avatares mudam raramente)
     try {
       const snapAv = await getDocs(collection(fbDb, 'avatars_musicos'));
       window._avatarsAdmCache = {};
       snapAv.forEach(d => { const data = d.data(); if (data.nome) window._avatarsAdmCache[data.nome.toLowerCase().trim()] = data; });
+      const elPerfis = document.getElementById('stat-perfis');
+      if (elPerfis) elPerfis.textContent = snapAv.size;
     } catch(e) { window._avatarsAdmCache = {}; }
 
     // Escuta presença online dos músicos (agora o cache já está pronto)
@@ -2318,7 +2320,7 @@ async function initFirebaseAdm() {
       const online = [];
       snap.forEach(d => {
         const data = d.data();
-        if (now - data.lastActive < 10 * 60 * 1000) {
+        if (now - data.lastActive < 60 * 60 * 1000) { // 1h (era 10min)
           online.push({ id: data.uid || d.id, presenceKey: d.id, ...data });
           if (data.name) registrarAtividadeAdm(data.name);
         }
@@ -2352,20 +2354,8 @@ async function initFirebaseAdm() {
       _renderCurtidasDoCCache();
     });
 
-    // ── Listener em tempo real de avatars_musicos ────────────────────────────
-    // Atualiza stat-perfis ao vivo
-    if (_unsubAvatares) { _unsubAvatares(); _unsubAvatares = null; }
-    _unsubAvatares = onSnapshot(collection(fbDb, 'avatars_musicos'), (snap) => {
-      window._avatarsAdmCache = {};
-      snap.forEach(d => {
-        const data = d.data();
-        if (data.nome) window._avatarsAdmCache[data.nome.toLowerCase().trim()] = data;
-      });
-      const el = document.getElementById('stat-perfis');
-      if (el) el.textContent = snap.size;
-      if (ADM.usuariosOnline?.length) renderPresencaDashboard(ADM.usuariosOnline);
-      renderOnlineHoje();
-    });
+    // avatars_musicos: stream removido — getDocs único acima já popula o cache
+    // (avatares mudam raramente; não justifica stream contínuo para todos os usuários)
 
     setTimeout(executarDiagnosticoToken, 800);
     await carregarUsuariosDoFirestore();
