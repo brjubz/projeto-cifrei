@@ -2284,7 +2284,7 @@ let fbDb;
 async function initFirebaseAdm() {
   try {
     const { initializeApp, getApps, getApp } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js');
-    const { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc, onSnapshot } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+    const { getFirestore, doc, setDoc, getDoc, getDocs, collection, deleteDoc, onSnapshot, query, where } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
     const { getAuth, signInAnonymously } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js');
 
     const appName = 'cifrei-adm';
@@ -2312,7 +2312,8 @@ async function initFirebaseAdm() {
 
     // Escuta presença online dos músicos (agora o cache já está pronto)
     const presenceRef = collection(fbDb, 'artifacts', FB_APP_ID, 'public', 'data', 'presence');
-    onSnapshot(presenceRef, (snap) => {
+    if (_unsubPresenca) { _unsubPresenca(); _unsubPresenca = null; }
+    _unsubPresenca = onSnapshot(presenceRef, (snap) => {
       const now = Date.now();
       const online = [];
       snap.forEach(d => {
@@ -2328,19 +2329,24 @@ async function initFirebaseAdm() {
       renderOnlineHoje();
     });
 
-    // ── Listener em tempo real de acessos_app ────────────────────────────────
-    onSnapshot(collection(fbDb, 'acessos_app'), (snap) => {
-      ADM.logsAtividade = [];
-      snap.forEach(d => ADM.logsAtividade.push(d.data()));
-      ADM.logsAtividade.sort((a, b) => (b.ts || 0) - (a.ts || 0));
-      renderUsuariosFrequentes();
-      renderActivityChart();
-      renderOnlineHoje();
-      renderHorariosAtividade();
-    });
+    // ── Listener de acessos_app — filtrado por data de hoje (antes lia coleção inteira)
+    if (_unsubAcessos) { _unsubAcessos(); _unsubAcessos = null; }
+    _unsubAcessos = onSnapshot(
+      query(collection(fbDb, 'acessos_app'), where('data', '==', new Date().toISOString().slice(0, 10))),
+      (snap) => {
+        ADM.logsAtividade = [];
+        snap.forEach(d => ADM.logsAtividade.push(d.data()));
+        ADM.logsAtividade.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+        renderUsuariosFrequentes();
+        renderActivityChart();
+        renderOnlineHoje();
+        renderHorariosAtividade();
+      }
+    );
 
     // ── Listener em tempo real de curtidas ───────────────────────────────────
-    onSnapshot(collection(fbDb, 'votos_musicas'), (snap) => {
+    if (_unsubVotos) { _unsubVotos(); _unsubVotos = null; }
+    _unsubVotos = onSnapshot(collection(fbDb, 'votos_musicas'), (snap) => {
       ADM.curtidas = [];
       snap.forEach(d => ADM.curtidas.push(d.data()));
       _renderCurtidasDoCCache();
@@ -2348,7 +2354,8 @@ async function initFirebaseAdm() {
 
     // ── Listener em tempo real de avatars_musicos ────────────────────────────
     // Atualiza stat-perfis ao vivo
-    onSnapshot(collection(fbDb, 'avatars_musicos'), (snap) => {
+    if (_unsubAvatares) { _unsubAvatares(); _unsubAvatares = null; }
+    _unsubAvatares = onSnapshot(collection(fbDb, 'avatars_musicos'), (snap) => {
       window._avatarsAdmCache = {};
       snap.forEach(d => {
         const data = d.data();
@@ -3208,7 +3215,8 @@ function entrarNoApp() {
   // Listener em tempo real — atualiza setlist admin quando músico altera
   if (fbDb && window._fbOnSnapshot && window._fbDoc) {
     let _tsUltimoAdm = Date.now();
-    window._fbOnSnapshot(window._fbDoc(fbDb, 'salas', 'setlist_musico'), (snap) => {
+    if (_unsubSetlistMusico) { _unsubSetlistMusico(); _unsubSetlistMusico = null; }
+    _unsubSetlistMusico = window._fbOnSnapshot(window._fbDoc(fbDb, 'salas', 'setlist_musico'), (snap) => {
       if (!snap.exists()) return;
       const d = snap.data();
       if (!d.ts || d.ts <= _tsUltimoAdm) return;
@@ -3225,12 +3233,13 @@ function entrarNoApp() {
   setTimeout(carregarCurtidas, 1500);
   // Contagem de chamados desta semana
   setTimeout(_atualizarStatChamados, 2000);
-  // Inicia listener de chamados para o dashboard
+  // Inicia listener de chamados para o dashboard (usa escutarChamadosAdm que tem cleanup correto)
   setTimeout(() => {
     if (fbDb && window._fbCollection && window._fbOnSnapshot) {
-      window._fbOnSnapshot(window._fbCollection(fbDb, 'chamados_ativos'), renderChamadosAdm);
+      escutarChamadosAdm(); // substitui listener órfão — já tem _admChamadosUnsub com cleanup
       // Escuta atividade do setlist feita pelos músicos
-      window._fbOnSnapshot(window._fbDoc(fbDb, 'salas', 'setlist_atividade'), (snap) => {
+      if (_unsubAtividade) { _unsubAtividade(); _unsubAtividade = null; }
+      _unsubAtividade = window._fbOnSnapshot(window._fbDoc(fbDb, 'salas', 'setlist_atividade'), (snap) => {
         if (!snap.exists()) return;
         const d = snap.data();
         if (!d.msg || !d.ts) return;
@@ -3248,6 +3257,11 @@ function entrarNoApp() {
 }
 
 function logout() {
+  // Cancela todos os listeners ao sair — evita acúmulo em re-logins
+  [_unsubPresenca, _unsubAcessos, _unsubVotos, _unsubAvatares,
+   _unsubSetlistMusico, _unsubAtividade, _admChamadosUnsub].forEach(u => { try { u && u(); } catch(e) {} });
+  _unsubPresenca = _unsubAcessos = _unsubVotos = _unsubAvatares = null;
+  _unsubSetlistMusico = _unsubAtividade = _admChamadosUnsub = null;
   sessionStorage.removeItem('adm_session');
   document.getElementById('app').classList.remove('show');
   document.getElementById('main-content').classList.remove('show');
@@ -4268,14 +4282,17 @@ async function carregarCurtidas() {
     return;
   }
   try {
-    const col = window._fbCollection(fbDb, 'votos_musicas');
-    const snap = await window._fbGetDocs(col);
-    if (snap.empty) {
+    // Usa cache do listener (ADM.curtidas) — evita reler a coleção inteira
+    const musicas = ADM.curtidas?.length ? [...ADM.curtidas] : [];
+    if (!musicas.length) {
+      // Fallback: lê do Firestore apenas se o listener ainda não populou o cache
+      const snap = await window._fbGetDocs(window._fbCollection(fbDb, 'votos_musicas'));
+      snap.forEach(d => musicas.push(d.data()));
+    }
+    if (!musicas.length) {
       wrap.innerHTML = '<div style="color:var(--faint);font-size:12px;text-align:center;padding:12px;">Nenhuma curtida ainda. Os músicos podem curtir músicas no app.</div>';
       return;
     }
-    const musicas = [];
-    snap.forEach(d => musicas.push(d.data()));
     musicas.sort((a, b) => (b.total || 0) - (a.total || 0));
     const top = musicas.slice(0, 10);
     const maxVotos = top[0]?.total || 1;
@@ -4962,6 +4979,9 @@ function fecharOnboardingAdm() {
 const ICONES_PACK = ['🔌','🔋','🎤','🔇','🔊','🎸','🥁','🎹','🎺','🎻','🎵','🎶','🎚️','🎛️','📡','🔧','🔦','💡','⚡','📻','🖥️','📱','🔕','🔔','❗','⚠️','🆘','✋','👂','🎙️'];
 let _admChamadosUnsub = null;
 let _chamadosConfigLocal = null;
+// Unsubscribe handles — evitam listeners órfãos no logout/re-login
+let _unsubPresenca = null, _unsubAcessos = null, _unsubVotos = null, _unsubAvatares = null;
+let _unsubSetlistMusico = null, _unsubAtividade = null;
 
 const CHAMADOS_PADRAO_ADM = [
   { id:'cabo',    texto:'Preciso de cabo',              cor:'#f87171', icone:'🔌' },
@@ -5306,8 +5326,13 @@ async function _iaGetContextoDados() {
       const snapH = await window._fbGetDocs(query(window._fbCollection(fbDb, 'historico_setlists'), orderBy('timestamp','desc'), limit(6)));
       const hist = []; snapH.forEach(d => { const h = d.data(); hist.push(`• ${h.dataFormatada||h.data}: ${(h.musicas||[]).map(m=>m.title).join(', ')}`); });
       if (hist.length) historico = hist.join('\n');
-      const snapC = await window._fbGetDocs(window._fbCollection(fbDb, 'votos_musicas'));
-      const votos = []; snapC.forEach(d => votos.push(d.data())); votos.sort((a,b) => (b.total||0)-(a.total||0));
+      // Usa cache do listener — evita reler votos_musicas
+      const votos = ADM.curtidas?.length ? [...ADM.curtidas] : [];
+      if (!votos.length) {
+        const snapC = await window._fbGetDocs(window._fbCollection(fbDb, 'votos_musicas'));
+        snapC.forEach(d => votos.push(d.data()));
+      }
+      votos.sort((a,b) => (b.total||0)-(a.total||0));
       if (votos.length) curtidas = votos.slice(0,10).map(v => `- ${v.titulo}: ${v.total||0} ❤`).join('\n');
     }
   } catch(e) {}
