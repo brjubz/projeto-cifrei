@@ -7633,7 +7633,7 @@ async function removerPadAdm(nota) {
 }
 
 // ── IMPORTADOR CIFRACLUB (via serviço Railway Flask+Playwright) ───────────────
-const SERVICO_URL_CIFRA = 'https://apicifraclub-production.up.railway.app';
+const SERVICO_URL_CIFRA = '/proxy/cifraclub';
 
 function trocarAbaApiPreview(aba) {
   document.getElementById('api-aba-cifra-wrap').style.display = aba==='cifra' ? '' : 'none';

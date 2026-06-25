@@ -1,0 +1,2 @@
+# Proxy API CifraClub (Render) — contorna bloqueio CORS
+/proxy/cifraclub/*  https://apicifraclub-1.onrender.com/:splat  200
