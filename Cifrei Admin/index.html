@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -7652,56 +7652,39 @@ async function buscarCifraClub() {
   const aviso   = document.getElementById('api-busca-aviso');
   const btn     = document.getElementById('btn-buscar-api');
 
-  if (!titulo) { showToast('Digite o nome da música', 'error'); return; }
+  if (!titulo) { showToast('Digite o nome da m\u00fasica', 'error'); return; }
   aviso.style.display = 'none';
-
-  const slug = s => (s||'').toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
-    .replace(/[^a-z0-9\s]/g,'').trim().replace(/\s+/g,'-');
-
-  const tituloSlug  = slug(titulo);
-  const artistaSlug = slug(artista);
-  const endpoint = artistaSlug
-    ? `${SERVICO_URL_CIFRA}/cifra/${artistaSlug}/${tituloSlug}`
-    : `${SERVICO_URL_CIFRA}/cifra/${tituloSlug}`;
-
   btn.disabled = true;
-  btn.innerHTML = '⏳ Buscando...';
-  status.textContent = 'Acordando serviço (pode levar até 30s)...';
+  btn.innerHTML = '\u23F3 Buscando...';
+  status.textContent = 'Buscando cifra...';
   preview.style.display = 'none';
 
   try {
-    // Ping para acordar o serviço (Railway hiberna após inatividade)
-    try {
-      await Promise.race([
-        fetch(SERVICO_URL_CIFRA + '/health'),
-        new Promise((_,rej) => setTimeout(() => rej(), 60000))
-      ]);
-    } catch(e) {}
+    // Busca direto do browser via allorigins.win (evita bloqueio Akamai em IPs de datacenter)
+    const resultado = await _iaBuscarCifra(titulo, artista);
+    if (!resultado) throw new Error('Cifra n\u00e3o encontrada \u2014 verifique o nome e o artista');
 
-    status.textContent = 'Buscando cifra...';
-    const res = await Promise.race([
-      fetch(endpoint),
-      new Promise((_,rej) => setTimeout(() => rej(new Error('Timeout — tente novamente')), 40000))
-    ]);
+    // Detecta o tom: primeira linha que cont\u00e9m s\u00f3 acordes
+    const ACORDE_RE = /^[A-G][b#]?(?:m|M|maj|min|dim|aug|sus|add|\u00b0|\u00ba\|\+)?\d*(?:\([^)]*\))?(?:\/[A-G][b#]?)?$/;
+    let tom = '';
+    for (const linha of (resultado.cifra || '').split('\n')) {
+      const t = linha.trim();
+      if (!t || t.length > 60) continue;
+      const tokens = t.split(/\s+/);
+      if (tokens[0] && ACORDE_RE.test(tokens[0]) && !/[a-z]{3,}/.test(t)) { tom = tokens[0]; break; }
+    }
 
-    if (!res.ok) throw new Error(`Serviço retornou ${res.status}`);
-    const data = await res.json();
-    if (data.erro) throw new Error(data.erro);
-
-    // Preenche preview
-    document.getElementById('api-prev-nome').textContent    = data.nome || titulo;
-    document.getElementById('api-prev-artista').textContent = data.artista || artista || '';
-    document.getElementById('api-prev-tom').textContent     = data.tom ? 'Tom: ' + data.tom : '';
-    document.getElementById('api-prev-cifra').value         = data.cifra || '';
-    document.getElementById('api-prev-letra').value         = data.letra || '';
+    document.getElementById('api-prev-nome').textContent    = resultado.nome || titulo;
+    document.getElementById('api-prev-artista').textContent = artista || '';
+    document.getElementById('api-prev-tom').textContent     = tom ? 'Tom: ' + tom : '';
+    document.getElementById('api-prev-cifra').value         = resultado.cifra || '';
+    document.getElementById('api-prev-letra').value         = resultado.letra || '';
     document.getElementById('api-prev-yt').value            = '';
     document.getElementById('api-prev-sp').value            = '';
     document.getElementById('api-prev-verified').checked    = false;
     trocarAbaApiPreview('cifra');
-
     preview.style.display = 'block';
-    status.textContent = '✅ Cifra encontrada!';
+    status.textContent = '\u2705 Cifra encontrada!';
 
   } catch(e) {
     status.textContent = '❌ ' + e.message;
