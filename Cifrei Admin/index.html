@@ -5984,7 +5984,7 @@ async function _iaBuscarCifra(titulo, artista, urlDireta) {
 
   for (const url of urls) {
     try {
-      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+      const res = await fetch(`/proxy/cifraclub/get?url=${encodeURIComponent(url)}`);
       if (!res.ok) continue;
       const data = await res.json();
       const html = data.contents || '';
