@@ -3508,7 +3508,6 @@ async function iniciar(){
   if (!ok) return;
 
   // Mostra a UI imediatamente — não espera Firebase
-  const btn = document.getElementById('start-btn');
   const splash = document.getElementById('splash');
   document.getElementById('splash-err').style.display = 'none';
 
@@ -3527,8 +3526,7 @@ async function iniciar(){
     setTimeout(_carregarEExibirNotificacoes, 5000); // 5s após entrada para não interferir
   }, 300);
 
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Iniciar';
-  btn.disabled = false;
+  // noop — o start-card é um div, não botão com spinner
 
   // Busca setlist em paralelo (Firebase ou Gist)
   _carregarSetlistAsync();
