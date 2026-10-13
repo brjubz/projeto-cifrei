@@ -4445,8 +4445,23 @@ function atualizarCountdown() {
 function checarEnvioAutomaticoAoAbrir() {
   const cfg = getCfg();
   if (!cfg.autoSend) return;
-  const ultimoZero = localStorage.getItem('adm_ultimo_envio_ts');
   const agora = Date.now();
+  const now = new Date();
+
+  // Snapshot de 12h: salva repertório sem zerar (caso admin abra depois das 12h)
+  if (now.getDay() === 0 && now.getHours() >= 12 && now.getHours() < 23) {
+    const hoje = now.toISOString().slice(0, 10);
+    const ultimoSnap = localStorage.getItem('adm_snapshot_12h_data');
+    if (ultimoSnap !== hoje && ADM.setlist?.length) {
+      salvarHistoricoSetlist(ADM.setlist).then(() => {
+        localStorage.setItem('adm_snapshot_12h_data', hoje);
+        addAtividade('Repertório salvo automaticamente ao abrir (dom 12h+)', 'green');
+      });
+    }
+  }
+
+  // Zeragem de 23h59
+  const ultimoZero = localStorage.getItem('adm_ultimo_envio_ts');
   const alvo = getProximoDomingo2359();
   const alvoPast = new Date(alvo);
   alvoPast.setDate(alvoPast.getDate() - 7);
@@ -4463,7 +4478,21 @@ function checarEnvioAutomaticoLoop() {
   if (!cfg.autoSend) return;
   const agora = Date.now();
   const now = new Date();
-  // Domingo às 23h59
+
+  // Snapshot domingo às 12h00 — salva repertório sem zerar
+  if (now.getDay() === 0 && now.getHours() === 12 && now.getMinutes() === 0) {
+    const hoje = now.toISOString().slice(0, 10);
+    const ultimoSnap = localStorage.getItem('adm_snapshot_12h_data');
+    if (ultimoSnap !== hoje && ADM.setlist?.length) {
+      salvarHistoricoSetlist(ADM.setlist).then(() => {
+        localStorage.setItem('adm_snapshot_12h_data', hoje);
+        addAtividade('Repertório salvo automaticamente (domingo 12h)', 'green');
+        showToast('Repertório do domingo salvo ✓');
+      });
+    }
+  }
+
+  // Zeragem domingo às 23h59
   if (now.getDay() === 0 && now.getHours() === 23 && now.getMinutes() === 59) {
     const ultimoZero = localStorage.getItem('adm_ultimo_envio_ts');
     const cincominAtras = agora - 5 * 60 * 1000;
