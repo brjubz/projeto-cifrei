@@ -6636,6 +6636,7 @@ let _escalaEditandoId = null;
 
 let _escalasAdmCache = [];
 let _escalaSelecionadaIdx = -1; // -1 = não inicializado
+let _escalaDashPage = 0; // página de chips no dashboard (janela de 9)
 
 async function renderProximaEscalaAdm() {
   const el = document.getElementById('dash-proxima-escala');
@@ -6671,16 +6672,8 @@ async function renderProximaEscalaAdm() {
     _escalasAdmCache._setlistAtual = setlistAtual;
     _escalasAdmCache._hoje = hoje;
 
-    // Chips de data
-    if (filtrosEl) {
-      filtrosEl.innerHTML = lista.map((e, i) => {
-        const d = new Date((e.data||'')+'T12:00:00');
-        const label = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
-        const isSelected = i === _escalaSelecionadaIdx;
-        const isProx = (e.data||'') >= hoje && (i === 0 || (lista[i-1].data||'') < hoje);
-        return `<button onclick="_selecionarEscalaAdm(${i})" style="padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;transition:background .15s,border-color .15s,color .15s;${isSelected?'background:var(--green);color:#000;border-color:var(--green);':'background:transparent;color:#a1a1aa;border-color:rgba(63,63,70,.6);'}">${label}${isProx&&!isSelected?' <span style="font-size:9px;opacity:.7;">●</span>':''}</button>`;
-      }).join('');
-    }
+    // Chips de data — janela de 9 com paginação
+    _renderDashEscalaChips(lista, hoje);
 
     _renderEscalaAdmCard(lista[_escalaSelecionadaIdx]);
   } catch(e) {
@@ -6700,16 +6693,43 @@ function _parseSongsSimples(raw) {
   return songs;
 }
 
+function _renderDashEscalaChips(lista, hoje) {
+  const filtrosEl = document.getElementById('dash-escala-filtros');
+  if (!filtrosEl || !lista?.length) return;
+  const PAGE = 9; // 4 anteriores + atual + 4 próximas
+  const total = lista.length;
+  // Garantir que _escalaDashPage centra na próxima escala na primeira carga
+  const idxProxima = lista.findIndex(e => (e.data||'') >= (hoje || new Date().toISOString().slice(0,10)));
+  const centro = idxProxima >= 0 ? idxProxima : total - 1;
+  if (_escalaDashPage === 0 && centro >= PAGE) _escalaDashPage = Math.floor(centro / PAGE);
+  const start = _escalaDashPage * PAGE;
+  const end = Math.min(start + PAGE, total);
+  const visible = lista.slice(start, end);
+
+  const prevBtn = start > 0 ? <button onclick="_dashEscalasPrev()" style="padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(63,63,70,.5);background:transparent;color:#a1a1aa;" title="Anteriores">‹</button> : '';
+  const nextBtn = end < total ? <button onclick="_dashEscalasNext()" style="padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(63,63,70,.5);background:transparent;color:#a1a1aa;" title="Próximas">›</button> : '';
+
+  const chips = visible.map((e, vi) => {
+    const i = start + vi;
+    const d = new Date((e.data||'')+'T12:00:00');
+    const label = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
+    const isSelected = i === _escalaSelecionadaIdx;
+    const isProx = (e.data||'') >= (hoje||'') && (i === 0 || (lista[i-1]?.data||'') < (hoje||''));
+    return <button onclick="_selecionarEscalaAdm()" style="padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;transition:background .15s,border-color .15s,color .15s;"></button>;
+  }).join('');
+
+  filtrosEl.innerHTML = <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"></div>;
+}
+function _dashEscalasPrev() {
+  if (_escalaDashPage > 0) { _escalaDashPage--; _renderDashEscalaChips(_escalasAdmCache, _escalasAdmCache._hoje); }
+}
+function _dashEscalasNext() {
+  const PAGE = 9;
+  if ((_escalaDashPage + 1) * PAGE < _escalasAdmCache.length) { _escalaDashPage++; _renderDashEscalaChips(_escalasAdmCache, _escalasAdmCache._hoje); }
+}
 function _selecionarEscalaAdm(idx) {
   _escalaSelecionadaIdx = idx;
-  const filtrosEl = document.getElementById('dash-escala-filtros');
-  if (filtrosEl) {
-    filtrosEl.querySelectorAll('button').forEach((btn, i) => {
-      btn.style.background = i===idx ? 'var(--green)' : 'transparent';
-      btn.style.color = i===idx ? '#000' : '#a1a1aa';
-      btn.style.borderColor = i===idx ? 'var(--green)' : 'rgba(63,63,70,.6)';
-    });
-  }
+  _renderDashEscalaChips(_escalasAdmCache, _escalasAdmCache._hoje);
   _renderEscalaAdmCard(_escalasAdmCache[idx]);
 }
 
@@ -6818,6 +6838,8 @@ async function _popularEscalasPadrao() {
   showToast('Escalas de Abril/2026 importadas ✓');
 }
 
+let _escalasPageProxOffset = 0;
+let _escalasPageHistOffset = 0;
 async function carregarEscalas() {
   const el = document.getElementById('escalas-lista');
   if (!el) return;
@@ -6860,37 +6882,30 @@ async function carregarEscalas() {
 
     let html = '';
 
-    // ── PRÓXIMAS ESCALAS ──
-    html += `<div style="margin-bottom:32px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-        <span style="font-size:13px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;">Próximas Escalas</span>
-        <span style="font-size:11px;background:rgba(52,211,153,.12);color:var(--green);border-radius:99px;padding:2px 10px;font-weight:700;">${proximas.length}</span>
-      </div>`;
+    // ── PRÓXIMAS ESCALAS com paginação ──
+    const PG = 5;
+    if (_escalasPageProxOffset >= proximas.length) _escalasPageProxOffset = 0;
+    const proxVisiveis = proximas.slice(_escalasPageProxOffset, _escalasPageProxOffset + PG);
+    html += `<div style="margin-bottom:32px;">`;
+    html += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;"><span style="font-size:13px;font-weight:800;color:var(--green);text-transform:uppercase;letter-spacing:1.5px;">Próximas Escalas</span><span style="font-size:11px;background:rgba(52,211,153,.12);color:var(--green);border-radius:99px;padding:2px 10px;font-weight:700;">${proximas.length}</span></div>`;
     if (!proximas.length) {
       html += `<div style="color:#a1a1aa;font-size:13px;text-align:center;padding:24px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;">Nenhuma escala futura cadastrada.<br>Clique em "+ Nova Escala" para adicionar.</div>`;
     } else {
-      html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
-        ${proximas.map(e => _renderEscalaCardAdm(e, hoje, setlistAtual, null)).join('')}
-      </div>`;
+      html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">${proxVisiveis.map(e => _renderEscalaCardAdm(e, hoje, setlistAtual, null)).join('')}</div>`;
+      if (proximas.length > PG) html += `<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;">${_escalasPageProxOffset > 0 ? `<button onclick="_escalasNavProx(-1)" style="padding:6px 16px;border-radius:8px;border:1px solid rgba(63,63,70,.5);background:transparent;color:#a1a1aa;cursor:pointer;font-size:13px;font-weight:700;">&#8249; Anteriores</button>` : ''} <span style="font-size:12px;color:#71717a;">${_escalasPageProxOffset+1}–${Math.min(_escalasPageProxOffset+PG,proximas.length)} de ${proximas.length}</span> ${_escalasPageProxOffset+PG < proximas.length ? `<button onclick="_escalasNavProx(1)" style="padding:6px 16px;border-radius:8px;border:1px solid rgba(63,63,70,.5);background:transparent;color:#a1a1aa;cursor:pointer;font-size:13px;font-weight:700;">Próximas &#8250;</button>` : ''}</div>`;
     }
     html += `</div>`;
 
-    // ── HISTÓRICO DE ESCALAS ──
-    html += `<div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-        <span style="font-size:13px;font-weight:800;color:#71717a;text-transform:uppercase;letter-spacing:1.5px;">Histórico</span>
-        <span style="font-size:11px;background:rgba(113,113,122,.12);color:#71717a;border-radius:99px;padding:2px 10px;font-weight:700;">${historico.length}</span>
-      </div>`;
+    // ── HISTÓRICO DE ESCALAS com paginação ──
+    if (_escalasPageHistOffset >= historico.length) _escalasPageHistOffset = 0;
+    const histVisiveis = historico.slice(_escalasPageHistOffset, _escalasPageHistOffset + PG);
+    html += `<div>`;
+    html += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;"><span style="font-size:13px;font-weight:800;color:#71717a;text-transform:uppercase;letter-spacing:1.5px;">Histórico</span><span style="font-size:11px;background:rgba(113,113,122,.12);color:#71717a;border-radius:99px;padding:2px 10px;font-weight:700;">${historico.length}</span></div>`;
     if (!historico.length) {
       html += `<div style="color:#a1a1aa;font-size:13px;text-align:center;padding:24px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;">Nenhuma escala passada ainda.</div>`;
     } else {
-      html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
-        ${historico.map(e => {
-          // Tenta vincular com setlist do mesmo domingo
-          const setlistDoDia = setlistsHist[e.data] || null;
-          return _renderEscalaCardAdm(e, hoje, null, setlistDoDia);
-        }).join('')}
-      </div>`;
+      html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">${histVisiveis.map(e => { const setlistDoDia = setlistsHist[e.data] || null; return _renderEscalaCardAdm(e, hoje, null, setlistDoDia); }).join('')}</div>`;
+      if (historico.length > PG) html += `<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;">${_escalasPageHistOffset > 0 ? `<button onclick="_escalasNavHist(-1)" style="padding:6px 16px;border-radius:8px;border:1px solid rgba(63,63,70,.5);background:transparent;color:#a1a1aa;cursor:pointer;font-size:13px;font-weight:700;">&#8249; Anteriores</button>` : ''} <span style="font-size:12px;color:#71717a;">${_escalasPageHistOffset+1}–${Math.min(_escalasPageHistOffset+PG,historico.length)} de ${historico.length}</span> ${_escalasPageHistOffset+PG < historico.length ? `<button onclick="_escalasNavHist(1)" style="padding:6px 16px;border-radius:8px;border:1px solid rgba(63,63,70,.5);background:transparent;color:#a1a1aa;cursor:pointer;font-size:13px;font-weight:700;">Mais antigos &#8250;</button>` : ''}</div>`;
     }
     html += `</div>`;
 
@@ -6898,6 +6913,16 @@ async function carregarEscalas() {
   } catch(e) {
     el.innerHTML = `<div style="color:var(--faint);font-size:12px;padding:24px;">Erro: ${e.message}</div>`;
   }
+}
+
+
+function _escalasNavProx(dir) {
+  _escalasPageProxOffset = Math.max(0, _escalasPageProxOffset + dir * 5);
+  carregarEscalas();
+}
+function _escalasNavHist(dir) {
+  _escalasPageHistOffset = Math.max(0, _escalasPageHistOffset + dir * 5);
+  carregarEscalas();
 }
 
 function _renderEscalaCardAdm(e, hoje, setlistAtual, setlistHist) {
@@ -7632,8 +7657,7 @@ async function removerPadAdm(nota) {
   } catch(e) { showToast('Erro: '+e.message,'error'); }
 }
 
-// ── IMPORTADOR CIFRACLUB (via serviço Railway Flask+Playwright) ───────────────
-const SERVICO_URL_CIFRA = '/proxy/cifraclub';
+// ── IMPORTADOR CIFRACLUB ──────────────────────────────────────────────────────
 
 function trocarAbaApiPreview(aba) {
   document.getElementById('api-aba-cifra-wrap').style.display = aba==='cifra' ? '' : 'none';
