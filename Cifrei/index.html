@@ -69,7 +69,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-lyric);min-he
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-#splash{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;position:relative;overflow:hidden;}
+#splash{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:48px 24px max(48px,calc(48px + env(safe-area-inset-bottom,0px)));text-align:center;position:relative;overflow-y:auto;overflow-x:hidden;}
 #splash::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(52,211,153,.35) 0%,transparent 70%);pointer-events:none;animation: pulseGlow 5s ease-in-out infinite;transform-origin: top center;}
 .splash-logo{width:110px;height:110px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;filter:drop-shadow(0 0 15px rgba(52,211,153,.3));}
 .splash-logo img{width:100%;height:100%;object-fit:contain;}
@@ -78,28 +78,70 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-lyric);min-he
 .splash-sub{font-family:var(--font-chord);font-size:15px;font-weight:400;color:var(--muted);margin-top:12px;max-width:320px;line-height:1.4;}
 .splash-desc{font-size:14px;color:var(--faint);margin-top:16px;max-width:320px;line-height:1.6;}
 
-.splash-buttons{margin-top:36px;display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;max-width:280px;}
-
-.start-btn{
-  width:100%;background:var(--green);color:#000;
-  font-family:var(--font-chord);font-weight:900;font-size:16px;
-  padding:16px 32px;border-radius:999px;border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  box-shadow:0 0 40px rgba(52,211,153,.3);transition:background .2s,border-color .2s,color .2s,transform .2s,opacity .2s;
+/* ── HOME CARDS ─────────────────────────── */
+@keyframes cardIn {
+  from { opacity:0; transform:translateY(18px) scale(.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
 }
-.start-btn:hover{background:#6ee7b7;transform:scale(1.02);}
-.start-btn:active{transform:scale(.97);}
-.start-btn svg{width:18px;height:18px;}
-
-.banco-btn{
-  width:100%;background:transparent;color:var(--muted);
-  font-family:var(--font-chord);font-weight:700;font-size:14px;
-  padding:14px 32px;border-radius:999px;border:1px solid var(--bg3);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  transition:background .2s,border-color .2s,color .2s,transform .2s,opacity .2s;
+.home-area{display:flex;flex-direction:column;align-items:center;width:100%;max-width:380px;margin-top:28px;gap:12px;padding:0 4px;}
+.home-welcome-card{
+  width:100%;
+  background:linear-gradient(135deg,rgba(52,211,153,.1) 0%,rgba(24,24,27,.75) 100%);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(52,211,153,.2);border-radius:24px;padding:18px 20px;
+  display:none;align-items:center;gap:14px;
+  box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);
+  animation:cardIn .4s cubic-bezier(.22,1,.36,1) both;
 }
-.banco-btn:hover{color:#fff;border-color:var(--blue);background:var(--bdim);}
-.banco-btn svg{width:16px;height:16px;}
+.hw-avatar{
+  width:46px;height:46px;border-radius:50%;background:var(--bg3);
+  border:2px solid rgba(52,211,153,.35);flex-shrink:0;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:900;color:var(--green);
+}
+.hw-avatar img{width:100%;height:100%;object-fit:cover;}
+.hw-greeting{font-size:12px;font-weight:700;color:var(--green);font-family:var(--font-chord);letter-spacing:.3px;}
+.hw-msg{font-size:13px;color:#e4e4e7;line-height:1.4;font-family:var(--font-chord);margin-top:3px;}
+
+.home-cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;}
+
+.home-card{
+  background:rgba(24,24,27,.65);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:18px 15px;
+  cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+  transition:transform .22s cubic-bezier(.22,1,.36,1),border-color .2s,background .2s,box-shadow .22s;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  -webkit-tap-highlight-color:transparent;user-select:none;
+  animation:cardIn .45s cubic-bezier(.22,1,.36,1) both;
+}
+.home-card:hover{transform:translateY(-3px) scale(1.015);border-color:rgba(255,255,255,.14);box-shadow:0 10px 28px rgba(0,0,0,.4);}
+.home-card:active{transform:scale(.95);transition-duration:.1s;}
+
+.home-card-full{grid-column:span 2;flex-direction:row;align-items:center;padding:18px 20px;}
+.home-card-primary{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.18);}
+.home-card-primary:hover{background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.32);box-shadow:0 10px 30px rgba(52,211,153,.12);}
+.home-card-sono{background:rgba(192,132,252,.06);border-color:rgba(192,132,252,.14);}
+.home-card-sono:hover{background:rgba(192,132,252,.12);border-color:rgba(192,132,252,.28);box-shadow:0 10px 30px rgba(192,132,252,.1);}
+
+.hc-icon{
+  width:42px;height:42px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  backdrop-filter:blur(8px);transition:transform .2s;
+}
+.home-card:hover .hc-icon{transform:scale(1.08);}
+.hc-icon svg{width:19px;height:19px;}
+.home-card-full .hc-icon{width:46px;height:46px;border-radius:15px;}
+.home-card-full .hc-icon svg{width:22px;height:22px;}
+
+.hc-body{flex:1;min-width:0;}
+.hc-label{font-family:var(--font-chord);font-size:14px;font-weight:800;color:#fff;letter-spacing:-.2px;}
+.home-card-full .hc-label{font-size:16px;}
+.hc-sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:var(--font-chord);}
+.hc-arrow{color:var(--muted);opacity:.45;font-size:19px;line-height:1;flex-shrink:0;transition:transform .2s,opacity .2s;}
+.home-card:hover .hc-arrow{opacity:.8;transform:translateX(2px);}
+
+/* ── NAV GLASS BUTTONS ──────────────────── */
 
 .splash-err{margin-top:20px;padding:14px 18px;background:var(--rdim);border:1px solid rgba(248,113,113,.3);border-radius:14px;color:var(--red);font-size:13px;max-width:340px;display:none;align-items:flex-start;gap:10px;text-align:left;}
 .splash-err svg{width:16px;height:16px;flex-shrink:0;margin-top:2px;}
@@ -925,17 +967,13 @@ async function _btnEntrarClick() {
     localStorage.setItem('cifrei_codigo_ok', '1');
     localStorage.setItem('cifrei_login', usuario.login);
     localStorage.setItem('cifrei_perms', JSON.stringify({ cifra: !!usuario.perm_cifra, letra: !!usuario.perm_letra, setlist: !!usuario.perm_setlist }));
+    if (usuario.instrumento) localStorage.setItem('cifrei_instrumento', usuario.instrumento);
+    localStorage.setItem('cifrei_last_login', String(Date.now()));
     if (usuario.foto) localStorage.setItem('cifrei_foto', usuario.foto);
     else localStorage.removeItem('cifrei_foto');
     document.getElementById('modal-boas-vindas').style.display = 'none';
-    var welcomeEl = document.getElementById('splash-welcome');
-    if (welcomeEl) {
-      var h = new Date().getHours();
-      welcomeEl.textContent = (h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite') + ', ' + usuario.nome.split(' ')[0] + '! 👋';
-      welcomeEl.style.display = 'block';
-    }
     if (dbg) dbg.textContent = '';
-    // Não redireciona — usuário escolhe o que abrir na home
+    _atualizarWelcomeCard();
     // Firebase inicia em background
     if (typeof window.initFirebase === 'function') window.initFirebase();
   } catch(e) {
@@ -1015,32 +1053,70 @@ window.addEventListener('unhandledrejection', function(e) {
 
   <div class="splash-title">cifrei<sup style="font-size: 0.4em; font-weight: 700; margin-left: 4px;">&reg;</sup></div>
   
-  <!-- MENSAGEM DE BOAS VINDAS -->
+  <!-- MENSAGEM DE BOAS VINDAS (legacy, oculto) -->
   <div class="splash-welcome" id="splash-welcome" style="display:none;"></div>
 
-  <div class="splash-buttons">
-    <button class="start-btn" id="start-btn" onclick="_d('iniciar')">
-      <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      Repertório Semanal
-    </button>
-    <button class="banco-btn" onclick="_d('abrirBanco')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-      </svg>
-      Banco de Músicas
-    </button>
-    <button class="banco-btn" onclick="_d('abrirEscala')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-      </svg>
-      Escala
-    </button>
-    <button class="banco-btn" onclick="_d('abrirSonoplastia')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-      </svg>
-      Sonoplastia
-    </button>
+  <!-- HOME -->
+  <div class="home-area" id="home-area" style="display:none;">
+
+    <!-- Welcome card -->
+    <div class="home-welcome-card" id="home-welcome-card">
+      <div class="hw-avatar" id="hw-avatar">
+        <img id="hw-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+        <span id="hw-avatar-init">?</span>
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div class="hw-greeting" id="hw-greeting">Boa tarde!</div>
+        <div class="hw-msg" id="hw-msg">Bem-vindo de volta.</div>
+      </div>
+    </div>
+
+    <!-- Cards grid -->
+    <div class="home-cards-grid">
+
+      <!-- Repertório — linha inteira -->
+      <div class="home-card home-card-full home-card-primary" id="start-card" onclick="_d('iniciar')" style="animation-delay:.04s">
+        <div class="hc-icon" style="background:rgba(52,211,153,.15);color:var(--green);">
+          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div class="hc-body">
+          <div class="hc-label">Repertório Semanal</div>
+          <div class="hc-sub" id="home-sub-setlist">Setlist do próximo domingo</div>
+        </div>
+        <div class="hc-arrow">›</div>
+      </div>
+
+      <!-- Banco -->
+      <div class="home-card" onclick="_d('abrirBanco')" style="animation-delay:.08s">
+        <div class="hc-icon" style="background:rgba(96,165,250,.12);color:var(--blue);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <div class="hc-label">Banco</div>
+        <div class="hc-sub">Músicas</div>
+      </div>
+
+      <!-- Escala -->
+      <div class="home-card" onclick="_d('abrirEscala')" style="animation-delay:.12s">
+        <div class="hc-icon" style="background:rgba(251,191,36,.1);color:#fbbf24;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="hc-label">Escala</div>
+        <div class="hc-sub" id="home-sub-escala">Equipe</div>
+      </div>
+
+      <!-- Sonoplastia — linha inteira -->
+      <div class="home-card home-card-full home-card-sono" onclick="_d('abrirSonoplastia')" style="animation-delay:.16s">
+        <div class="hc-icon" style="background:rgba(192,132,252,.1);color:#c084fc;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </div>
+        <div class="hc-body">
+          <div class="hc-label">Sonoplastia</div>
+          <div class="hc-sub">Mesa e chamados</div>
+        </div>
+        <div class="hc-arrow">›</div>
+      </div>
+
+    </div>
   </div>
 
   <div class="splash-err" id="splash-err">
@@ -2823,8 +2899,7 @@ function _bootCifrei() {
   const sessaoValida = localStorage.getItem('cifrei_codigo_ok') === '1' && !!temLogin;
 
   if (savedName && sessaoValida) {
-    const welcomeEl = document.getElementById('splash-welcome');
-    if (welcomeEl) { welcomeEl.textContent = getSaudacao(savedName); welcomeEl.style.display = 'block'; }
+    _atualizarWelcomeCard();
     _fbInitPromise = initFirebase();
   } else {
     const modal = document.getElementById('modal-boas-vindas');
@@ -2868,11 +2943,108 @@ function voltarHome(){
 
 function getSaudacao(nome) {
   const h = new Date().getHours();
-  let periodo;
-  if (h >= 5 && h < 12) periodo = 'Bom dia';
-  else if (h >= 12 && h < 18) periodo = 'Boa tarde';
-  else periodo = 'Boa noite';
+  const periodo = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   return `${periodo}, ${nome}!`;
+}
+
+function _pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function _gerarMensagemHome() {
+  const h  = new Date().getHours();
+  const dow = new Date().getDay(); // 0=Dom
+  const nome = (localStorage.getItem('cifrei_username') || '').split(' ')[0] || 'Músico';
+  const instr = (localStorage.getItem('cifrei_instrumento') || '').toLowerCase();
+  const ultimoLogin = parseInt(localStorage.getItem('cifrei_last_login') || '0');
+  const diasSemLogin = ultimoLogin ? Math.floor((Date.now() - ultimoLogin) / 86400000) : 0;
+  const diasParaDom = dow === 0 ? 7 : 7 - dow;
+
+  const saudacao = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  const greeting = `${saudacao}, ${nome}!`;
+
+  const isGuitar = /violão|violao|guitarra/.test(instr);
+  const isBass   = /baixo/.test(instr);
+  const isDrums  = /bater/.test(instr);
+  const isKeys   = /teclado|piano/.test(instr);
+  const isVoice  = /voz|vocal|canto/.test(instr);
+
+  let msg;
+
+  if (diasSemLogin >= 14) {
+    msg = _pick([
+      `Faz ${diasSemLogin} dias que você sumiu! O banco tem músicas novas te esperando.`,
+      `Ah, apareceu! ${diasSemLogin} dias longe é tempo demais. Que saudade!`,
+      `De volta depois de ${diasSemLogin} dias. O setlist sentiu sua falta.`,
+    ]);
+  } else if (dow === 0) {
+    const base = ['É domingo! Que o louvor de hoje toque corações.','Hoje é o grande dia. Vai ser lindo.','Dia D. Está preparado? O Senhor já está.'];
+    if (isGuitar) base.push('Afinado? Hoje não tem margem pra soluçar de frio na barriga 😄');
+    if (isDrums)  base.push('Bateu o set de domingo? O ritmo do louvor é você.');
+    if (isKeys)   base.push('Patch carregado? O domingo esperou por isso.');
+    if (isVoice)  base.push('Garganta aquecida? A voz carrega o louvor hoje.');
+    if (isBass)   base.push('O groove que sustenta todo mundo começa em você hoje.');
+    msg = _pick(base);
+  } else if (diasParaDom <= 2) {
+    const prep = diasParaDom === 1 ? 'amanhã' : `em ${diasParaDom} dias`;
+    const base = [
+      `Domingo é ${prep}! Já revisou o repertório?`,
+      `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} pro domingo. Hora de dar uma olhada no setlist.`,
+    ];
+    if (isGuitar) base.push(`Domingo é ${prep}. Capo no traste certo?`);
+    if (isDrums)  base.push(`Domingo é ${prep}. Baquetas reservadas e bateria afinada?`);
+    if (isKeys)   base.push(`Domingo é ${prep}. Patches e transposições confirmadas?`);
+    if (isVoice)  base.push(`Domingo é ${prep}. Hidratação e aquecimento no planejamento?`);
+    if (isBass)   base.push(`Domingo é ${prep}. O groove vai segurar todo mundo.`);
+    msg = _pick(base);
+  } else if (h >= 22 || h < 5) {
+    const base = ['A essa hora só pode ser devoção ou insônia. Ou as duas.','Tarde da noite estudando músicas. Isso é dedicação.','O ministério que não dorme. Amamos isso.'];
+    if (isGuitar) base.push('Noturno e com o violão. Um clássico.');
+    if (isDrums)  base.push(`Baterista às ${h}h. Pelo menos é só no fone, né? 😄`);
+    if (isKeys)   base.push('Fone no ouvido, teclado ligado. Isso é dedicação.');
+    msg = _pick(base);
+  } else if (dow >= 1 && dow <= 3) {
+    const base = ['Nova semana, novas músicas. Que tal explorar o banco?','O silêncio entre um domingo e outro é onde a música cresce.','Semana começando, louvor na mente.'];
+    if (isGuitar) base.push('Segunda/terça: dia perfeito pra aprender aquela cifra difícil.');
+    if (isDrums)  base.push('Aquecimento de início de semana: paradiddles até o domingo!');
+    if (isKeys)   base.push('Dia de experimentar um som novo no teclado?');
+    if (isVoice)  base.push('Início de semana com a voz: um bom copo d\'água para começar.');
+    msg = _pick(base);
+  } else {
+    // genérico por instrumento
+    if (isGuitar) msg = _pick(['Já esquentou os dedos hoje?','Dó, Mi, Sol… qual vai ser a música de hoje?','Uma cifra por dia, um louvor melhor na semana.']);
+    else if (isBass)  msg = _pick(['O groove que sustenta o louvor começa aqui.','Sem o baixo, todo mundo percebe.','Fundamental. Literalmente.']);
+    else if (isDrums) msg = _pick(['O pulso do louvor bate em você.','Quatro tempos, um coração.','Bateu o compasso hoje?']);
+    else if (isKeys)  msg = _pick(['Das 88 teclas, algumas vão fazer alguém chorar de emoção.','Qual patch vai usar no domingo?','Piano, synth, pad — a escolha é sua.']);
+    else if (isVoice) msg = _pick(['Hidrata a garganta, o domingo está chegando!','A voz é o instrumento mais pessoal de todos.','Vocal aquecido, louvor mais bonito.']);
+    else msg = _pick(['Pronto para mais um domingo de louvor?','O ministério agradece sua presença.','Cada ensaio é um passo para a excelência.']);
+  }
+
+  return { greeting, msg };
+}
+
+function _atualizarWelcomeCard() {
+  const homeArea = document.getElementById('home-area');
+  const card = document.getElementById('home-welcome-card');
+  if (!homeArea || !card) return;
+  homeArea.style.display = 'flex';
+
+  const foto = localStorage.getItem('cifrei_foto');
+  const nome = (localStorage.getItem('cifrei_username') || '').split(' ')[0] || '?';
+  const avatarImg  = document.getElementById('hw-avatar-img');
+  const avatarInit = document.getElementById('hw-avatar-init');
+  if (foto) {
+    avatarImg.src = foto; avatarImg.style.display = 'block';
+    avatarInit.style.display = 'none';
+  } else {
+    avatarInit.textContent = nome[0]?.toUpperCase() || '?';
+    avatarImg.style.display = 'none'; avatarInit.style.display = '';
+  }
+
+  const { greeting, msg } = _gerarMensagemHome();
+  const elG = document.getElementById('hw-greeting');
+  const elM = document.getElementById('hw-msg');
+  if (elG) elG.textContent = greeting;
+  if (elM) elM.textContent = msg;
+  card.style.display = 'flex';
 }
 
 function saveName() {
@@ -4449,6 +4621,8 @@ async function confirmarBoasVindas() {
     localStorage.setItem('cifrei_perms', JSON.stringify({
       cifra: !!usuario.perm_cifra, letra: !!usuario.perm_letra, setlist: !!usuario.perm_setlist,
     }));
+    if (usuario.instrumento) localStorage.setItem('cifrei_instrumento', usuario.instrumento);
+    localStorage.setItem('cifrei_last_login', String(Date.now()));
     if (usuario.foto) localStorage.setItem('cifrei_foto', usuario.foto);
     else localStorage.removeItem('cifrei_foto');
 
@@ -4458,9 +4632,7 @@ async function confirmarBoasVindas() {
     }
 
     document.getElementById('modal-boas-vindas').style.display = 'none';
-    const welcomeEl = document.getElementById('splash-welcome');
-    welcomeEl.textContent = getSaudacao(usuario.nome);
-    welcomeEl.style.display = 'block';
+    _atualizarWelcomeCard();
 
   } catch(e) {
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Entrar';
