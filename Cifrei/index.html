@@ -85,19 +85,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-lyric);min-he
 }
 .home-area{display:flex;flex-direction:column;align-items:center;width:100%;max-width:400px;margin-top:24px;gap:12px;padding:0 2px;}
 .home-welcome-card{
-  width:100%;position:relative;overflow:hidden;text-align:left;
-  background:linear-gradient(145deg,rgba(52,211,153,.13) 0%,rgba(20,20,24,.92) 55%,rgba(14,14,18,.97) 100%);
-  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
-  border:1px solid rgba(52,211,153,.22);border-radius:26px;padding:26px 24px 22px;
+  width:100%;position:relative;text-align:left;
+  padding:8px 4px 4px;
   display:none;flex-direction:column;gap:0;
-  box-shadow:0 12px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07);
   animation:cardIn .45s cubic-bezier(.22,1,.36,1) both;
-}
-.home-welcome-card::before{
-  content:'';position:absolute;top:-40px;right:-40px;
-  width:140px;height:140px;border-radius:50%;
-  background:radial-gradient(circle,rgba(52,211,153,.18) 0%,transparent 70%);
-  pointer-events:none;
 }
 .hw-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;}
 .hw-avatar{
@@ -1113,12 +1104,12 @@ window.addEventListener('unhandledrejection', function(e) {
         <div class="hc-arrow">›</div>
       </div>
 
-      <!-- Banco -->
+      <!-- Lista (Banco) -->
       <div class="home-card home-card-sm" onclick="_d('abrirBanco')" style="animation-delay:.08s">
         <div class="hc-icon hc-icon-sm" style="background:rgba(96,165,250,.12);color:var(--blue);">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
         </div>
-        <div class="hc-label hc-label-sm">Banco</div>
+        <div class="hc-label hc-label-sm">Lista</div>
         <div class="hc-sub">Músicas</div>
       </div>
 
@@ -1131,17 +1122,23 @@ window.addEventListener('unhandledrejection', function(e) {
         <div class="hc-sub">Equipe</div>
       </div>
 
-      <!-- Sonoplastia -->
+      <!-- Som (Sonoplastia) -->
       <div class="home-card home-card-sm home-card-sono" onclick="_d('abrirSonoplastia')" style="animation-delay:.16s">
         <div class="hc-icon hc-icon-sm" style="background:rgba(192,132,252,.1);color:#c084fc;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
         </div>
-        <div class="hc-label hc-label-sm">Sono</div>
+        <div class="hc-label hc-label-sm">Som</div>
         <div class="hc-sub">Mesa</div>
       </div>
 
+    </div><!-- /home-cards-grid -->
+
+    <!-- Banner gerenciado pelo admin (oculto se sem imagem) -->
+    <div id="home-banner-wrap" style="display:none;width:100%;border-radius:18px;overflow:hidden;animation:cardIn .5s cubic-bezier(.22,1,.36,1) .2s both;">
+      <img id="home-banner-img" src="" alt="" style="width:100%;display:block;border-radius:18px;object-fit:cover;">
     </div>
-  </div>
+
+  </div><!-- /home-area -->
 
   <div class="splash-err" id="splash-err">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -3106,6 +3103,24 @@ function _atualizarWelcomeCard() {
   }
 
   card.style.display = 'flex';
+
+  // Banner — busca assíncrona do Firestore
+  _carregarHomeBanner();
+}
+
+async function _carregarHomeBanner() {
+  try {
+    if (!fbDb || !window._fbDoc || !window._fbGetDoc) return;
+    const snap = await window._fbGetDoc(window._fbDoc(fbDb, 'config', 'home_banner'));
+    if (!snap.exists()) return;
+    const url = snap.data()?.url || '';
+    if (!url) return;
+    const wrap = document.getElementById('home-banner-wrap');
+    const img  = document.getElementById('home-banner-img');
+    if (!wrap || !img) return;
+    img.src = url;
+    img.onload = () => { wrap.style.display = 'block'; };
+  } catch(e) {}
 }
 
 function saveName() {
