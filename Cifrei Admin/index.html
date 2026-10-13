@@ -5977,21 +5977,21 @@ async function _iaBuscarCifra(titulo, artista, urlDireta) {
   const artistaSlug = slug(artista || '');
   const tituloSlug  = slug(titulo);
 
-  const urls = urlDireta ? [urlDireta] : [
-    artistaSlug ? `https://www.cifraclub.com.br/${artistaSlug}/${tituloSlug}/` : null,
-    `https://www.cifraclub.com.br/${tituloSlug}/`,
-  ].filter(Boolean);
+  // Tenta /cifra/<artista>/<titulo> via proxy Render
+  const tentativas = [];
+  if (urlDireta) {
+    const m = urlDireta.match(/cifraclub\.com\.br\/([^/?#]+)\/([^/?#]+)/);
+    if (m) tentativas.push(`/proxy/cifraclub/cifra/${m[1]}/${m[2]}`);
+  }
+  if (artistaSlug && tituloSlug) tentativas.push(`/proxy/cifraclub/cifra/${artistaSlug}/${tituloSlug}`);
+  if (tituloSlug) tentativas.push(`/proxy/cifraclub/buscar/${encodeURIComponent([titulo, artista].filter(Boolean).join(' '))}`);
 
-  for (const url of urls) {
+  for (const endpoint of tentativas) {
     try {
-      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+      const res = await fetch(endpoint);
       if (!res.ok) continue;
-      const data = await res.json();
-      const html = data.contents || '';
-      if (!html || html.length < 500) continue;
-
-      const resultado = _iaExtrairCifraELetraDoHTML(html, titulo);
-      if (resultado) return { url, ...resultado };
+      const d = await res.json();
+      if (d.cifra && d.cifra.length > 50) return d;
     } catch(e) { continue; }
   }
   return null;

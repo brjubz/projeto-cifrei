@@ -1,0 +1,15 @@
+{
+  "name": "cifraclub-proxy",
+  "version": "1.0.0",
+  "description": "Proxy CORS para busca de cifras no CifraClub",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
