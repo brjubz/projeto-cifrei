@@ -6040,10 +6040,23 @@ function _parsearJinaMd(md, url) {
   const cifraEnd = cifraSection.search(/Informa\u00e7\u00f5es da m\u00fasica|Composi\u00e7\u00e3o:|##\s*Todos artistas/);
   if (cifraEnd > 0) cifraSection = cifraSection.slice(0, cifraEnd);
 
-  // Limpar markdown: remover cabe\u00e7alhos e links; manter acordes e letra
+  // Converte markdown Jina para formato cifra padr\u00e3o: acordes numa linha, letra na pr\u00f3xima
+  const CHORD_RE = /\*\*([A-G][^*]*)\*\*/g;
   const cifra = cifraSection
     .replace(/##[^\n]*/g, '')
     .replace(/\[.*?\]\(.*?\)/g, '')
+    .split('\n')
+    .map(line => {
+      const chords = [...line.matchAll(CHORD_RE)].map(m => m[1].trim());
+      if (!chords.length) return line;
+      // Remove marcador de se\u00e7\u00e3o do lyric (ser\u00e1 colocado separado via sec)
+      const secMatch = line.match(/^\[([^\]]+)\]/);
+      const lyric = line.replace(CHORD_RE, '').replace(/^\[[^\]]+\]/, '').replace(/[()]/g, '').trim();
+      const sec = secMatch ? '[' + secMatch[1] + ']\n' : '';
+      const chordLine = chords.join('  ');
+      return lyric ? sec + chordLine + '\n' + lyric : sec + chordLine;
+    })
+    .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
