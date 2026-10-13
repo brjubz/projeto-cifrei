@@ -5977,24 +5977,71 @@ async function _iaBuscarCifra(titulo, artista, urlDireta) {
   const artistaSlug = slug(artista || '');
   const tituloSlug  = slug(titulo);
 
-  // Tenta /cifra/<artista>/<titulo> via proxy Render
-  const tentativas = [];
+  // Jina.ai Reader: busca CifraClub direto do browser (sem proxy \u2014 evita bloqueio Akamai)
+  async function fetchCifraViaJina(ccUrl) {
+    const res = await fetch(`https://r.jina.ai/${ccUrl}`);
+    if (!res.ok) return null;
+    const md = await res.text();
+    return _parsearJinaMd(md, ccUrl);
+  }
+
+  // Tentativas em ordem: URL direta \u2192 slug artista/titulo \u2192 busca
   if (urlDireta) {
     const m = urlDireta.match(/cifraclub\.com\.br\/([^/?#]+)\/([^/?#]+)/);
-    if (m) tentativas.push(`/proxy/cifraclub/cifra/${m[1]}/${m[2]}`);
+    if (m) {
+      const r = await fetchCifraViaJina(`https://www.cifraclub.com.br/${m[1]}/${m[2]}/`);
+      if (r?.cifra?.length > 50) return r;
+    }
   }
-  if (artistaSlug && tituloSlug) tentativas.push(`/proxy/cifraclub/cifra/${artistaSlug}/${tituloSlug}`);
-  if (tituloSlug) tentativas.push(`/proxy/cifraclub/buscar/${encodeURIComponent([titulo, artista].filter(Boolean).join(' '))}`);
-
-  for (const endpoint of tentativas) {
+  if (artistaSlug && tituloSlug) {
+    const r = await fetchCifraViaJina(`https://www.cifraclub.com.br/${artistaSlug}/${tituloSlug}/`);
+    if (r?.cifra?.length > 50) return r;
+  }
+  // Busca textual: pega o primeiro link de cifra da p\u00e1gina de busca
+  if (titulo) {
     try {
-      const res = await fetch(endpoint);
-      if (!res.ok) continue;
-      const d = await res.json();
-      if (d.cifra && d.cifra.length > 50) return d;
-    } catch(e) { continue; }
+      const q = encodeURIComponent([titulo, artista].filter(Boolean).join(' '));
+      const searchMd = await fetch(`https://r.jina.ai/https://www.cifraclub.com.br/busca/?q=${q}`).then(r => r.text());
+      const firstLink = searchMd.match(/\(https:\/\/www\.cifraclub\.com\.br\/([^/"]+)\/([^/"]+)\/\)/);
+      if (firstLink) {
+        const r = await fetchCifraViaJina(`https://www.cifraclub.com.br/${firstLink[1]}/${firstLink[2]}/`);
+        if (r?.cifra?.length > 50) return r;
+      }
+    } catch(e) { /* silencioso */ }
   }
   return null;
+}
+
+function _parsearJinaMd(md, url) {
+  // Formato Jina: "Title: Nome - Artista - Cifra Club\nURL Source: ...\nMarkdown Content:\n..."
+  const titleMatch = md.match(/^Title:\s*(.+)$/m);
+  const rawTitle = titleMatch ? titleMatch[1].trim() : '';
+  const parts = rawTitle.split(' - ');
+  const nome = parts[0]?.trim() || '';
+  const artista = parts[1]?.trim() || '';
+
+  const tomMatch = md.match(/Tom:\s*([A-G][b#]?[mM]?)/);
+  const tom = tomMatch ? tomMatch[1] : '';
+
+  // Pegar corpo do markdown ap\u00f3s "Markdown Content:"
+  const mdBody = md.replace(/^[\s\S]*?Markdown Content:\s*/m, '');
+
+  // Localizar se\u00e7\u00e3o da cifra: come\u00e7a no primeiro acorde em negrito **X**
+  const cifraStart = mdBody.search(/\*\*[A-G][^*]*\*\*/);
+  let cifraSection = cifraStart >= 0 ? mdBody.slice(cifraStart) : '';
+  const cifraEnd = cifraSection.search(/Informa\u00e7\u00f5es da m\u00fasica|Composi\u00e7\u00e3o:|##\s*Todos artistas/);
+  if (cifraEnd > 0) cifraSection = cifraSection.slice(0, cifraEnd);
+
+  // Limpar markdown: remover cabe\u00e7alhos, links, itens de lista; manter acordes e letra
+  const cifra = cifraSection
+    .replace(/##[^\n]*/g, '')
+    .replace(/\*\s*[^\n]+\n/g, '')
+    .replace(/\[.*?\]\(.*?\)/g, '')
+    .replace(/^\s*[*-]\s*.+$/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  return { nome, artista, tom, cifra, letra: '', url };
 }
 
 function _iaExtrairCifraELetraDoHTML(html, tituloHint) {
