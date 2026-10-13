@@ -83,25 +83,45 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-lyric);min-he
   from { opacity:0; transform:translateY(18px) scale(.97); }
   to   { opacity:1; transform:translateY(0) scale(1); }
 }
-.home-area{display:flex;flex-direction:column;align-items:center;width:100%;max-width:380px;margin-top:28px;gap:12px;padding:0 4px;}
+.home-area{display:flex;flex-direction:column;align-items:center;width:100%;max-width:400px;margin-top:24px;gap:12px;padding:0 2px;}
 .home-welcome-card{
-  width:100%;
-  background:linear-gradient(135deg,rgba(52,211,153,.1) 0%,rgba(24,24,27,.75) 100%);
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border:1px solid rgba(52,211,153,.2);border-radius:24px;padding:18px 20px;
-  display:none;align-items:center;gap:14px;
-  box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06);
-  animation:cardIn .4s cubic-bezier(.22,1,.36,1) both;
+  width:100%;position:relative;overflow:hidden;
+  background:linear-gradient(145deg,rgba(52,211,153,.13) 0%,rgba(20,20,24,.92) 55%,rgba(14,14,18,.97) 100%);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border:1px solid rgba(52,211,153,.22);border-radius:26px;padding:26px 24px 22px;
+  display:none;flex-direction:column;gap:0;
+  box-shadow:0 12px 40px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07);
+  animation:cardIn .45s cubic-bezier(.22,1,.36,1) both;
 }
+.home-welcome-card::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:140px;height:140px;border-radius:50%;
+  background:radial-gradient(circle,rgba(52,211,153,.18) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hw-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;}
 .hw-avatar{
-  width:46px;height:46px;border-radius:50%;background:var(--bg3);
-  border:2px solid rgba(52,211,153,.35);flex-shrink:0;overflow:hidden;
+  width:56px;height:56px;border-radius:50%;background:var(--bg3);
+  border:2px solid rgba(52,211,153,.4);flex-shrink:0;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
-  font-size:17px;font-weight:900;color:var(--green);
+  font-size:20px;font-weight:900;color:var(--green);
+  box-shadow:0 0 0 4px rgba(52,211,153,.08);
 }
 .hw-avatar img{width:100%;height:100%;object-fit:cover;}
-.hw-greeting{font-size:12px;font-weight:700;color:var(--green);font-family:var(--font-chord);letter-spacing:.3px;}
-.hw-msg{font-size:13px;color:#e4e4e7;line-height:1.4;font-family:var(--font-chord);margin-top:3px;}
+.hw-instr-badge{
+  font-size:11px;font-weight:700;color:var(--green);font-family:var(--font-chord);
+  background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);
+  border-radius:99px;padding:4px 12px;letter-spacing:.3px;margin-top:4px;
+}
+.hw-period{font-size:13px;font-weight:600;color:var(--muted);font-family:var(--font-chord);letter-spacing:.2px;margin-bottom:4px;}
+.hw-name{font-size:28px;font-weight:900;color:#fff;font-family:var(--font-logo);letter-spacing:-1px;line-height:1.1;margin-bottom:12px;}
+.hw-msg{font-size:15px;color:#c4c4c8;line-height:1.55;font-family:var(--font-chord);font-weight:500;}
+.hw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px;}
+.hw-chip{
+  font-size:11px;font-weight:700;color:var(--muted);font-family:var(--font-chord);
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);
+  border-radius:99px;padding:4px 11px;letter-spacing:.2px;
+}
 
 .home-cards-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;}
 
@@ -1061,14 +1081,17 @@ window.addEventListener('unhandledrejection', function(e) {
 
     <!-- Welcome card -->
     <div class="home-welcome-card" id="home-welcome-card">
-      <div class="hw-avatar" id="hw-avatar">
-        <img id="hw-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
-        <span id="hw-avatar-init">?</span>
+      <div class="hw-top">
+        <div class="hw-avatar" id="hw-avatar">
+          <img id="hw-avatar-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;">
+          <span id="hw-avatar-init">?</span>
+        </div>
+        <div id="hw-instr-badge" class="hw-instr-badge" style="display:none;"></div>
       </div>
-      <div style="flex:1;min-width:0;">
-        <div class="hw-greeting" id="hw-greeting">Boa tarde!</div>
-        <div class="hw-msg" id="hw-msg">Bem-vindo de volta.</div>
-      </div>
+      <div class="hw-period" id="hw-period">Boa tarde,</div>
+      <div class="hw-name" id="hw-name">Júlio!</div>
+      <div class="hw-msg" id="hw-msg">Bem-vindo de volta.</div>
+      <div class="hw-chips" id="hw-chips"></div>
     </div>
 
     <!-- Cards grid -->
@@ -3027,23 +3050,63 @@ function _atualizarWelcomeCard() {
   if (!homeArea || !card) return;
   homeArea.style.display = 'flex';
 
-  const foto = localStorage.getItem('cifrei_foto');
-  const nome = (localStorage.getItem('cifrei_username') || '').split(' ')[0] || '?';
+  const foto  = localStorage.getItem('cifrei_foto');
+  const nome  = (localStorage.getItem('cifrei_username') || '').split(' ')[0] || '?';
+  const instr = localStorage.getItem('cifrei_instrumento') || '';
+  const h     = new Date().getHours();
+  const dow   = new Date().getDay();
+
+  // Avatar
   const avatarImg  = document.getElementById('hw-avatar-img');
   const avatarInit = document.getElementById('hw-avatar-init');
   if (foto) {
     avatarImg.src = foto; avatarImg.style.display = 'block';
-    avatarInit.style.display = 'none';
+    if (avatarInit) avatarInit.style.display = 'none';
   } else {
-    avatarInit.textContent = nome[0]?.toUpperCase() || '?';
-    avatarImg.style.display = 'none'; avatarInit.style.display = '';
+    if (avatarInit) avatarInit.textContent = nome[0]?.toUpperCase() || '?';
+    if (avatarImg) avatarImg.style.display = 'none';
   }
 
-  const { greeting, msg } = _gerarMensagemHome();
-  const elG = document.getElementById('hw-greeting');
+  // Período separado do nome
+  const periodo = h < 12 ? 'Bom dia,' : h < 18 ? 'Boa tarde,' : 'Boa noite,';
+  const elPeriod = document.getElementById('hw-period');
+  const elName   = document.getElementById('hw-name');
+  if (elPeriod) elPeriod.textContent = periodo;
+  if (elName)   elName.textContent   = nome + '!';
+
+  // Badge de instrumento
+  const badgeEl = document.getElementById('hw-instr-badge');
+  if (badgeEl && instr) {
+    const instrMap = {'violão':'🎸 Violonista','guitarra':'🎸 Guitarrista','baixo':'🎸 Baixista','bateria':'🥁 Baterista','teclado':'🎹 Tecladista','piano':'🎹 Pianista','voz':'🎤 Vocalista','vocal':'🎤 Vocalista','canto':'🎤 Vocalista','trompete':'🎺 Trompetista','trombeta':'🎺 Trombetista'};
+    const key = Object.keys(instrMap).find(k => instr.toLowerCase().includes(k));
+    if (key) { badgeEl.textContent = instrMap[key]; badgeEl.style.display = 'block'; }
+    else { badgeEl.textContent = '🎵 ' + instr; badgeEl.style.display = 'block'; }
+  }
+
+  // Mensagem principal
+  const { msg } = _gerarMensagemHome();
   const elM = document.getElementById('hw-msg');
-  if (elG) elG.textContent = greeting;
   if (elM) elM.textContent = msg;
+
+  // Chips de contexto
+  const chipsEl = document.getElementById('hw-chips');
+  if (chipsEl) {
+    const chips = [];
+    const diasParaDom = dow === 0 ? 0 : 7 - dow;
+    if (dow === 0) chips.push('📅 É domingo!');
+    else if (diasParaDom === 1) chips.push('📅 Domingo amanhã');
+    else chips.push(`📅 Dom em ${diasParaDom} dias`);
+
+    const now = new Date();
+    chips.push(`🕐 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`);
+
+    const ultimoLogin = parseInt(localStorage.getItem('cifrei_last_login') || '0');
+    const diasSemLogin = ultimoLogin ? Math.floor((Date.now() - ultimoLogin) / 86400000) : 0;
+    if (diasSemLogin >= 7) chips.push(`⏳ ${diasSemLogin} dias ausente`);
+
+    chipsEl.innerHTML = chips.map(c => `<span class="hw-chip">${c}</span>`).join('');
+  }
+
   card.style.display = 'flex';
 }
 
