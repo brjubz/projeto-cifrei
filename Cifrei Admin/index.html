@@ -6696,9 +6696,8 @@ function _parseSongsSimples(raw) {
 function _renderDashEscalaChips(lista, hoje) {
   const filtrosEl = document.getElementById('dash-escala-filtros');
   if (!filtrosEl || !lista?.length) return;
-  const PAGE = 9; // 4 anteriores + atual + 4 próximas
+  const PAGE = 9;
   const total = lista.length;
-  // Garantir que _escalaDashPage centra na próxima escala na primeira carga
   const idxProxima = lista.findIndex(e => (e.data||'') >= (hoje || new Date().toISOString().slice(0,10)));
   const centro = idxProxima >= 0 ? idxProxima : total - 1;
   if (_escalaDashPage === 0 && centro >= PAGE) _escalaDashPage = Math.floor(centro / PAGE);
@@ -6706,8 +6705,8 @@ function _renderDashEscalaChips(lista, hoje) {
   const end = Math.min(start + PAGE, total);
   const visible = lista.slice(start, end);
 
-  const prevBtn = start > 0 ? <button onclick="_dashEscalasPrev()" style="padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(63,63,70,.5);background:transparent;color:#a1a1aa;" title="Anteriores">‹</button> : '';
-  const nextBtn = end < total ? <button onclick="_dashEscalasNext()" style="padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(63,63,70,.5);background:transparent;color:#a1a1aa;" title="Próximas">›</button> : '';
+  const prevBtn = start > 0 ? `<button onclick="_dashEscalasPrev()" style="padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(63,63,70,.5);background:transparent;color:#a1a1aa;" title="Anteriores">&#8249;</button>` : '';
+  const nextBtn = end < total ? `<button onclick="_dashEscalasNext()" style="padding:4px 10px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid rgba(63,63,70,.5);background:transparent;color:#a1a1aa;" title="Próximas">&#8250;</button>` : '';
 
   const chips = visible.map((e, vi) => {
     const i = start + vi;
@@ -6715,11 +6714,15 @@ function _renderDashEscalaChips(lista, hoje) {
     const label = d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' });
     const isSelected = i === _escalaSelecionadaIdx;
     const isProx = (e.data||'') >= (hoje||'') && (i === 0 || (lista[i-1]?.data||'') < (hoje||''));
-    return <button onclick="_selecionarEscalaAdm()" style="padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;transition:background .15s,border-color .15s,color .15s;"></button>;
+    const bg = isSelected ? 'var(--green)' : isProx ? 'rgba(52,211,153,.12)' : 'transparent';
+    const color = isSelected ? '#000' : isProx ? 'var(--green)' : 'var(--faint)';
+    const border = isSelected ? 'var(--green)' : isProx ? 'var(--green)' : 'rgba(63,63,70,.4)';
+    return `<button onclick="_selecionarEscalaAdm(${i})" style="padding:5px 12px;border-radius:99px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid ${border};background:${bg};color:${color};transition:background .15s,border-color .15s,color .15s;">${label}</button>`;
   }).join('');
 
-  filtrosEl.innerHTML = <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;"></div>;
+  filtrosEl.innerHTML = `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">${prevBtn}${chips}${nextBtn}</div>`;
 }
+
 function _dashEscalasPrev() {
   if (_escalaDashPage > 0) { _escalaDashPage--; _renderDashEscalaChips(_escalasAdmCache, _escalasAdmCache._hoje); }
 }
