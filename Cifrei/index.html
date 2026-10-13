@@ -9295,6 +9295,10 @@ const _CHORD_SUFFIX_MAP = {
   'm/E':'m/E','m/F':'m/F','m/F#':'m/F#','m/Gb':'m/F#',
   'm/G':'m/G','m/G#':'m/G#','m/Ab':'m/Ab',
   'm/A':'m/A',
+  // Notação brasileira: /5- e /5+ = alteração de quinta (não baixo)
+  'm7/5-':'m7b5','7/5-':'7b5','7/5+':'aug7',
+  // Notações com + direto no número
+  '7+':'aug7','m7+':'m7',
 };
 
 function _parsearAcorde(nome) {
@@ -9306,12 +9310,17 @@ function _parsearAcorde(nome) {
   const suffix = m[2].trim();
   const dbSuffix = _CHORD_SUFFIX_MAP[suffix];
   if (dbSuffix !== undefined) return { root, suffix: dbSuffix };
-  // Fallback: se o sufixo complexo não existe (ex: Am7/G), tenta só a parte antes do "/"
+  // Fallback: slash pode ser baixo alternado (Am7/G) ou alteração de quinta (Am7/5-)
   const slashIdx = suffix.indexOf('/');
   if (slashIdx > 0) {
+    const afterSlash = suffix.slice(slashIdx + 1);
+    // Alteração (/5-, /5+, /9+, /9-): a parte após o slash começa com dígito ou "5±"
+    // → descarta a alteração e usa só o sufixo base
     const base = suffix.slice(0, slashIdx);
     const dbBase = _CHORD_SUFFIX_MAP[base];
     if (dbBase !== undefined) return { root, suffix: dbBase };
+    // Baixo alternado (/G, /F#) não encontrado no mapa — tenta como acorde maior
+    if (/^[A-G]/.test(afterSlash)) return { root, suffix: 'major' };
   }
   return null;
 }
@@ -9370,12 +9379,12 @@ function _gerarVoicingsAlgo(parsed) {
     });
 
     const playingIdx = frets.map((f, i) => f >= 0 ? i : -1).filter(i => i >= 0);
-    if (playingIdx.length < 4) continue;
+    if (playingIdx.length < 3) continue;
 
-    // Verifica span ≤ 3 trastes
+    // Verifica span ≤ 4 trastes
     const frettedAbs = frets.filter(f => f > 0);
     if (!frettedAbs.length) continue;
-    if (Math.max(...frettedAbs) - Math.min(...frettedAbs) > 3) continue;
+    if (Math.max(...frettedAbs) - Math.min(...frettedAbs) > 4) continue;
 
     // Verifica que a raiz está presente
     const playedNotes = new Set(
