@@ -5998,12 +5998,12 @@ async function _iaBuscarCifra(titulo, artista, urlDireta) {
     const r = await fetchCifraViaJina(`https://www.cifraclub.com.br/${artistaSlug}/${tituloSlug}/`);
     if (r?.cifra?.length > 50) return r;
   }
-  // Busca textual: pega o primeiro link de cifra da p\u00e1gina de busca
+  // Busca via DuckDuckGo Lite (CifraClub search \u00e9 bloqueada pelo Akamai)
   if (titulo) {
     try {
-      const q = encodeURIComponent([titulo, artista].filter(Boolean).join(' '));
-      const searchMd = await fetch(`https://r.jina.ai/https://www.cifraclub.com.br/busca/?q=${q}`).then(r => r.text());
-      const firstLink = searchMd.match(/\(https:\/\/www\.cifraclub\.com\.br\/([^/"]+)\/([^/"]+)\/\)/);
+      const q = encodeURIComponent([titulo, artista, 'site:cifraclub.com.br'].filter(Boolean).join(' '));
+      const searchMd = await fetch(`https://r.jina.ai/https://lite.duckduckgo.com/lite/?q=${q}`).then(r => r.text());
+      const firstLink = searchMd.match(/cifraclub\.com\.br\/([a-z0-9-]+)\/([a-z0-9-]+)/);
       if (firstLink) {
         const r = await fetchCifraViaJina(`https://www.cifraclub.com.br/${firstLink[1]}/${firstLink[2]}/`);
         if (r?.cifra?.length > 50) return r;
@@ -6027,18 +6027,23 @@ function _parsearJinaMd(md, url) {
   // Pegar corpo do markdown ap\u00f3s "Markdown Content:"
   const mdBody = md.replace(/^[\s\S]*?Markdown Content:\s*/m, '');
 
-  // Localizar se\u00e7\u00e3o da cifra: come\u00e7a no primeiro acorde em negrito **X**
-  const cifraStart = mdBody.search(/\*\*[A-G][^*]*\*\*/);
-  let cifraSection = cifraStart >= 0 ? mdBody.slice(cifraStart) : '';
+  // Localizar cifra ap\u00f3s "Tom: X" \u2014 evita pegar o painel de acordes que aparece antes
+  let cifraSection = '';
+  const tomLineMatch = mdBody.match(/Tom:\s*[A-G][b#]?[mM]?\s*\n/);
+  if (tomLineMatch) {
+    const afterTomLine = mdBody.slice(mdBody.indexOf(tomLineMatch[0]) + tomLineMatch[0].length);
+    cifraSection = afterTomLine;
+  } else {
+    const cifraStart = mdBody.search(/\*\*[A-G][^*]*\*\*/);
+    cifraSection = cifraStart >= 0 ? mdBody.slice(cifraStart) : '';
+  }
   const cifraEnd = cifraSection.search(/Informa\u00e7\u00f5es da m\u00fasica|Composi\u00e7\u00e3o:|##\s*Todos artistas/);
   if (cifraEnd > 0) cifraSection = cifraSection.slice(0, cifraEnd);
 
-  // Limpar markdown: remover cabe\u00e7alhos, links, itens de lista; manter acordes e letra
+  // Limpar markdown: remover cabe\u00e7alhos e links; manter acordes e letra
   const cifra = cifraSection
     .replace(/##[^\n]*/g, '')
-    .replace(/\*\s*[^\n]+\n/g, '')
     .replace(/\[.*?\]\(.*?\)/g, '')
-    .replace(/^\s*[*-]\s*.+$/gm, '')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 
