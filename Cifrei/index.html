@@ -9433,10 +9433,10 @@ function _buscarPosicoesAcorde(nome, db) {
   const dbSigs = new Set(dbPositions.map(p => p.frets.join(',') + '@' + (p.baseFret || 1)));
   const extras = algoPositions.filter(p => !dbSigs.has(p.frets.join(',') + '@' + p.baseFret));
 
-  const all = [...dbPositions, ...extras];
-  return all
-    .sort((a, b) => _dificuldadeAcorde(a) - _dificuldadeAcorde(b))
-    .slice(0, 8);
+  // DB positions já vêm na ordem curada (mais tradicionais/usados primeiro)
+  // Extras algorítmicos ordenados do mais fácil ao mais difícil como complemento
+  const sortedExtras = extras.sort((a, b) => _dificuldadeAcorde(a) - _dificuldadeAcorde(b));
+  return [...dbPositions, ...sortedExtras].slice(0, 8);
 }
 
 function _extrairBaixo(nome) {
