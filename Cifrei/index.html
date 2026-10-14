@@ -423,6 +423,29 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-blank-btn.on{background:rgba(10,10,10,.9);border-color:rgba(255,255,255,.2);color:#fff;}
 .lctrl-current-song{font-size:11px;color:rgba(52,211,153,.5);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 @keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+/* ── LCTRL BÍBLIA + TEMA ─────────────────────────────────────────── */
+.lctrl-tabs{display:flex;gap:0;padding:8px 8px 0;flex-shrink:0;border-bottom:1px solid rgba(52,211,153,.08);margin-bottom:2px;}
+.lctrl-tab-btn{flex:1;background:none;border:none;padding:6px 6px;border-radius:8px 8px 0 0;font-size:11px;font-weight:700;color:var(--faint);cursor:pointer;transition:all .14s;border-bottom:2px solid transparent;}
+.lctrl-tab-btn.active{color:#34d399;border-bottom-color:rgba(52,211,153,.5);background:rgba(52,211,153,.05);}
+.lctrl-tab-btn:hover:not(.active){color:var(--muted);background:rgba(255,255,255,.03);}
+.lctrl-songs-panel-title{display:none;}
+.lctrl-bible-panel{flex:1;overflow:hidden;display:none;flex-direction:column;}
+.lctrl-bible-panel.active{display:flex;}
+.lctrl-bible-search{padding:8px 10px 4px;flex-shrink:0;}
+.lctrl-bible-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:7px 12px;color:#e5f0ea;font-size:12px;outline:none;transition:border-color .14s;font-family:var(--font-chord);}
+.lctrl-bible-input:focus{border-color:rgba(52,211,153,.35);}
+.lctrl-bible-input::placeholder{color:var(--faint);}
+.lctrl-bible-status{font-size:10px;color:var(--faint);padding:0 12px 4px;min-height:16px;flex-shrink:0;}
+.lctrl-bible-results{flex:1;overflow-y:auto;scrollbar-width:thin;padding:0 6px 8px;}
+.lctrl-bible-item{padding:7px 10px;border-radius:8px;cursor:default;transition:background .12s;margin-bottom:3px;border:1px solid rgba(255,255,255,.04);}
+.lctrl-bible-item:hover{background:rgba(255,255,255,.03);}
+.lctrl-bible-item-ref{font-size:10px;font-weight:700;color:rgba(52,211,153,.65);letter-spacing:.5px;margin-bottom:3px;}
+.lctrl-bible-item-text{font-size:11.5px;color:var(--muted);line-height:1.55;margin-bottom:5px;}
+.lctrl-bible-project-btn{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);border-radius:6px;padding:3px 10px;font-size:10px;font-weight:700;color:#34d399;cursor:pointer;transition:all .12s;}
+.lctrl-bible-project-btn:hover{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.45);}
+.lctrl-tema-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:6px 12px;cursor:pointer;color:var(--faint);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .14s;flex-shrink:0;}
+.lctrl-tema-btn:hover{background:rgba(255,255,255,.09);color:var(--muted);}
+.lctrl-tema-btn.light{color:#fbbf24;border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08);}
 /* ── DECK DE ESCALAS (swipe) ─────────────────────────────────────── */
 @keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideInLeft{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:translateX(0)}}
@@ -10912,15 +10935,288 @@ function _ltToggleBlank() {
 }
 
 function _ltAbrirJanela() {
-  if (_LT.win && !_LT.win.closed) { _LT.win.focus(); return; }
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cifrei – Projeção</title><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;background:#000;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;}body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 80px;}#song-label{position:fixed;top:22px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:3px;text-transform:uppercase;transition:opacity .35s;white-space:nowrap;}#section-label{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:rgba(255,255,255,.22);letter-spacing:2px;text-transform:uppercase;transition:opacity .35s;white-space:nowrap;}#lyric{font-size:clamp(26px,4.8vw,72px);font-weight:600;text-align:center;line-height:1.72;color:#fff;white-space:pre-line;transition:opacity .22s,transform .22s;text-shadow:0 2px 24px rgba(0,0,0,.7);}#lyric.out{opacity:0;transform:translateY(10px);}#blank{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .28s;}#blank.on{opacity:1;}#idle{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:rgba(255,255,255,.12);letter-spacing:4px;text-transform:uppercase;}</style></head><body><div id="idle">AGUARDANDO</div><div id="song-label" style="opacity:0"></div><div id="lyric"></div><div id="section-label" style="opacity:0"></div><div id="blank"></div><script>const L=document.getElementById('lyric');const SN=document.getElementById('song-label');const SL=document.getElementById('section-label');const BL=document.getElementById('blank');const ID=document.getElementById('idle');function show(text,song,label){ID.style.display='none';BL.classList.remove('on');L.classList.add('out');setTimeout(()=>{L.textContent=text;SN.textContent=song||'';SN.style.opacity=song?'1':'0';SL.textContent=label||'';SL.style.opacity=label?'1':'0';L.classList.remove('out');},210);}window.addEventListener('message',(e)=>{const{type,text,label,song}=e.data||{};if(type==='show')show(text,song,label);else if(type==='blank')BL.classList.add('on');else if(type==='unblank')BL.classList.remove('on');});document.addEventListener('keydown',(e)=>{if(e.key==='b'||e.key==='B'){BL.classList.toggle('on');}});if(window.opener)window.opener.postMessage({type:'ready'},'*');<\/script></body></html>`;
+  if (_LT.win && !_LT.win.closed) {
+    _LT.win.focus();
+    _LT.win.postMessage({ type: 'theme', theme: _ltTema }, '*');
+    return;
+  }
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cifrei – Projeção</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#000;--fg:#fff;--meta:rgba(255,255,255,.15);}
+[data-theme="light"]{--bg:#f0f0f0;--fg:#111;--meta:rgba(0,0,0,.22);}
+html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;transition:background .5s;}
+body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 80px;font-family:'Segoe UI',system-ui,sans-serif;}
+#song-label{position:fixed;top:22px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--meta);letter-spacing:3px;text-transform:uppercase;transition:opacity .35s,color .5s;white-space:nowrap;}
+#section-label{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--meta);letter-spacing:2px;text-transform:uppercase;transition:opacity .35s,color .5s;white-space:nowrap;}
+#lyric{font-size:clamp(24px,4.8vw,74px);font-weight:600;text-align:center;line-height:1.72;color:var(--fg);white-space:pre-line;transition:color .5s;}
+#lyric.out{animation:lyricOut .22s ease forwards;}
+#lyric.in{animation:lyricIn .32s ease forwards;}
+@keyframes lyricOut{to{opacity:0;transform:scale(.96) translateY(-10px);filter:blur(2px);}}
+@keyframes lyricIn{from{opacity:0;transform:scale(.97) translateY(10px);filter:blur(1px);}}
+#blank{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .3s;}
+#blank.on{opacity:1;}
+#idle{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;transition:opacity .3s;}
+#idle-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);animation:idlePulse 2s ease infinite;}
+@keyframes idlePulse{0%,100%{opacity:.2;}50%{opacity:.7;}}
+#idle-text{font-size:12px;font-weight:700;color:rgba(255,255,255,.14);letter-spacing:4px;text-transform:uppercase;}
+#kbd{position:fixed;bottom:10px;right:14px;font-size:9px;color:rgba(255,255,255,.07);letter-spacing:.5px;}
+[data-theme="light"] #idle-dot{background:rgba(0,0,0,.12);}
+[data-theme="light"] #idle-text{color:rgba(0,0,0,.16);}
+[data-theme="light"] #kbd{color:rgba(0,0,0,.08);}
+</style></head><body>
+<div id="idle"><div id="idle-dot"></div><div id="idle-text">AGUARDANDO</div></div>
+<div id="song-label" style="opacity:0"></div>
+<div id="lyric"></div>
+<div id="section-label" style="opacity:0"></div>
+<div id="blank"></div>
+<div id="kbd">B = tela preta &nbsp;•&nbsp; T = tema</div>
+<script>
+const L=document.getElementById('lyric');
+const SN=document.getElementById('song-label');
+const SL=document.getElementById('section-label');
+const BL=document.getElementById('blank');
+const ID=document.getElementById('idle');
+function show(text,song,label){
+  ID.style.opacity='0';setTimeout(()=>{ID.style.display='none';},300);
+  BL.classList.remove('on');
+  L.classList.remove('in');L.classList.add('out');
+  setTimeout(()=>{
+    L.textContent=text;
+    SN.textContent=song||'';SN.style.opacity=song?'1':'0';
+    SL.textContent=label||'';SL.style.opacity=label?'1':'0';
+    L.classList.remove('out');L.classList.add('in');
+  },200);
+}
+window.addEventListener('message',(e)=>{
+  const{type,text,label,song,theme}=e.data||{};
+  if(type==='show')show(text,song,label);
+  else if(type==='blank')BL.classList.add('on');
+  else if(type==='unblank')BL.classList.remove('on');
+  else if(type==='theme')document.documentElement.setAttribute('data-theme',theme);
+});
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='b'||e.key==='B')BL.classList.toggle('on');
+  if(e.key==='t'||e.key==='T'){
+    const cur=document.documentElement.getAttribute('data-theme')||'dark';
+    const next=cur==='light'?'dark':'light';
+    document.documentElement.setAttribute('data-theme',next);
+    if(window.opener)window.opener.postMessage({type:'themeChanged',theme:next},'*');
+  }
+});
+if(window.opener)window.opener.postMessage({type:'ready'},'*');
+<\/script></body></html>`;
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   _LT.win = window.open(url, 'cifrei-projection', 'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no,scrollbars=no');
   setTimeout(() => URL.revokeObjectURL(url), 8000);
-  if (_LT.stropheIdx >= 0) setTimeout(() => _ltProjetar(_LT.stropheIdx), 900);
+  setTimeout(() => {
+    if (_LT.win && !_LT.win.closed) {
+      _LT.win.postMessage({ type: 'theme', theme: _ltTema }, '*');
+      if (_LT.stropheIdx >= 0) _ltProjetar(_LT.stropheIdx);
+    }
+  }, 900);
 }
 // ══════════════════════════════════════════════════════════════════
+// ── PROJEÇÃO: TEMA + BÍBLIA ARA ──────────────────────────────────
+let _ltTema = 'dark';
+let _bibliaData = null; // null=não carregado, false=carregando, array=carregado
+let _bibliaIdx = null;
+let _bibliaLastResults = [];
+
+function _ltToggleTema() {
+  _ltTema = _ltTema === 'dark' ? 'light' : 'dark';
+  const btn = document.getElementById('lctrl-tema-btn');
+  if (btn) {
+    btn.classList.toggle('light', _ltTema === 'light');
+    const icon = _ltTema === 'light'
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+    btn.innerHTML = icon + ' Tema';
+  }
+  if (_LT.win && !_LT.win.closed) _LT.win.postMessage({ type: 'theme', theme: _ltTema }, '*');
+}
+
+// Ouvir themeChanged vindo da tecla T na janela de projeção
+window.addEventListener('message', (e) => {
+  if (!e.data) return;
+  if (e.data.type === 'themeChanged') {
+    _ltTema = e.data.theme;
+    const btn = document.getElementById('lctrl-tema-btn');
+    if (btn) btn.classList.toggle('light', _ltTema === 'light');
+  }
+});
+
+function _ltTabMusicas() {
+  document.getElementById('lctrl-tab-musicas')?.classList.add('active');
+  document.getElementById('lctrl-tab-biblia')?.classList.remove('active');
+  const sl = document.getElementById('lctrl-songs-list');
+  if (sl) sl.style.display = '';
+  document.getElementById('lctrl-bible-panel')?.classList.remove('active');
+}
+
+function _ltTabBiblia() {
+  document.getElementById('lctrl-tab-musicas')?.classList.remove('active');
+  document.getElementById('lctrl-tab-biblia')?.classList.add('active');
+  const sl = document.getElementById('lctrl-songs-list');
+  if (sl) sl.style.display = 'none';
+  document.getElementById('lctrl-bible-panel')?.classList.add('active');
+  if (_bibliaData === null) _ltBibliaCarregar();
+}
+
+async function _ltBibliaCarregar() {
+  if (_bibliaData === false) return;
+  _bibliaData = false;
+  const status = document.getElementById('lctrl-bible-status');
+  if (status) status.textContent = 'Carregando Bíblia ARA… (~3MB, aguarde)';
+  // Tentar IndexedDB primeiro (offline)
+  try {
+    const cached = await new Promise((res, rej) => {
+      const req = indexedDB.open('cifrei-biblia-ara', 1);
+      req.onupgradeneeded = e => e.target.result.createObjectStore('books', { keyPath: 'abbrev' });
+      req.onsuccess = e => {
+        const db = e.target.result;
+        const all = db.transaction('books', 'readonly').objectStore('books').getAll();
+        all.onsuccess = () => res(all.result && all.result.length > 60 ? all.result : null);
+        all.onerror = () => rej();
+      };
+      req.onerror = () => rej();
+    });
+    if (cached) { _bibliaData = cached; _ltBibliaReady(); return; }
+  } catch(e) {}
+  // Buscar do CDN jsdelivr
+  try {
+    const r = await fetch('https://cdn.jsdelivr.net/gh/thiagobodruk/biblia@master/json/ara.json');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    _bibliaData = await r.json();
+    _ltBibliaReady();
+    // Salvar no IDB para uso offline
+    try {
+      await new Promise((res, rej) => {
+        const req = indexedDB.open('cifrei-biblia-ara', 1);
+        req.onupgradeneeded = e => e.target.result.createObjectStore('books', { keyPath: 'abbrev' });
+        req.onsuccess = e => {
+          const db = e.target.result;
+          const tx = db.transaction('books', 'readwrite');
+          _bibliaData.forEach(b => tx.objectStore('books').put(b));
+          tx.oncomplete = () => res();
+          tx.onerror = () => rej();
+        };
+        req.onerror = () => rej();
+      });
+    } catch(e) {}
+  } catch(e) {
+    _bibliaData = null;
+    if (status) status.textContent = '⚠ Erro ao carregar. Verifique a conexão.';
+  }
+}
+
+function _ltBibliaReady() {
+  const status = document.getElementById('lctrl-bible-status');
+  if (status) status.textContent = 'Digite uma referência (ex: João 3:16) ou palavra';
+  const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  _bibliaIdx = {};
+  _bibliaData.forEach((book, i) => {
+    const bn = norm(book.book);
+    _bibliaIdx[bn] = i;
+    _bibliaIdx[book.abbrev] = i;
+    if (/^\d/.test(bn)) _bibliaIdx[bn.replace(/\s+/g, '')] = i; // "1 samuel" → "1samuel"
+    _bibliaIdx[bn.split(' ')[0]] = i; // primeira palavra (NT sobrescreve OT em conflitos)
+  });
+  // Resolver ambiguidade: "jo" → João (NT), não Jó (OT)
+  if (_bibliaData[42]) _bibliaIdx['jo'] = 42;
+  const input = document.getElementById('lctrl-bible-input');
+  if (input && input.value.trim()) _ltBibliaSearch(input.value);
+}
+
+function _ltBibliaSearch(q) {
+  q = (q || '').trim();
+  const resultsEl = document.getElementById('lctrl-bible-results');
+  const statusEl = document.getElementById('lctrl-bible-status');
+  if (!q) { if (resultsEl) resultsEl.innerHTML = ''; return; }
+  if (_bibliaData === null) { _ltBibliaCarregar(); return; }
+  if (_bibliaData === false || !_bibliaIdx) {
+    if (statusEl) statusEl.textContent = 'Carregando…';
+    return;
+  }
+  const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  // Tentar parsear como referência: "Livro Capítulo[:Versículo]"
+  const refM = q.match(/^(\d?\s*[a-zÀ-ž]+(?:\s+[a-zÀ-ž]+)?)\s+(\d+)(?::(\d+))?$/i);
+  if (refM) {
+    const bk = norm(refM[1]).replace(/\s+/g, '');
+    const bookIdx = _bibliaIdx[bk] ?? _bibliaIdx[norm(refM[1].trim())];
+    if (bookIdx !== undefined && _bibliaData[bookIdx]) {
+      const book = _bibliaData[bookIdx];
+      const ci = parseInt(refM[2]) - 1;
+      if (ci < 0 || ci >= book.chapters.length) {
+        if (statusEl) statusEl.textContent = book.book + ' tem ' + book.chapters.length + ' capítulos';
+        if (resultsEl) resultsEl.innerHTML = '';
+        return;
+      }
+      const ch = book.chapters[ci];
+      if (refM[3]) {
+        const vi = parseInt(refM[3]) - 1;
+        if (vi >= 0 && vi < ch.length) {
+          if (statusEl) statusEl.textContent = book.book + ' ' + refM[2] + ':' + refM[3];
+          _ltBibliaRenderResults([{ ref: book.book + ' ' + refM[2] + ':' + refM[3], text: ch[vi] }]);
+        } else {
+          if (statusEl) statusEl.textContent = book.book + ' ' + refM[2] + ' tem ' + ch.length + ' versículos';
+          if (resultsEl) resultsEl.innerHTML = '';
+        }
+      } else {
+        if (statusEl) statusEl.textContent = book.book + ' ' + refM[2] + ' — ' + ch.length + ' versículos';
+        _ltBibliaRenderResults(ch.slice(0, 20).map((t, i) => ({ ref: book.book + ' ' + refM[2] + ':' + (i + 1), text: t })));
+      }
+      return;
+    }
+  }
+  // Busca por palavra-chave (máx 15 resultados)
+  const qn = norm(q);
+  const results = [];
+  outer: for (const book of _bibliaData) {
+    for (let c = 0; c < book.chapters.length; c++) {
+      for (let v = 0; v < book.chapters[c].length; v++) {
+        if (norm(book.chapters[c][v]).includes(qn)) {
+          results.push({ ref: book.book + ' ' + (c + 1) + ':' + (v + 1), text: book.chapters[c][v] });
+          if (results.length >= 15) break outer;
+        }
+      }
+    }
+  }
+  if (statusEl) statusEl.textContent = results.length ? results.length + (results.length >= 15 ? '+ ' : ' ') + 'resultado' + (results.length !== 1 ? 's' : '') : 'Nenhum versículo encontrado';
+  _ltBibliaRenderResults(results);
+}
+
+function _ltBibliaRenderResults(items) {
+  _bibliaLastResults = items;
+  const el = document.getElementById('lctrl-bible-results');
+  if (!el) return;
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  el.innerHTML = items.map(({ ref, text }, i) =>
+    '<div class="lctrl-bible-item">' +
+    '<div class="lctrl-bible-item-ref">' + esc(ref) + '</div>' +
+    '<div class="lctrl-bible-item-text">' + esc(text) + '</div>' +
+    '<button class="lctrl-bible-project-btn" onclick="_ltBibliaProjetar(' + i + ')">&#9654; Projetar</button>' +
+    '</div>'
+  ).join('');
+}
+
+function _ltBibliaProjetar(idx) {
+  const item = _bibliaLastResults[idx];
+  if (!item) return;
+  const { text, ref } = item;
+  const send = () => {
+    if (_LT.win && !_LT.win.closed) {
+      _LT.win.postMessage({ type: 'theme', theme: _ltTema }, '*');
+      _LT.win.postMessage({ type: 'show', text, song: ref, label: 'Bíblia ARA' }, '*');
+    }
+  };
+  if (!_LT.win || _LT.win.closed) { _ltAbrirJanela(); setTimeout(send, 1200); }
+  else send();
+}
+// ── fim PROJEÇÃO BÍBLIA ───────────────────────────────────────────
 
 // Registrar listeners
 (function() {
@@ -10952,6 +11248,10 @@ function _ltAbrirJanela() {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       Abrir Projeção
     </button>
+    <button class="lctrl-tema-btn" id="lctrl-tema-btn" onclick="_ltToggleTema()" title="Tema da janela de projeção (claro/escuro)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      Tema
+    </button>
     <button class="lctrl-close-btn" onclick="fecharTransmitirLetras()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       Fechar
@@ -10977,7 +11277,18 @@ function _ltAbrirJanela() {
   <div class="lctrl-body">
     <div class="lctrl-songs-panel">
       <div class="lctrl-songs-panel-title">Músicas</div>
+      <div class="lctrl-tabs">
+        <button class="lctrl-tab-btn active" id="lctrl-tab-musicas" onclick="_ltTabMusicas()">Músicas</button>
+        <button class="lctrl-tab-btn" id="lctrl-tab-biblia" onclick="_ltTabBiblia()">📖 Bíblia</button>
+      </div>
       <div id="lctrl-songs-list"></div>
+      <div class="lctrl-bible-panel" id="lctrl-bible-panel">
+        <div class="lctrl-bible-search">
+          <input type="text" class="lctrl-bible-input" id="lctrl-bible-input" placeholder="Ex: João 3:16 ou Salmos 23" oninput="_ltBibliaSearch(this.value)">
+        </div>
+        <div class="lctrl-bible-status" id="lctrl-bible-status">Digite uma referência ou palavra-chave</div>
+        <div class="lctrl-bible-results" id="lctrl-bible-results"></div>
+      </div>
     </div>
     <div class="lctrl-main">
       <div class="lctrl-preview-cards">
