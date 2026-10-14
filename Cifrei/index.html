@@ -291,7 +291,7 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .play-icon svg{width:11px;height:11px;color:#000;}
 @media(min-width:480px){.song-item:hover .play-icon{display:flex;}}
 .del-btn{padding:14px;background:none;border:none;cursor:pointer;color:var(--faint);transition:background .15s,color .15s,transform .15s;display:flex;}
-.song-added-by{font-family:var(--font-chord);font-size:10px;font-weight:700;color:var(--muted);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:99px;padding:3px 9px;white-space:nowrap;flex-shrink:0;max-width:90px;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px;}
+.song-added-by{font-family:var(--font-chord);font-size:10px;font-weight:700;color:var(--muted);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:99px;padding:2px 8px;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px;display:inline-block;vertical-align:middle;}
 @keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
 /* ── DECK DE ESCALAS (swipe) ─────────────────────────────────────── */
 @keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
@@ -881,7 +881,7 @@ function _loginViaCacheLocal(loginInput, senhaInput) {
       foto: entrada.foto || '',
       perm_cifra: entrada.perm_cifra !== false,
       perm_letra: entrada.perm_letra !== false,
-      perm_setlist: entrada.perm_setlist !== false,
+      perm_setlist: entrada.perm_setlist === true,
       instrumento: entrada.instrumento || '',
     };
   } catch(e) { return undefined; } // erro → forçar REST
@@ -907,7 +907,7 @@ async function _loginViaRestDireto(loginInput, senhaInput) {
       foto: f.foto && f.foto.stringValue || '',
       perm_cifra: f.perm_cifra ? f.perm_cifra.booleanValue !== false : true,
       perm_letra: f.perm_letra ? f.perm_letra.booleanValue !== false : true,
-      perm_setlist: f.perm_setlist ? f.perm_setlist.booleanValue !== false : true,
+      perm_setlist: f.perm_setlist?.booleanValue === true,
       instrumento: f.instrumento && f.instrumento.stringValue || '',
     };
   } catch(e) { throw e; }
@@ -2987,8 +2987,15 @@ function voltarHome(){
   }, 200);
 }
 
+// Sempre usa horário de Brasília (UTC-3), independente do fuso do dispositivo
+function _brtNow() {
+  const now = new Date();
+  const utcMs = now.getTime() + now.getTimezoneOffset() * 60000;
+  return new Date(utcMs - 3 * 3600000);
+}
+
 function getSaudacao(nome) {
-  const h = new Date().getHours();
+  const h = _brtNow().getHours();
   const periodo = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
   return `${periodo}, ${nome}!`;
 }
@@ -2996,8 +3003,9 @@ function getSaudacao(nome) {
 function _pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 function _gerarMensagemHome() {
-  const h  = new Date().getHours();
-  const dow = new Date().getDay(); // 0=Dom
+  const brt = _brtNow();
+  const h   = brt.getHours();
+  const dow = brt.getDay(); // 0=Dom
   const nome = (localStorage.getItem('cifrei_username') || '').split(' ')[0] || 'Músico';
   const instr = (localStorage.getItem('cifrei_instrumento') || '').toLowerCase();
   const ultimoLogin = parseInt(localStorage.getItem('cifrei_last_login') || '0');
@@ -3013,55 +3021,125 @@ function _gerarMensagemHome() {
   const isKeys   = /teclado|piano/.test(instr);
   const isVoice  = /voz|vocal|canto/.test(instr);
 
+  // Faixas de hora
+  const isMadrugada = h >= 0  && h < 5;
+  const isManha     = h >= 5  && h < 12;
+  const isTarde     = h >= 12 && h < 18;
+  const isNoite     = h >= 18 && h < 22;
+  const isNoiteTarde= h >= 22 || h < 5;
+
   let msg;
 
   if (diasSemLogin >= 14) {
     msg = _pick([
-      `Faz ${diasSemLogin} dias que você sumiu! O banco tem músicas novas te esperando.`,
-      `Ah, apareceu! ${diasSemLogin} dias longe é tempo demais. Que saudade!`,
-      `De volta depois de ${diasSemLogin} dias. O setlist sentiu sua falta.`,
+      `Faz ${diasSemLogin} dias que você sumiu! Tem cifras novas esperando por você.`,
+      `${diasSemLogin} dias longe é tempo demais. O ministério sente quando um membro faz falta.`,
+      `De volta depois de ${diasSemLogin} dias. O setlist estava incompleto sem você.`,
+      `${diasSemLogin} dias longe — que bom te ver de volta ao ministério!`,
     ]);
   } else if (dow === 0) {
-    const base = ['É domingo! Que o louvor de hoje toque corações.','Hoje é o grande dia. Vai ser lindo.','Dia D. Está preparado? O Senhor já está.'];
-    if (isGuitar) base.push('Afinado? Hoje não tem margem pra soluçar de frio na barriga 😄');
-    if (isDrums)  base.push('Bateu o set de domingo? O ritmo do louvor é você.');
-    if (isKeys)   base.push('Patch carregado? O domingo esperou por isso.');
-    if (isVoice)  base.push('Garganta aquecida? A voz carrega o louvor hoje.');
-    if (isBass)   base.push('O groove que sustenta todo mundo começa em você hoje.');
-    msg = _pick(base);
+    // Domingo — varia por hora
+    if (isManha) {
+      const base = [
+        'Domingo de manhã. Que o Espírito guie cada nota do culto hoje.',
+        'Culto hoje! Há horas até o início — tempo bom pra uma última revisão.',
+        'Manhã de domingo. O povo vem com expectativa; leve isso consigo no louvor.',
+      ];
+      if (isGuitar) base.push('Afinação antes do culto. Pequenos detalhes fazem diferença na congregação.');
+      if (isDrums)  base.push('Bateria afinada, kick marcado, hi-hat definido. Agora é só confiar.');
+      if (isKeys)   base.push('Patches e transposições conferidas? Domingo não tem segunda chance ao vivo.');
+      if (isVoice)  base.push('Aquece bem a voz e bebe água. Você é a ponte entre a letra e o coração.');
+      if (isBass)   base.push('O grave ancora todo mundo. Hoje a congregação vai sentir o fundamento.');
+      msg = _pick(base);
+    } else if (isTarde || isNoite) {
+      const base = [
+        'Culto a caminho! Deus já está trabalhando antes da primeira nota.',
+        'Domingo à tarde — momento de oferecer o louvor ao Senhor com excelência.',
+        'É hora de servir. Que cada música seja uma declaração de fé.',
+      ];
+      if (isGuitar) base.push('Violão afinado, coração alinhado. Vamos!');
+      if (isDrums)  base.push('O ritmo do louvor começa com você. Confia no que foi ensaiado.');
+      if (isVoice)  base.push('A congregação vai seguir sua voz. Lidere com fé.');
+      msg = _pick(base);
+    } else {
+      msg = _pick([
+        'É domingo! Que o louvor de hoje edifique a congregação.',
+        'Dia do culto. Servir com música é um privilégio, não uma tarefa.',
+        'Domingo chegou. Que a Palavra e o louvor falem ao coração da congregação.',
+      ]);
+    }
   } else if (diasParaDom <= 2) {
     const prep = diasParaDom === 1 ? 'amanhã' : `em ${diasParaDom} dias`;
     const base = [
-      `Domingo é ${prep}! Já revisou o repertório?`,
-      `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} pro domingo. Hora de dar uma olhada no setlist.`,
+      `Domingo é ${prep}! Repertório revisado?`,
+      `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} para o culto. Hora de confirmar o setlist.`,
+      `${diasParaDom === 1 ? 'Véspera do culto' : `${diasParaDom} dias para o domingo`}. Já sabe todas as músicas de cor?`,
     ];
-    if (isGuitar) base.push(`Domingo é ${prep}. Capo no traste certo?`);
-    if (isDrums)  base.push(`Domingo é ${prep}. Baquetas reservadas e bateria afinada?`);
-    if (isKeys)   base.push(`Domingo é ${prep}. Patches e transposições confirmadas?`);
-    if (isVoice)  base.push(`Domingo é ${prep}. Hidratação e aquecimento no planejamento?`);
-    if (isBass)   base.push(`Domingo é ${prep}. O groove vai segurar todo mundo.`);
+    if (isGuitar) base.push(`Domingo é ${prep}. Capo e transposições confirmados?`);
+    if (isDrums)  base.push(`Domingo é ${prep}. Introduções e viradas marcadas no ensaio?`);
+    if (isKeys)   base.push(`Domingo é ${prep}. Patches e arranjos prontos?`);
+    if (isVoice)  base.push(`Domingo é ${prep}. Letras decoradas e tonalidades certas?`);
+    if (isBass)   base.push(`Domingo é ${prep}. Linha de baixo definida pra cada música?`);
     msg = _pick(base);
-  } else if (h >= 22 || h < 5) {
-    const base = ['A essa hora só pode ser devoção ou insônia. Ou as duas.','Tarde da noite estudando músicas. Isso é dedicação.','O ministério que não dorme. Amamos isso.'];
-    if (isGuitar) base.push('Noturno e com o violão. Um clássico.');
-    if (isDrums)  base.push(`Baterista às ${h}h. Pelo menos é só no fone, né? 😄`);
-    if (isKeys)   base.push('Fone no ouvido, teclado ligado. Isso é dedicação.');
+  } else if (isMadrugada || (isNoiteTarde && h >= 22)) {
+    const base = [
+      `${h >= 22 ? 'Noite adentro' : 'Madrugada'} estudando o repertório. Isso é dedicação de verdade.`,
+      'Quando o ministério vira devoção, até a madrugada vira ensaio.',
+      `À essa hora o silêncio favorece — boa hora pra revisar cifras com calma.`,
+    ];
+    if (isGuitar) base.push(`Violonista noturno. Clássico do ministério presbiteriano.`);
+    if (isDrums)  base.push(`Baterista tarde da noite — fone no ouvido pra não acordar ninguém!`);
+    if (isKeys)   base.push('Teclado no volume baixo, dedicação no máximo.');
+    if (isVoice)  base.push('Voz descansada canta melhor. Não força demais hoje à noite.');
+    msg = _pick(base);
+  } else if (dow === 6) {
+    // Sábado
+    const base = [
+      'Sábado de ensaio! Melhor errar hoje do que amanhã no culto.',
+      'Vigília da véspera: revelar o setlist de domingo aqui.',
+      'Último dia de preparação antes do culto. Tudo certo com as músicas?',
+    ];
+    if (isManha) base.push('Sábado de manhã é sagrado para músico de ministério: hora do ensaio final.');
+    if (isTarde) base.push('Tarde de sábado: revisão geral antes do domingo.');
     msg = _pick(base);
   } else if (dow >= 1 && dow <= 3) {
-    const base = ['Nova semana, novas músicas. Que tal explorar o banco?','O silêncio entre um domingo e outro é onde a música cresce.','Semana começando, louvor na mente.'];
-    if (isGuitar) base.push('Segunda/terça: dia perfeito pra aprender aquela cifra difícil.');
-    if (isDrums)  base.push('Aquecimento de início de semana: paradiddles até o domingo!');
-    if (isKeys)   base.push('Dia de experimentar um som novo no teclado?');
-    if (isVoice)  base.push('Início de semana com a voz: um bom copo d\'água para começar.');
+    // Início de semana: segunda, terça, quarta
+    const diasNome = ['', 'segunda', 'terça', 'quarta'][dow];
+    const base = [
+      `${diasNome.charAt(0).toUpperCase() + diasNome.slice(1)}-feira. Começo de semana — bom momento pra mergulhar em uma cifra nova.`,
+      'Início de semana é quando o repertório da semana passada ainda está fresco. Que tal revisá-lo?',
+      'Nova semana começa agora. O banco de músicas tem muita coisa boa esperando.',
+    ];
+    if (isGuitar) base.push(`${diasNome.charAt(0).toUpperCase() + diasNome.slice(1)}-feira: perfeito pra trabalhar aquela passagem difícil com calma.`);
+    if (isDrums)  base.push('Início de semana é hora de trabalhar dinâmica e independência no pad.');
+    if (isKeys)   base.push('Que tal explorar um arranjo novo no teclado essa semana?');
+    if (isVoice)  base.push('Bom momento pra memorizar as letras do próximo setlist.');
+    if (isBass)   base.push('Início de semana: bom tempo pra refinar as linhas de baixo do repertório.');
+    msg = _pick(base);
+  } else if (dow === 4 || dow === 5) {
+    // Quinta ou sexta
+    const diasNome = ['', '', '', '', 'quinta', 'sexta'][dow];
+    const base = [
+      `${diasNome.charAt(0).toUpperCase() + diasNome.slice(1)}-feira — o domingo está chegando. Repertório em dia?`,
+      `Já é ${diasNome}-feira! Bom momento pra uma última passagem geral.`,
+      `Faltam ${7 - dow} dias pro culto. Ritmo de preparação.`,
+    ];
+    if (isGuitar) base.push(`${diasNome.charAt(0).toUpperCase() + diasNome.slice(1)}: revisa os trechos que geralmente travam no culto.`);
+    if (isDrums)  base.push('Semana avançando — confirma a abertura e o final de cada música.');
+    if (isVoice)  base.push(`${diasNome.charAt(0).toUpperCase() + diasNome.slice(1)}: aquece a voz e passa as entradas difíceis.`);
     msg = _pick(base);
   } else {
-    // genérico por instrumento
-    if (isGuitar) msg = _pick(['Já esquentou os dedos hoje?','Dó, Mi, Sol… qual vai ser a música de hoje?','Uma cifra por dia, um louvor melhor na semana.']);
-    else if (isBass)  msg = _pick(['O groove que sustenta o louvor começa aqui.','Sem o baixo, todo mundo percebe.','Fundamental. Literalmente.']);
-    else if (isDrums) msg = _pick(['O pulso do louvor bate em você.','Quatro tempos, um coração.','Bateu o compasso hoje?']);
-    else if (isKeys)  msg = _pick(['Das 88 teclas, algumas vão fazer alguém chorar de emoção.','Qual patch vai usar no domingo?','Piano, synth, pad — a escolha é sua.']);
-    else if (isVoice) msg = _pick(['Hidrata a garganta, o domingo está chegando!','A voz é o instrumento mais pessoal de todos.','Vocal aquecido, louvor mais bonito.']);
-    else msg = _pick(['Pronto para mais um domingo de louvor?','O ministério agradece sua presença.','Cada ensaio é um passo para a excelência.']);
+    if (isGuitar) msg = _pick(['Dó, Mi, Sol… qual cifra vamos estudar hoje?','Uma progressão nova por semana transforma o louvor.','Já aqueceu os dedos hoje?']);
+    else if (isBass)  msg = _pick(['Fundamental, literalmente. O baixo define a harmonia do louvor.','Sem o baixo, a congregação sente — mesmo sem saber o porquê.','O groove certo faz o culto fluir.']);
+    else if (isDrums) msg = _pick(['O tempo é tudo no louvor. E o tempo começa em você.','Quatro tempos, uma congregação.','Metrônomo ligado?']);
+    else if (isKeys)  msg = _pick(['Das 88 teclas, hoje usaremos quantas?','Pad atmosférico ou piano solo — a escolha define o tom do culto.','Qual textura harmônica o próximo setlist pede?']);
+    else if (isVoice) msg = _pick(['A voz conecta a letra à alma. Cuide bem do instrumento.','Hidratação e descanso são parte do preparo vocal.','Tonal ou congregacional — cada música pede uma abordagem.']);
+    else msg = _pick([
+      'Cada ensaio é investimento. O culto colhe o que a semana plantou.',
+      'Ministério de louvor presbiteriano: excelência a serviço da Palavra.',
+      'O cifrei está aqui pra facilitar o que você já faz bem.',
+      'Serve com música. Tudo o mais, Deus provê.',
+    ]);
   }
 
   return { greeting, msg };
@@ -3076,8 +3154,9 @@ function _atualizarWelcomeCard() {
   const foto  = localStorage.getItem('cifrei_foto');
   const nome  = (localStorage.getItem('cifrei_username') || '').split(' ')[0] || '?';
   const instr = localStorage.getItem('cifrei_instrumento') || '';
-  const h     = new Date().getHours();
-  const dow   = new Date().getDay();
+  const _brt  = _brtNow();
+  const h     = _brt.getHours();
+  const dow   = _brt.getDay();
 
   // Avatar
   const avatarImg  = document.getElementById('hw-avatar-img');
@@ -3090,7 +3169,7 @@ function _atualizarWelcomeCard() {
     if (avatarImg) avatarImg.style.display = 'none';
   }
 
-  // Período separado do nome
+  // Período separado do nome (h já é horário de Brasília)
   const periodo = h < 12 ? 'Bom dia,' : h < 18 ? 'Boa tarde,' : 'Boa noite,';
   const elPeriod = document.getElementById('hw-period');
   const elName   = document.getElementById('hw-name');
@@ -4662,7 +4741,7 @@ async function _loginViaRest(loginInput, senhaInput) {
       foto:         f.foto?.stringValue         || '',
       perm_cifra:   f.perm_cifra?.booleanValue   ?? true,
       perm_letra:   f.perm_letra?.booleanValue   ?? true,
-      perm_setlist: f.perm_setlist?.booleanValue ?? true,
+      perm_setlist: f.perm_setlist?.booleanValue === true,
       instrumento:  f.instrumento?.stringValue   || '',
     };
   } catch(e) {
@@ -4982,16 +5061,14 @@ function buildSongItem(s, globalIdx) {
         <div class="song-num">${globalIdx+1}</div>
         <div class="song-info">
           <div class="song-title">${esc(s.title)}${(s.verified || S.banco.find(b=>b.title.toLowerCase()===s.title.toLowerCase())?.verified) ? VERIFIED_SVG : ''}</div>
-          ${s.artist ? `<div style="font-size:11px;color:var(--faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;">${esc(s.artist)}</div>` : ''}
-          <div class="song-key" style="display:flex;align-items:center;gap:6px;">
-            <span>Tom: ${tomDisplay}${s.tp&&s.tp!==0?` <span style="color:var(--faint);font-size:10px;">(${s.tp>0?'+':''}${s.tp})</span>`:''}</span>
+          ${s.artist ? `<div style="font-size:11px;color:var(--faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">${esc(s.artist)}</div>` : ''}
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;">
+            <span class="song-key">Tom: ${tomDisplay}${s.tp&&s.tp!==0?` <span style="color:var(--faint);font-size:10px;">(${s.tp>0?'+':''}${s.tp})</span>`:''}</span>
+            ${s.addedBy ? `<span class="song-added-by" title="Adicionado por ${esc(s.addedBy)}">${esc(s.addedBy)}</span>` : ''}
           </div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        ${s.addedBy ? `<span class="song-added-by" title="Adicionado por ${esc(s.addedBy)}">${esc(s.addedBy)}</span>` : ''}
-        <div class="play-icon"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
-      </div>
+      <div class="play-icon"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
     </div>
     ${podeSetlist ? `<button class="del-btn del-song-btn" title="Remover do setlist">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
@@ -6236,7 +6313,7 @@ function _aguardarSetlistEReRenderizar() {
 
 function _iniciarSono() {
   const nome = localStorage.getItem('cifrei_username') || 'Equipe';
-  const h = new Date().getHours();
+  const h = _brtNow().getHours();
   let saud, periodo;
   if (h >= 5 && h < 12)      { saud = 'Bom dia';    periodo = 'dia'; }
   else if (h >= 12 && h < 18){ saud = 'Boa tarde';  periodo = 'tarde'; }
@@ -7535,7 +7612,7 @@ async function salvarNomePerfil() {
   // Não deleta doc antigo — admin controla os cadastros
   const welcomeEl = document.getElementById('splash-welcome');
   if (welcomeEl && welcomeEl.style.display !== 'none') {
-    const hora = new Date().getHours();
+    const hora = _brtNow().getHours();
     const saud = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
     welcomeEl.textContent = `${saud}, ${novoNome}! \u{1F44B}`;
   }
