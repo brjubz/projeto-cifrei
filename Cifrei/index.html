@@ -349,10 +349,10 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-strophe-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .14s;position:relative;}
 .lctrl-strophe-card:hover{background:rgba(192,132,252,.07);border-color:rgba(192,132,252,.22);}
 .lctrl-strophe-card.active{background:rgba(192,132,252,.13);border-color:rgba(192,132,252,.45);box-shadow:0 0 12px rgba(192,132,252,.1);}
-.lctrl-strophe-section{font-size:8px;font-weight:800;letter-spacing:.8px;color:rgba(192,132,252,.6);text-transform:uppercase;margin-bottom:4px;}
+.lctrl-strophe-section{font-size:8px;font-weight:800;letter-spacing:.8px;color:rgba(192,132,252,.75);text-transform:uppercase;margin-bottom:4px;}
 .lctrl-strophe-card.active .lctrl-strophe-section{color:#c084fc;}
-.lctrl-strophe-preview{font-size:11px;color:var(--faint);line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
-.lctrl-strophe-card.active .lctrl-strophe-preview{color:#d4d4e0;}
+.lctrl-strophe-preview{font-size:11px;color:rgba(210,210,230,.72);line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.lctrl-strophe-card.active .lctrl-strophe-preview{color:#e8e8f4;}
 .lctrl-strophe-dot{position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:#c084fc;box-shadow:0 0 5px rgba(192,132,252,.5);display:none;}
 .lctrl-strophe-card.active .lctrl-strophe-dot{display:block;}
 /* Nav */
@@ -10241,9 +10241,12 @@ function abrirTransmitirLetras() {
   const overlay = document.getElementById('lctrl-overlay');
   if (!overlay) return;
   overlay.classList.add('open');
-  if (!_LT.channel) {
-    _LT.channel = new BroadcastChannel('cifrei-lyrics');
-    _LT.channel.onmessage = (e) => { if (e.data?.type === 'ready' && _LT.stropheIdx >= 0) _ltProjetar(_LT.stropheIdx); };
+  // Escuta mensagens do popup (ready, etc.)
+  if (!_LT._msgListener) {
+    _LT._msgListener = (e) => {
+      if (e.data?.type === 'ready' && _LT.stropheIdx >= 0) _ltProjetar(_LT.stropheIdx);
+    };
+    window.addEventListener('message', _LT._msgListener);
   }
   // Keyboard nav
   if (!overlay._keyHandler) {
@@ -10283,6 +10286,8 @@ function fecharTransmitirLetras() {
   const overlay = document.getElementById('lctrl-overlay');
   overlay?.classList.remove('open');
   if (overlay?._keyHandler) document.removeEventListener('keydown', overlay._keyHandler);
+  // Tela preta na janela de projeção ao fechar
+  if (_LT.win && !_LT.win.closed) _LT.win.postMessage({ type: 'blank' }, '*');
 }
 
 function _ltRenderSongs() {
@@ -10349,7 +10354,10 @@ function _ltProjetar(idx) {
   document.querySelector('.lctrl-strophe-card.active')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   _ltAtualizarPreview();
   _ltAtualizarNav();
-  if (_LT.channel) _LT.channel.postMessage({ type: 'show', text: strophe.text, label: strophe.label, song: S.songs[_LT.songIdx]?.title || '' });
+  // Envia para a janela de projeção via postMessage (mais confiável que BroadcastChannel em PWA)
+  if (_LT.win && !_LT.win.closed) {
+    _LT.win.postMessage({ type: 'show', text: strophe.text, label: strophe.label, song: S.songs[_LT.songIdx]?.title || '' }, '*');
+  }
   const badge = document.getElementById('lctrl-live-badge');
   if (badge) { badge.classList.add('on'); badge.innerHTML = '<span class="ldot"></span>AO VIVO'; }
 }
@@ -10376,15 +10384,15 @@ function _ltNavNext() { if (_LT.stropheIdx < _LT.strophes.length - 1 && _LT.stro
 function _ltToggleBlank() {
   _LT.blank = !_LT.blank;
   document.getElementById('lctrl-blank-btn')?.classList.toggle('on', _LT.blank);
-  if (_LT.channel) {
-    if (_LT.blank) _LT.channel.postMessage({ type: 'blank' });
+  if (_LT.win && !_LT.win.closed) {
+    if (_LT.blank) _LT.win.postMessage({ type: 'blank' }, '*');
     else if (_LT.stropheIdx >= 0) _ltProjetar(_LT.stropheIdx);
   }
 }
 
 function _ltAbrirJanela() {
   if (_LT.win && !_LT.win.closed) { _LT.win.focus(); return; }
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cifrei – Projeção</title><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;background:#000;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;}body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 80px;}#song-label{position:fixed;top:22px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:3px;text-transform:uppercase;transition:opacity .35s;white-space:nowrap;}#section-label{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:rgba(255,255,255,.22);letter-spacing:2px;text-transform:uppercase;transition:opacity .35s;white-space:nowrap;}#lyric{font-size:clamp(26px,4.8vw,72px);font-weight:600;text-align:center;line-height:1.72;color:#fff;white-space:pre-line;transition:opacity .22s,transform .22s;text-shadow:0 2px 24px rgba(0,0,0,.7);}#lyric.out{opacity:0;transform:translateY(10px);}#blank{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .28s;}#blank.on{opacity:1;}#idle{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:rgba(255,255,255,.12);letter-spacing:4px;text-transform:uppercase;}</style></head><body><div id="idle">AGUARDANDO</div><div id="song-label" style="opacity:0"></div><div id="lyric"></div><div id="section-label" style="opacity:0"></div><div id="blank"></div><script>const ch=new BroadcastChannel('cifrei-lyrics');const L=document.getElementById('lyric');const SN=document.getElementById('song-label');const SL=document.getElementById('section-label');const BL=document.getElementById('blank');const ID=document.getElementById('idle');function show(text,song,label){ID.style.display='none';BL.classList.remove('on');L.classList.add('out');setTimeout(()=>{L.textContent=text;SN.textContent=song||'';SN.style.opacity=song?'1':'0';SL.textContent=label||'';SL.style.opacity=label?'1':'0';L.classList.remove('out');},210);}ch.onmessage=(e)=>{const{type,text,label,song}=e.data;if(type==='show')show(text,song,label);else if(type==='blank')BL.classList.add('on');};document.addEventListener('keydown',(e)=>{if(e.key==='Escape'||e.key==='b'||e.key==='B'){BL.classList.toggle('on');}});ch.postMessage({type:'ready'});<\/script></body></html>`;
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Cifrei – Projeção</title><style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}html,body{width:100%;height:100%;background:#000;color:#fff;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;}body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 80px;}#song-label{position:fixed;top:22px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:700;color:rgba(255,255,255,.28);letter-spacing:3px;text-transform:uppercase;transition:opacity .35s;white-space:nowrap;}#section-label{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:rgba(255,255,255,.22);letter-spacing:2px;text-transform:uppercase;transition:opacity .35s;white-space:nowrap;}#lyric{font-size:clamp(26px,4.8vw,72px);font-weight:600;text-align:center;line-height:1.72;color:#fff;white-space:pre-line;transition:opacity .22s,transform .22s;text-shadow:0 2px 24px rgba(0,0,0,.7);}#lyric.out{opacity:0;transform:translateY(10px);}#blank{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .28s;}#blank.on{opacity:1;}#idle{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:rgba(255,255,255,.12);letter-spacing:4px;text-transform:uppercase;}</style></head><body><div id="idle">AGUARDANDO</div><div id="song-label" style="opacity:0"></div><div id="lyric"></div><div id="section-label" style="opacity:0"></div><div id="blank"></div><script>const L=document.getElementById('lyric');const SN=document.getElementById('song-label');const SL=document.getElementById('section-label');const BL=document.getElementById('blank');const ID=document.getElementById('idle');function show(text,song,label){ID.style.display='none';BL.classList.remove('on');L.classList.add('out');setTimeout(()=>{L.textContent=text;SN.textContent=song||'';SN.style.opacity=song?'1':'0';SL.textContent=label||'';SL.style.opacity=label?'1':'0';L.classList.remove('out');},210);}window.addEventListener('message',(e)=>{const{type,text,label,song}=e.data||{};if(type==='show')show(text,song,label);else if(type==='blank')BL.classList.add('on');else if(type==='unblank')BL.classList.remove('on');});document.addEventListener('keydown',(e)=>{if(e.key==='b'||e.key==='B'){BL.classList.toggle('on');}});if(window.opener)window.opener.postMessage({type:'ready'},'*');<\/script></body></html>`;
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   _LT.win = window.open(url, 'cifrei-projection', 'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no,scrollbars=no');
