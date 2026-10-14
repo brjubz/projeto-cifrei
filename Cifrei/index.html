@@ -349,11 +349,12 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 /* ── OVERLAY GLASSMORPHISM ───────────────────────── */
 /* Dois cards assimétricos: prévia (1/3) + projetando (2/3) */
 .lctrl-preview-cards{display:grid;grid-template-columns:1fr 2fr;gap:14px;flex-shrink:0;margin-bottom:10px;}
-.lctrl-pcard{border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(10,22,16,.55);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);padding:12px 16px 12px;position:relative;display:flex;flex-direction:column;transition:border-color .3s,box-shadow .3s;min-height:170px;}
+.lctrl-pcard{border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(10,22,16,.55);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);padding:12px 16px 12px;position:relative;display:flex;flex-direction:column;transition:border-color .3s,box-shadow .3s;height:190px;overflow:hidden;}
 .lctrl-pcard-label{font-size:8px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;flex-shrink:0;margin-bottom:8px;color:rgba(150,170,160,.38);transition:color .25s;display:flex;align-items:center;gap:6px;}
 .lctrl-pcard-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5;flex-shrink:0;}
-.lctrl-pcard-text{font-size:14px;font-weight:600;line-height:1.68;white-space:pre-line;overflow-y:auto;flex:1;color:rgba(200,215,208,.38);transition:color .25s;scrollbar-width:none;}
-.lctrl-pcard-text::-webkit-scrollbar{display:none;}
+.lctrl-pcard-text{font-size:14px;font-weight:600;line-height:1.68;white-space:pre-line;overflow-y:auto;flex:1;min-height:0;color:rgba(200,215,208,.38);transition:color .25s;scrollbar-width:thin;scrollbar-color:rgba(52,211,153,.2) transparent;}
+.lctrl-pcard-text::-webkit-scrollbar{width:3px;}
+.lctrl-pcard-text::-webkit-scrollbar-thumb{background:rgba(52,211,153,.2);border-radius:99px;}
 .lctrl-pcard-idle{font-style:italic;color:rgba(150,170,160,.25);font-size:12px;}
 /* Card PRÉVIA — âmbar */
 .lctrl-pcard.lctrl-pcard-preview.has-content{border-color:rgba(251,191,36,.25);background:rgba(20,15,4,.6);}
