@@ -291,6 +291,7 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .play-icon svg{width:11px;height:11px;color:#000;}
 @media(min-width:480px){.song-item:hover .play-icon{display:flex;}}
 .del-btn{padding:14px;background:none;border:none;cursor:pointer;color:var(--faint);transition:background .15s,color .15s,transform .15s;display:flex;}
+.song-added-by{font-family:var(--font-chord);font-size:10px;font-weight:700;color:var(--muted);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:99px;padding:3px 9px;white-space:nowrap;flex-shrink:0;max-width:90px;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px;}
 @keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
 /* ── DECK DE ESCALAS (swipe) ─────────────────────────────────────── */
 @keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
@@ -3450,13 +3451,16 @@ function parseSongs(raw){
     let tp = 0;
     const tpMatch = body.match(/^\[tp:(-?\d+)\]\n?/);
     if (tpMatch) { tp = parseInt(tpMatch[1]); body = body.replace(/^\[tp:-?\d+\]\n?/, ''); }
+    let addedBy = '';
+    const addedByMatch = body.match(/^\[addedBy:(.*?)\]\n?/m);
+    if (addedByMatch) { addedBy = addedByMatch[1].trim(); body = body.replace(/\[addedBy:[^\]]*\]\n?/g, '').trim(); }
     let letra = '';
     const letraMatch = body.match(/\[LETRA\]([\s\S]*?)\[\/LETRA\]/);
     if (letraMatch) { letra = letraMatch[1].trim(); body = body.replace(/\n*\[LETRA\][\s\S]*?\[\/LETRA\]/, '').trim(); }
     const verified=/\(verificado\)/i.test(title);
     const cleanTitle=title.replace(/\s*\(verificado\)/i,'').trim();
     const key=firstChord(body);
-    res.push({title:cleanTitle,verified,key:key!=='N/A'?key:'-',content:body,letra,tp,artist,linkYT,linkSP});
+    res.push({title:cleanTitle,verified,key:key!=='N/A'?key:'-',content:body,letra,tp,artist,linkYT,linkSP,addedBy});
   }
   return res;
 }
@@ -4265,8 +4269,9 @@ async function _publicarMudancaSetlist() {
       if (orig?.letra) letra = orig.letra;
     }
 
+    const addedByTag = s.addedBy ? `[addedBy:${s.addedBy}]\n` : '';
     const letraBlock = letra?.trim() ? `\n[LETRA]\n${letra.trim()}\n[/LETRA]` : '';
-    return `${title}\n${tpTag}${content}${letraBlock}\n\n--END--`;
+    return `${title}\n${tpTag}${addedByTag}${content}${letraBlock}\n\n--END--`;
   }).join('\n');
 
   // SEMPRE persiste localmente PRIMEIRO — garante que F5 reflita a mudança mesmo se Firebase falhar
@@ -4319,7 +4324,8 @@ async function adicionarAoSetlist(title){
     if (!song.content) song.content = '(cifra pendente)';
   }
 
-  S.songs.push({...song});
+  const _quemAdicionou = (localStorage.getItem('cifrei_username') || '').trim();
+  S.songs.push({...song, addedBy: _quemAdicionou || undefined});
   renderList();
   document.getElementById('nav-cnt').textContent=S.songs.length;
   renderBanco(S.bancoFiltrado);
@@ -4370,7 +4376,8 @@ function addPreviewToSetlist() {
   if(!S.preview) return;
   const jaNoSetlist = S.songs.some(s => s.title === S.preview.title);
   if (jaNoSetlist) { showToast('Já está no setlist!'); return; }
-  S.songs.push({...S.preview});
+  const _quemAdicionou = (localStorage.getItem('cifrei_username') || '').trim();
+  S.songs.push({...S.preview, addedBy: _quemAdicionou || undefined});
   renderList();
   document.getElementById('nav-cnt').textContent = S.songs.length;
   renderBanco(S.bancoFiltrado);
@@ -4981,7 +4988,10 @@ function buildSongItem(s, globalIdx) {
           </div>
         </div>
       </div>
-      <div class="play-icon"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        ${s.addedBy ? `<span class="song-added-by" title="Adicionado por ${esc(s.addedBy)}">${esc(s.addedBy)}</span>` : ''}
+        <div class="play-icon"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>
+      </div>
     </div>
     ${podeSetlist ? `<button class="del-btn del-song-btn" title="Remover do setlist">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
