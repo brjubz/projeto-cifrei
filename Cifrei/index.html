@@ -3389,31 +3389,10 @@ function _atualizarWelcomeCard() {
   const chipsEl = document.getElementById('hw-chips');
   if (chipsEl) {
     const chips = [];
-    // Verifica se o usuário está escalado proximamente
-    const _meuNomeChip = (localStorage.getItem('cifrei_username') || '').toLowerCase().trim();
-    let chipEscaladoAdicionado = false;
-    if (_escalasCache?.length && _meuNomeChip) {
-      const hojeStr = new Date().toISOString().slice(0, 10);
-      const minhasEscalas = _escalasCache
-        .filter(e => (e.data || '') >= hojeStr && (e.funcoes || []).some(f => (f.nome || '').toLowerCase().trim() === _meuNomeChip))
-        .sort((a, b) => a.data.localeCompare(b.data));
-      if (minhasEscalas.length) {
-        const [y, m, d] = minhasEscalas[0].data.split('-').map(Number);
-        const dataProx = new Date(y, m - 1, d);
-        const hoje0 = new Date(); hoje0.setHours(0, 0, 0, 0);
-        const diffDias = Math.round((dataProx - hoje0) / 86400000);
-        if (diffDias === 0) chips.push('🎸 Escalado(a) hoje!');
-        else if (diffDias === 1) chips.push('🎸 Escalado(a) amanhã');
-        else chips.push(`🎸 Escalado(a) em ${diffDias} dias`);
-        chipEscaladoAdicionado = true;
-      }
-    }
-    if (!chipEscaladoAdicionado) {
-      const diasParaDom = dow === 0 ? 0 : 7 - dow;
-      if (dow === 0) chips.push('📅 É domingo!');
-      else if (diasParaDom === 1) chips.push('📅 Domingo amanhã');
-      else chips.push(`📅 Dom em ${diasParaDom} dias`);
-    }
+    const diasParaDom = dow === 0 ? 0 : 7 - dow;
+    if (dow === 0) chips.push('📅 É domingo!');
+    else if (diasParaDom === 1) chips.push('📅 Domingo amanhã');
+    else chips.push(`📅 Dom em ${diasParaDom} dias`);
 
     const ultimoLogin = parseInt(localStorage.getItem('cifrei_last_login') || '0');
     const diasSemLogin = ultimoLogin ? Math.floor((Date.now() - ultimoLogin) / 86400000) : 0;
