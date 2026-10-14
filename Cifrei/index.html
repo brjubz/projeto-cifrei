@@ -3141,7 +3141,7 @@ function _bootCifrei() {
   if (savedName && sessaoValida) {
     _atualizarWelcomeCard();
     _fbInitPromise = initFirebase();
-    _fbInitPromise.then(() => { _carregarHomeAviso(); _carregarEscalas().then(() => _atualizarWelcomeCard()); });
+    _fbInitPromise.then(() => _carregarHomeAviso());
   } else {
     const modal = document.getElementById('modal-boas-vindas');
     if (modal) modal.style.display = 'flex';
