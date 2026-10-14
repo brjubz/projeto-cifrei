@@ -11542,14 +11542,14 @@ function _ltBibliaOpenVerso(bookNum, chapNum, verseNum) {
 async function _ltBibliaFetchCap(bookNum, chapter) {
   const key = bookNum + ':' + chapter;
   if (_BIBLE_CACHE.has(key)) return _BIBLE_CACHE.get(key);
-  const r = await fetch('https://api.getbible.net/v2/almeida/' + bookNum + '/' + chapter + '.json');
+  const r = await fetch('https://bolls.life/get-chapter/ARA/' + bookNum + '/' + chapter + '/');
   if (!r.ok) throw new Error('HTTP ' + r.status);
   const data = await r.json();
-  const verses = data && data.verses
-    ? Object.entries(data.verses)
-        .filter(([k]) => parseInt(k) >= 1)
-        .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
-        .map(([k, v]) => ({ v: parseInt(k), t: (v.text || '').replace(/<[^>]*>/g, '').trim() }))
+  const verses = Array.isArray(data)
+    ? data
+        .filter(v => v.verse >= 1)
+        .sort((a, b) => a.verse - b.verse)
+        .map(v => ({ v: v.verse, t: (v.text || '').replace(/<[^>]*>/g, '').trim() }))
     : [];
   _BIBLE_CACHE.set(key, verses);
   return verses;
