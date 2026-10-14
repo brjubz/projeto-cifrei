@@ -345,37 +345,45 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-song-noletras{font-size:11px;color:var(--faint);font-style:italic;padding:12px 16px;}
 /* Main area */
 .lctrl-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:16px 22px 14px;}
-/* Preview box */
-.lctrl-preview-wrap{flex-shrink:0;background:linear-gradient(135deg,rgba(8,20,12,.95),rgba(6,16,10,.95));border:1px solid rgba(52,211,153,.1);border-radius:14px;padding:16px 22px 14px;min-height:100px;position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:12px;transition:border-color .2s;}
-.lctrl-preview-wrap::before{content:attr(data-label);position:absolute;top:10px;left:16px;font-size:8px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.45);text-transform:uppercase;}
-.lctrl-preview-wrap.previewing{border-color:rgba(251,191,36,.22);}
-.lctrl-preview-wrap.previewing::before{color:rgba(251,191,36,.6);}
-.lctrl-preview-wrap.projecting{border-color:rgba(52,211,153,.32);box-shadow:0 0 20px rgba(52,211,153,.05);}
-.lctrl-preview-wrap.projecting::before{color:rgba(52,211,153,.7);}
-#lctrl-preview-text{font-size:15px;font-weight:600;color:#e5f0ea;text-align:center;line-height:1.72;white-space:pre-line;padding-top:10px;width:100%;transition:color .2s;}
-.lctrl-preview-wrap.previewing #lctrl-preview-text{color:#fde68a;}
-.lctrl-preview-idle{font-size:13px;color:var(--faint);font-style:italic;}
-/* Hint under preview */
-.lctrl-preview-hint{text-align:center;font-size:10px;color:rgba(52,211,153,.35);margin-bottom:10px;flex-shrink:0;font-weight:600;letter-spacing:.3px;}
+/* Dois cards de preview lado a lado */
+.lctrl-preview-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex-shrink:0;margin-bottom:10px;}
+.lctrl-pcard{height:136px;border-radius:13px;border:1px solid rgba(255,255,255,.07);background:rgba(8,20,12,.8);padding:9px 14px 10px;position:relative;display:flex;flex-direction:column;transition:border-color .25s,box-shadow .25s;}
+.lctrl-pcard-label{font-size:8px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;margin-bottom:7px;color:rgba(150,170,160,.4);transition:color .2s;}
+.lctrl-pcard-text{font-size:13px;font-weight:600;line-height:1.62;white-space:pre-line;overflow-y:auto;flex:1;color:rgba(200,215,208,.45);transition:color .2s;scrollbar-width:none;}
+.lctrl-pcard-text::-webkit-scrollbar{display:none;}
+.lctrl-pcard-idle{font-style:italic;color:rgba(150,170,160,.3);font-size:12px;}
+/* Card PRÉVIA — âmbar quando ativo */
+.lctrl-pcard.lctrl-pcard-preview.has-content{border-color:rgba(251,191,36,.22);}
+.lctrl-pcard.lctrl-pcard-preview.has-content .lctrl-pcard-label{color:rgba(251,191,36,.65);}
+.lctrl-pcard.lctrl-pcard-preview.has-content .lctrl-pcard-text{color:#fde68a;}
+/* Card PROJETANDO — verde quando ativo */
+.lctrl-pcard.lctrl-pcard-projecting.has-content{border-color:rgba(52,211,153,.3);box-shadow:0 0 18px rgba(52,211,153,.07);}
+.lctrl-pcard.lctrl-pcard-projecting.has-content .lctrl-pcard-label{color:rgba(52,211,153,.75);}
+.lctrl-pcard.lctrl-pcard-projecting.has-content .lctrl-pcard-text{color:#cdf0e0;}
+/* Hint */
+.lctrl-preview-hint{text-align:center;font-size:10px;color:rgba(52,211,153,.3);margin-bottom:10px;flex-shrink:0;font-weight:600;letter-spacing:.3px;}
 /* Strophes grid */
 .lctrl-strophes-label{font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.4);text-transform:uppercase;margin-bottom:8px;flex-shrink:0;}
 .lctrl-strophes-scroll{flex:1;overflow-y:auto;min-height:0;}
-.lctrl-strophes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:7px;}
-.lctrl-strophe-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .14s;position:relative;user-select:none;}
+.lctrl-strophes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:7px;align-items:start;}
+.lctrl-strophe-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px 11px;cursor:pointer;transition:all .14s;position:relative;user-select:none;height:108px;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;}
+.lctrl-strophe-card::-webkit-scrollbar{display:none;}
 .lctrl-strophe-card:hover{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.2);}
 /* preview = 1 click */
 .lctrl-strophe-card.preview{background:rgba(251,191,36,.07);border-color:rgba(251,191,36,.28);}
 .lctrl-strophe-card.preview .lctrl-strophe-dot{background:#fbbf24;box-shadow:0 0 5px rgba(251,191,36,.5);}
 /* active = projetando (2 clicks) */
 .lctrl-strophe-card.active{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.42);box-shadow:0 0 12px rgba(52,211,153,.08);}
-.lctrl-strophe-section{font-size:8px;font-weight:800;letter-spacing:.8px;color:rgba(52,211,153,.6);text-transform:uppercase;margin-bottom:4px;}
+.lctrl-strophe-section{font-size:8px;font-weight:800;letter-spacing:.8px;color:rgba(52,211,153,.6);text-transform:uppercase;margin-bottom:5px;flex-shrink:0;}
 .lctrl-strophe-card.preview .lctrl-strophe-section{color:#fbbf24;}
 .lctrl-strophe-card.active .lctrl-strophe-section{color:#34d399;}
-.lctrl-strophe-preview{font-size:11px;color:rgba(210,225,215,.68);line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.lctrl-strophe-preview{font-size:11px;color:rgba(210,225,215,.72);line-height:1.47;white-space:pre-line;flex:1;overflow-y:auto;scrollbar-width:none;}
+.lctrl-strophe-preview::-webkit-scrollbar{display:none;}
 .lctrl-strophe-card.preview .lctrl-strophe-preview{color:#fde68a;}
 .lctrl-strophe-card.active .lctrl-strophe-preview{color:#d4eedd;}
 .lctrl-strophe-dot{position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 5px rgba(52,211,153,.5);display:none;}
 .lctrl-strophe-card.preview .lctrl-strophe-dot,.lctrl-strophe-card.active .lctrl-strophe-dot{display:block;}
+.lctrl-preview-idle{font-size:12px;color:var(--faint);font-style:italic;}
 /* Nav */
 .lctrl-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;flex-shrink:0;border-top:1px solid rgba(52,211,153,.07);margin-top:8px;}
 .lctrl-nav-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:8px 18px;cursor:pointer;color:#c8d8cc;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all .14s;}
@@ -10427,23 +10435,19 @@ function _ltProjetar(idx) {
 }
 
 function _ltAtualizarBox() {
-  const el = document.getElementById('lctrl-preview-text');
-  const wrap = document.getElementById('lctrl-preview-wrap');
-  if (!el) return;
-  const isProjecting = _LT.stropheIdx >= 0 && _LT.previewIdx === _LT.stropheIdx;
-  const isPreviewing = _LT.previewIdx >= 0 && !isProjecting;
-  const showIdx = _LT.previewIdx >= 0 ? _LT.previewIdx : _LT.stropheIdx;
-  const s = _LT.strophes[showIdx];
-  if (s) {
-    el.innerHTML = _ltEsc(s.text).replace(/\n/g,'<br>');
-  } else {
-    el.innerHTML = '<span class="lctrl-preview-idle">Selecione uma estrofe</span>';
-  }
-  if (wrap) {
-    wrap.classList.toggle('projecting', isProjecting);
-    wrap.classList.toggle('previewing', isPreviewing);
-    wrap.dataset.label = isProjecting ? 'PROJETANDO AGORA' : (isPreviewing ? 'PRÉVIA' : 'PROJEÇÃO');
-  }
+  const previewEl = document.getElementById('lctrl-preview-text');
+  const projectEl = document.getElementById('lctrl-projecting-text');
+  const previewCard = document.getElementById('lctrl-pcard-preview');
+  const projectCard = document.getElementById('lctrl-pcard-projecting');
+  const idle = '<span class="lctrl-pcard-idle">—</span>';
+  // Card de prévia
+  const sp = _LT.strophes[_LT.previewIdx];
+  if (previewEl) previewEl.innerHTML = sp ? _ltEsc(sp.text).replace(/\n/g,'<br>') : idle;
+  previewCard?.classList.toggle('has-content', !!sp);
+  // Card de projetando
+  const ss = _LT.strophes[_LT.stropheIdx];
+  if (projectEl) projectEl.innerHTML = ss ? _ltEsc(ss.text).replace(/\n/g,'<br>') : idle;
+  projectCard?.classList.toggle('has-content', !!ss);
 }
 
 function _ltAtualizarNav() {
@@ -10543,8 +10547,15 @@ function _ltAbrirJanela() {
       <div id="lctrl-songs-list"></div>
     </div>
     <div class="lctrl-main">
-      <div class="lctrl-preview-wrap" id="lctrl-preview-wrap" data-label="PROJEÇÃO">
-        <div id="lctrl-preview-text"><span class="lctrl-preview-idle">Selecione uma estrofe</span></div>
+      <div class="lctrl-preview-cards">
+        <div class="lctrl-pcard lctrl-pcard-preview" id="lctrl-pcard-preview">
+          <div class="lctrl-pcard-label">Prévia</div>
+          <div class="lctrl-pcard-text" id="lctrl-preview-text"><span class="lctrl-pcard-idle">—</span></div>
+        </div>
+        <div class="lctrl-pcard lctrl-pcard-projecting" id="lctrl-pcard-projecting">
+          <div class="lctrl-pcard-label">Projetando agora</div>
+          <div class="lctrl-pcard-text" id="lctrl-projecting-text"><span class="lctrl-pcard-idle">—</span></div>
+        </div>
       </div>
       <div class="lctrl-preview-hint">1× clique = prévia &nbsp;•&nbsp; 2× clique = projetar no data show</div>
       <div class="lctrl-strophes-label">Estrofes</div>
