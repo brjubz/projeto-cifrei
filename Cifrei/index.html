@@ -3141,7 +3141,7 @@ function _bootCifrei() {
   if (savedName && sessaoValida) {
     _atualizarWelcomeCard();
     _fbInitPromise = initFirebase();
-    _fbInitPromise.then(() => _carregarHomeAviso());
+    _fbInitPromise.then(() => { _carregarHomeAviso(); _carregarEscalas().then(() => _atualizarWelcomeCard()); });
   } else {
     const modal = document.getElementById('modal-boas-vindas');
     if (modal) modal.style.display = 'flex';
@@ -3374,7 +3374,7 @@ function _atualizarWelcomeCard() {
   // Badge de instrumento
   const badgeEl = document.getElementById('hw-instr-badge');
   if (badgeEl && instr) {
-    const instrMap = {'violão':'🎸 Violonista','guitarra':'🎸 Guitarrista','baixo':'🎸 Baixista','bateria':'🥁 Baterista','teclado':'🎹 Tecladista','piano':'🎹 Pianista','voz':'🎤 Vocalista','vocal':'🎤 Vocalista','canto':'🎤 Vocalista','trompete':'🎺 Trompetista','trombeta':'🎺 Trombetista'};
+    const instrMap = {'violão':'🎸 Violonista','guitarra':'🎸 Guitarrista','baixo':'🎸 Baixista','bateria':'🥁 Baterista','teclado':'🎹 Tecladista','piano':'🎹 Pianista','voz':'🎤 Vocalista','vocal':'🎤 Vocalista','canto':'🎤 Vocalista','trompete':'🎺 Trompetista','trombeta':'🎺 Trombetista','ministra':'🎙️ Ministração','ministração':'🎙️ Ministração'};
     const key = Object.keys(instrMap).find(k => instr.toLowerCase().includes(k));
     if (key) { badgeEl.textContent = instrMap[key]; badgeEl.style.display = 'block'; }
     else { badgeEl.textContent = '🎵 ' + instr; badgeEl.style.display = 'block'; }
@@ -3389,10 +3389,31 @@ function _atualizarWelcomeCard() {
   const chipsEl = document.getElementById('hw-chips');
   if (chipsEl) {
     const chips = [];
-    const diasParaDom = dow === 0 ? 0 : 7 - dow;
-    if (dow === 0) chips.push('📅 É domingo!');
-    else if (diasParaDom === 1) chips.push('📅 Domingo amanhã');
-    else chips.push(`📅 Dom em ${diasParaDom} dias`);
+    // Verifica se o usuário está escalado proximamente
+    const _meuNomeChip = (localStorage.getItem('cifrei_username') || '').toLowerCase().trim();
+    let chipEscaladoAdicionado = false;
+    if (_escalasCache?.length && _meuNomeChip) {
+      const hojeStr = new Date().toISOString().slice(0, 10);
+      const minhasEscalas = _escalasCache
+        .filter(e => (e.data || '') >= hojeStr && (e.funcoes || []).some(f => (f.nome || '').toLowerCase().trim() === _meuNomeChip))
+        .sort((a, b) => a.data.localeCompare(b.data));
+      if (minhasEscalas.length) {
+        const [y, m, d] = minhasEscalas[0].data.split('-').map(Number);
+        const dataProx = new Date(y, m - 1, d);
+        const hoje0 = new Date(); hoje0.setHours(0, 0, 0, 0);
+        const diffDias = Math.round((dataProx - hoje0) / 86400000);
+        if (diffDias === 0) chips.push('🎸 Escalado(a) hoje!');
+        else if (diffDias === 1) chips.push('🎸 Escalado(a) amanhã');
+        else chips.push(`🎸 Escalado(a) em ${diffDias} dias`);
+        chipEscaladoAdicionado = true;
+      }
+    }
+    if (!chipEscaladoAdicionado) {
+      const diasParaDom = dow === 0 ? 0 : 7 - dow;
+      if (dow === 0) chips.push('📅 É domingo!');
+      else if (diasParaDom === 1) chips.push('📅 Domingo amanhã');
+      else chips.push(`📅 Dom em ${diasParaDom} dias`);
+    }
 
     const ultimoLogin = parseInt(localStorage.getItem('cifrei_last_login') || '0');
     const diasSemLogin = ultimoLogin ? Math.floor((Date.now() - ultimoLogin) / 86400000) : 0;
@@ -6887,7 +6908,7 @@ function _renderChamadosSono(chamados) {
             <div style="font-size:16px;font-weight:800;color:#fff;line-height:1.2;">${esc(c.texto)}</div>
             <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;">por <strong>${esc(c.remetente)}</strong> · ${_formatarHoraChamado(c.ts)}</div>
           </div>
-          <button class="sono-chamado-ok" onclick=\"_callWhenReady('atenderChamado',[${c.id}])\">OK ✓</button>
+          <button class="sono-chamado-ok" onclick=\"_callWhenReady('atenderChamado',['${c.id}'])\">OK ✓</button>
         </div>`)
       .join('')
     : `<div style="text-align:center;padding:28px 0;">
@@ -6969,7 +6990,7 @@ async function abrirPopupChamados() {
   if (cnt) cnt.textContent = '100';
   const config = await getChamadosConfig();
   lista.innerHTML = config.map(c => `
-    <button onclick=\"_callWhenReady('enviarChamado',[${c.id}])\"
+    <button onclick=\"_callWhenReady('enviarChamado',['${c.id}'])\"
       style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px 12px;background:${c.cor}18;border:1.5px solid ${c.cor}40;border-radius:16px;cursor:pointer;text-align:center;width:100%;transition:background .15s,transform .12s,border-color .15s;"
       onmouseenter="this.style.background='${c.cor}35';this.style.transform='scale(1.03)'"
       onmouseleave="this.style.background='${c.cor}18';this.style.transform='scale(1)'">
@@ -8383,12 +8404,15 @@ async function _renderEscalaSono() {
     return;
   }
   const funcoes = proxima.funcoes || [];
+  const meuNomeSono = (localStorage.getItem('cifrei_username') || '').toLowerCase().trim();
   el.innerHTML = `<div style="font-size:11px;color:var(--faint);margin-bottom:10px;">${_formatarDataEscala(proxima.data)}</div>` +
     funcoes.map(f => {
       const ministro = _isMinistro(f.funcao);
       const av = _avatarMiniEscala(f.nome, ministro ? 40 : 32);
       const icone = _iconeEscala(f.funcao);
       const nomeKey = (f.nome || '').toLowerCase().trim();
+      const euMesmo = nomeKey === meuNomeSono;
+      const btnMsg = euMesmo ? '' : `<button onclick="_callWhenReady('abrirModalMsgSono',['${esc(f.nome)}'])" style="background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:4px 8px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;">✉️ msg</button>`;
       if (ministro) {
         return `<div class="sono-member-row" data-nome="${nomeKey}" style="margin-bottom:4px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.18);border-radius:12px;padding:8px 10px;">
           ${av}
@@ -8399,7 +8423,7 @@ async function _renderEscalaSono() {
               <span style="font-size:10px;font-weight:700;color:var(--green);">${esc(f.funcao || '')}</span>
             </div>
           </div>
-          <span class="sono-online-dot" title="Online agora"></span>
+          ${btnMsg}<span class="sono-online-dot" title="Online agora"></span>
         </div>`;
       }
       return `<div class="sono-member-row" data-nome="${nomeKey}">
@@ -8411,7 +8435,7 @@ async function _renderEscalaSono() {
             <span style="font-size:10px;color:var(--faint);">${esc(f.funcao || '')}</span>
           </div>
         </div>
-        <span class="sono-online-dot" title="Online agora"></span>
+        ${btnMsg}<span class="sono-online-dot" title="Online agora"></span>
       </div>`;
     }).join('') + (proxima.obs ? `<div style="margin-top:8px;font-size:11px;color:#fbbf24;">⭐ ${esc(proxima.obs)}</div>` : '');
 }
@@ -8466,7 +8490,7 @@ Object.assign(window, {
   abrirModalAdicionarSetlist, fecharModalAddSetlist, filtrarBancoParaSetlist,
   abrirModalTom, fecharModalTom, ajustarTomSetlist, confirmarTomSetlist, salvarTomAtual,
   toggleModoVocal, atualizarSalaComLetra, abrirEscala,
-  abrirSonoplastia, abrirPopupChamados, fecharPopupChamados, enviarChamado, enviarChamadoPersonalizado, atenderChamado, abrirCifraDaSono, abrirSonoCifra, fecharSonoCifra, copiarLetraSono, _toggleNotifSono,
+  abrirSonoplastia, abrirPopupChamados, fecharPopupChamados, enviarChamado, enviarChamadoPersonalizado, atenderChamado, abrirCifraDaSono, abrirSonoCifra, fecharSonoCifra, copiarLetraSono, _toggleNotifSono, abrirModalMsgSono,
   abrirPainelNotas, fecharPainelNotas, salvarNota, removerNotaPrivada, removerNotaPublica,
   confirmarBoasVindas, voltarTelaInicial, _loginPreviewAvatar, _bancoPaginarPara, _limparErroBV, _loginViaRest,
   S, // expõe estado global para diagnóstico
