@@ -997,7 +997,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
           <h1>Repertório Semanal</h1>
           <p>Gerencie as músicas do próximo domingo</p>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
           <button class="btn btn-secondary btn-sm" onclick="carregarSetlist()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.35"/></svg>
             Atualizar
@@ -1006,6 +1006,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Salvar Repertório
           </button>
+          <span id="setlist-last-saved" style="font-size:11px;color:var(--faint);display:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11" style="vertical-align:middle;margin-right:3px;"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="setlist-last-saved-txt">Salvo</span>
+          </span>
         </div>
       </div>
 
@@ -1993,9 +1997,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
             <input type="checkbox" id="perm-letra" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;">
             <div><div style="font-size:13px;font-weight:700;color:#fff;">Editar letra</div><div style="font-size:11px;color:var(--faint);">Pode alterar a letra</div></div>
           </label>
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--bg3);border-radius:8px;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--bg3);border-radius:8px;border:1px solid rgba(45,214,137,.15);">
             <input type="checkbox" id="perm-setlist" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;">
-            <div><div style="font-size:13px;font-weight:700;color:#fff;">Gerenciar setlist</div><div style="font-size:11px;color:var(--faint);">Adicionar, remover e reordenar</div></div>
+            <div><div style="font-size:13px;font-weight:700;color:#fff;">Gerenciar setlist</div><div style="font-size:11px;color:var(--faint);">Adicionar, remover e reordenar músicas — <strong style="color:var(--green)">desativado por padrão</strong></div></div>
           </label>
         </div>
       </div>
@@ -3778,6 +3782,17 @@ async function salvarSetlist() {
     showToast('Repertório salvo e sincronizado! ✓');
     addAtividade(`Repertório salvo — <strong>${ADM.setlist.length} músicas</strong>`, 'green');
     registrarUltimoSalvo('setlist');
+    // Indicador de último save
+    const savedEl = document.getElementById('setlist-last-saved');
+    const savedTxt = document.getElementById('setlist-last-saved-txt');
+    if (savedEl && savedTxt) {
+      const now = new Date();
+      const pad = n => String(n).padStart(2,'0');
+      savedTxt.textContent = `Salvo às ${pad(now.getHours())}:${pad(now.getMinutes())} — ${ADM.setlist.length} música${ADM.setlist.length !== 1 ? 's' : ''}`;
+      savedEl.style.display = 'inline-flex';
+      savedEl.style.alignItems = 'center';
+      savedEl.style.color = 'var(--green)';
+    }
   } catch (e) {
     showToast('Erro ao salvar: ' + e.message, 'error', 6000);
     addAtividade('Erro ao salvar repertório: ' + e.message, 'red');
