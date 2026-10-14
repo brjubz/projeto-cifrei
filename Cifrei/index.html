@@ -3238,6 +3238,7 @@ function _gerarMensagemHome() {
   const h   = brt.getHours();
   const dow = brt.getDay(); // 0=Dom
   const nome = (localStorage.getItem('cifrei_username') || '').split(' ')[0] || 'Músico';
+  const nomeComp = (localStorage.getItem('cifrei_username') || '').toLowerCase().trim();
   const instr = (localStorage.getItem('cifrei_instrumento') || '').toLowerCase();
   const ultimoLogin = parseInt(localStorage.getItem('cifrei_last_login') || '0');
   const diasSemLogin = ultimoLogin ? Math.floor((Date.now() - ultimoLogin) / 86400000) : 0;
@@ -3252,20 +3253,21 @@ function _gerarMensagemHome() {
   const isKeys   = /teclado|piano/.test(instr);
   const isVoice  = /voz|vocal|canto/.test(instr);
   const isSono   = /sonoplasta|sono/.test(instr);
-  // Detecta se está escalado(a) como ministro(a) na próxima escala
+  const isCifraUser = isGuitar || isBass || isDrums || isKeys;
+
+  // Detecta função na próxima escala usando nome completo
   let isMin = false;
-  if (_escalasCache && _escalasCache.length) {
+  if (_escalasCache && _escalasCache.length && nomeComp) {
     const hojeStr2 = new Date().toISOString().slice(0, 10);
-    const nomeLow2 = nome.toLowerCase().trim();
     const prox2 = _escalasCache.filter(e => (e.data||'') >= hojeStr2).sort((a,b) => (a.data||'').localeCompare(b.data||''))[0];
     if (prox2) {
-      const meFuncao = (prox2.funcoes||[]).find(f => (f.nome||'').toLowerCase().trim() === nomeLow2);
+      const meFuncao = (prox2.funcoes||[]).find(f => (f.nome||'').toLowerCase().trim() === nomeComp);
       if (meFuncao) isMin = /ministra/i.test(meFuncao.funcao || '');
     }
   }
+  // isVocalUser: cantores/vocais E quem ministra (nunca vê frases de cifra)
+  const isVocalUser = isVoice || isMin;
 
-  // Faixas de hora
-  const isMadrugada = h >= 0  && h < 5;
   const isManha     = h >= 5  && h < 12;
   const isTarde     = h >= 12 && h < 18;
   const isNoite     = h >= 18 && h < 22;
@@ -3274,42 +3276,84 @@ function _gerarMensagemHome() {
   let msg;
 
   if (diasSemLogin >= 14) {
-    msg = _pick([
-      `Faz ${diasSemLogin} dias que você sumiu! Tem cifras novas esperando por você.`,
-      `${diasSemLogin} dias longe é tempo demais. O ministério sente quando um membro faz falta.`,
-      `De volta depois de ${diasSemLogin} dias. O setlist estava incompleto sem você.`,
-      `${diasSemLogin} dias longe — que bom te ver de volta ao ministério!`,
+    if (isVocalUser) msg = _pick([
+      `${diasSemLogin} dias longe! O ministério sente quando uma voz faz falta.`,
+      `De volta depois de ${diasSemLogin} dias. Que bom te ver de volta ao louvor!`,
+    ]);
+    else if (isCifraUser) msg = _pick([
+      `Faz ${diasSemLogin} dias que você sumiu! Tem repertório novo esperando por você.`,
+      `De volta depois de ${diasSemLogin} dias. O instrumento estava com saudade.`,
+    ]);
+    else msg = _pick([
+      `Faz ${diasSemLogin} dias que você sumiu! O ministério sente quando um membro faz falta.`,
+      `De volta depois de ${diasSemLogin} dias. Que bom te ver de volta!`,
     ]);
   } else if (dow === 0) {
-    // Domingo — varia por hora
+    // Domingo — pools exclusivos por papel
     if (isManha) {
-      const base = [
+      if (isMin) msg = _pick([
+        'Domingo de manhã. Que o Espírito guie cada palavra da ministração hoje.',
+        'É dia de culto. O Senhor vai à frente — você declara o que Ele já preparou.',
+        'Manhã de domingo. Descanse a voz e confie na unção do Espírito.',
+        'Culto hoje! Que a ministração abra o coração do povo para a Palavra.',
+      ]);
+      else if (isVoice) msg = _pick([
+        'Domingo de manhã. Aquece bem a voz — você é a ponte entre a letra e o coração.',
+        'Dia de culto! Hidratação e fé. A congregação vai seguir sua voz.',
+        'Manhã de domingo. Cada nota cantada é uma oração.',
+        'Culto hoje! Tonalidade conferida com o pastor de louvor?',
+      ]);
+      else if (isGuitar) msg = _pick([
+        'Domingo de manhã. Afinação verificada?',
+        'Dia de culto! Uma última revisão de capo e transposições faz diferença.',
+        'Manhã de domingo. Violão afinado, coração preparado.',
+      ]);
+      else if (isBass) msg = _pick([
+        'O grave ancora todo mundo. Hoje a congregação vai sentir o fundamento.',
+        'Dia de culto! Linha de baixo definida pra cada música?',
+        'Manhã de domingo. O baixo sustenta o louvor — você sustenta o baixo.',
+      ]);
+      else if (isDrums) msg = _pick([
+        'Bateria afinada, kick marcado. Agora é só confiar no ensaio.',
+        'Dia de culto! Dinâmica de domingo difere do ensaio — confia no que foi preparado.',
+        'Manhã de domingo. O tempo começa em você.',
+      ]);
+      else if (isKeys) msg = _pick([
+        'Patches e transposições conferidas? Domingo não tem segunda chance ao vivo.',
+        'Dia de culto! Pad atmosférico ou piano solo — a congregação vai sentir a escolha.',
+        'Manhã de domingo. Das 88 teclas, você vai usar exatamente as certas.',
+      ]);
+      else if (isSono) msg = _pick([
+        'Mesa zerada, ganhos conferidos? O som do culto começa em você.',
+        'Dia de culto! Roteiro de microfones revisado?',
+        'Manhã de domingo. Seu trabalho abre o caminho para o louvor alcançar a congregação.',
+      ]);
+      else msg = _pick([
         'Domingo de manhã. Que o Espírito guie cada nota do culto hoje.',
-        'Culto hoje! Há horas até o início — tempo bom pra uma última revisão.',
-        'Manhã de domingo. O povo vem com expectativa; leve isso consigo no louvor.',
-      ];
-      if (isGuitar) base.push('Afinação antes do culto. Pequenos detalhes fazem diferença na congregação.');
-      if (isDrums)  base.push('Bateria afinada, kick marcado, hi-hat definido. Agora é só confiar.');
-      if (isKeys)   base.push('Patches e transposições conferidas? Domingo não tem segunda chance ao vivo.');
-      if (isVoice)  base.push('Aquece bem a voz e bebe água. Você é a ponte entre a letra e o coração.');
-      if (isBass)   base.push('O grave ancora todo mundo. Hoje a congregação vai sentir o fundamento.');
-      if (isMin)    base.push('Você ministra hoje. Que o Espírito guie cada palavra e cada transição.');
-      if (isSono)   base.push('Mesa zerada, ganhos conferidos? O som do culto começa em você.');
-      msg = _pick(base);
-    } else if (isTarde || isNoite) {
-      const base = [
-        'Culto a caminho! Deus já está trabalhando antes da primeira nota.',
-        'Domingo à tarde — momento de oferecer o louvor ao Senhor com excelência.',
-        'É hora de servir. Que cada música seja uma declaração de fé.',
-      ];
-      if (isGuitar) base.push('Violão afinado, coração alinhado. Vamos!');
-      if (isDrums)  base.push('O ritmo do louvor começa com você. Confia no que foi ensaiado.');
-      if (isVoice)  base.push('A congregação vai seguir sua voz. Lidere com fé.');
-      if (isMin)    base.push('Hora de ministrar. O Senhor vai à frente — você só declara o que Ele já preparou.');
-      if (isSono)   base.push('Sem o som, não há culto. Sua mesa é tão essencial quanto o púlpito.');
-      msg = _pick(base);
+        'Culto hoje! O povo vem com expectativa; leve isso consigo no louvor.',
+        'Manhã de domingo. Servir com música é um privilégio.',
+      ]);
     } else {
-      msg = _pick([
+      if (isMin) msg = _pick([
+        'Hora de ministrar. O Senhor vai à frente.',
+        'É domingo! Que cada transição da ministração seja guiada pelo Espírito.',
+        'Momento do culto. Que a ministração prepare o coração da congregação para a Palavra.',
+      ]);
+      else if (isVoice) msg = _pick([
+        'A congregação vai seguir sua voz. Lidere com fé.',
+        'É domingo! Que cada palavra cantada chegue ao coração da congregação.',
+        'Hora do louvor. Cante como se fosse a última vez.',
+      ]);
+      else if (isCifraUser) msg = _pick([
+        isGuitar ? 'É domingo! Violão afinado, coração alinhado.' : 'É domingo! Hora de servir com o instrumento.',
+        'O ritmo do culto começa com você. Confia no que foi ensaiado.',
+        'É domingo! Que a excelência técnica sirva à adoração.',
+      ]);
+      else if (isSono) msg = _pick([
+        'Sem o som, não há culto. Sua mesa é tão essencial quanto o púlpito.',
+        'É domingo! Monitor nos instrumentos, ganho nos cantores. Vamos!',
+      ]);
+      else msg = _pick([
         'É domingo! Que o louvor de hoje edifique a congregação.',
         'Dia do culto. Servir com música é um privilégio, não uma tarefa.',
         'Domingo chegou. Que a Palavra e o louvor falem ao coração da congregação.',
@@ -3317,78 +3361,223 @@ function _gerarMensagemHome() {
     }
   } else if (diasParaDom <= 2) {
     const prep = diasParaDom === 1 ? 'amanhã' : `em ${diasParaDom} dias`;
-    const base = [
+    if (isMin) msg = _pick([
+      `Você ministra ${prep}. A unção do Espírito supre onde o preparo humano tem limite.`,
+      `Domingo é ${prep}. Já orou pela ministração?`,
+      `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} pro culto. Que a ministração de domingo seja poderosa.`,
+    ]);
+    else if (isVoice) msg = _pick([
+      `Domingo é ${prep}. Letras decoradas e tonalidades certas?`,
+      `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} pro culto. Aquece a voz e passa as entradas difíceis.`,
+      `Domingo é ${prep}. A voz é o instrumento — descanse e hidrate bem.`,
+    ]);
+    else if (isGuitar) msg = _pick([
+      `Domingo é ${prep}. Capo e transposições confirmados?`,
+      `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} pro culto. Repertório revisado?`,
+      `Domingo é ${prep}. Trechos que geralmente travam: revisados?`,
+    ]);
+    else if (isBass) msg = _pick([
+      `Domingo é ${prep}. Linha de baixo definida pra cada música?`,
+      `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} pro culto. O groove tá certo?`,
+    ]);
+    else if (isDrums) msg = _pick([
+      `Domingo é ${prep}. Introduções e viradas marcadas no ensaio?`,
+      `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} pro culto. Abre e fecha de cada música está no sangue?`,
+    ]);
+    else if (isKeys) msg = _pick([
+      `Domingo é ${prep}. Patches e arranjos prontos?`,
+      `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} pro culto. Texturas e transposições conferidas?`,
+    ]);
+    else if (isSono) msg = _pick([
+      `Domingo é ${prep}. Roteiro da mesa de som revisado?`,
+      `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} pro culto. Check de microfones no ensaio?`,
+    ]);
+    else msg = _pick([
       `Domingo é ${prep}! Repertório revisado?`,
       `Falta${diasParaDom > 1 ? 'm' : ''} ${diasParaDom === 1 ? 'um dia' : diasParaDom + ' dias'} para o culto. Hora de confirmar o setlist.`,
-      `${diasParaDom === 1 ? 'Véspera do culto' : `${diasParaDom} dias para o domingo`}. Já sabe todas as músicas de cor?`,
-    ];
-    if (isGuitar) base.push(`Domingo é ${prep}. Capo e transposições confirmados?`);
-    if (isDrums)  base.push(`Domingo é ${prep}. Introduções e viradas marcadas no ensaio?`);
-    if (isKeys)   base.push(`Domingo é ${prep}. Patches e arranjos prontos?`);
-    if (isVoice)  base.push(`Domingo é ${prep}. Letras decoradas e tonalidades certas?`);
-    if (isBass)   base.push(`Domingo é ${prep}. Linha de baixo definida pra cada música?`);
-    if (isMin)    base.push(`Você ministra ${prep}. A unção do Espírito supre onde o preparo humano tem limite.`);
-    if (isSono)   base.push(`Domingo é ${prep}. Roteiro da mesa de som revisado?`);
-    msg = _pick(base);
-  } else if (isMadrugada || (isNoiteTarde && h >= 22)) {
-    const base = [
-      `${h >= 22 ? 'Noite adentro' : 'Madrugada'} estudando o repertório. Isso é dedicação de verdade.`,
+    ]);
+  } else if (isNoiteTarde) {
+    const hora = h >= 22 ? 'Noite adentro' : 'Madrugada';
+    if (isMin) msg = _pick([
+      `${hora} em oração. A intimidade com Deus nessa hora alimenta a ministração.`,
+      'Quem ministra prepara primeiro o coração. Esse silêncio é precioso.',
+    ]);
+    else if (isVoice) msg = _pick([
+      'Voz descansada canta melhor. Não força demais hoje à noite.',
+      `${hora} meditando nas letras. Isso é dedicação de verdade.`,
+      'À essa hora o silêncio favorece — boa pra memorizar as letras do repertório.',
+    ]);
+    else if (isGuitar) msg = _pick([
+      `${hora} com o violão. Clássico do músico de ministério.`,
+      'Dedilhado suave pra não acordar ninguém — mas o preparo é total.',
+      `À essa hora o silêncio favorece — boa pra trabalhar aquela progressão com calma.`,
+    ]);
+    else if (isBass) msg = _pick([
+      `${hora} com o baixo no fone. Dedicação de verdade.`,
+      'Groove noturno. O baixo tá pronto pro culto.',
+    ]);
+    else if (isDrums) msg = _pick([
+      `Baterista ${h >= 22 ? 'tarde da noite' : 'na madrugada'} — fone no ouvido pra não acordar ninguém!`,
+      'Pad ou almofada: boca abaixo, palitinho na mão. O tempo não para.',
+    ]);
+    else if (isKeys) msg = _pick([
+      'Teclado no volume baixo, dedicação no máximo.',
+      `${hora} explorando harmonias. Isso é preparo de nível elevado.`,
+    ]);
+    else msg = _pick([
       'Quando o ministério vira devoção, até a madrugada vira ensaio.',
-      `À essa hora o silêncio favorece — boa hora pra revisar cifras com calma.`,
-    ];
-    if (isGuitar) base.push(`Violonista noturno. Clássico do ministério presbiteriano.`);
-    if (isDrums)  base.push(`Baterista tarde da noite — fone no ouvido pra não acordar ninguém!`);
-    if (isKeys)   base.push('Teclado no volume baixo, dedicação no máximo.');
-    if (isVoice)  base.push('Voz descansada canta melhor. Não força demais hoje à noite.');
-    msg = _pick(base);
+      `${hora} dedicado ao ministério. Isso é amor ao serviço.`,
+    ]);
   } else if (dow === 6) {
-    // Sábado
-    const base = [
+    // Sábado — pools por papel
+    if (isMin) msg = _pick([
+      'Sábado de preparo. Que a oração de hoje fortifique a ministração de amanhã.',
+      'Véspera do culto. Já entregou a ministração de amanhã nas mãos do Senhor?',
+      'Sábado! Descanso, oração e confiança — a tríade do ministro antes do culto.',
+    ]);
+    else if (isVoice) msg = _pick([
+      'Sábado de ensaio! Melhor acertar o tom hoje do que amanhã no culto.',
+      'Véspera do culto. Letras, tonalidades e entradas — tudo revisado?',
+      'Sábado! Cuide bem da voz hoje. Evite gritar, beba água.',
+    ]);
+    else if (isCifraUser) msg = _pick([
       'Sábado de ensaio! Melhor errar hoje do que amanhã no culto.',
-      'Vigília da véspera: revelar o setlist de domingo aqui.',
-      'Último dia de preparação antes do culto. Tudo certo com as músicas?',
-    ];
-    if (isManha) base.push('Sábado de manhã é sagrado para músico de ministério: hora do ensaio final.');
-    if (isTarde) base.push('Tarde de sábado: revisão geral antes do domingo.');
-    msg = _pick(base);
+      isGuitar ? 'Último dia: revisa os trechos que geralmente travam no culto.' :
+      isBass   ? 'Sábado: linha de baixo bem marcada pra cada música.' :
+      isDrums  ? 'Sábado: confirma abertura e final de cada música.' :
+                 'Sábado: patches e arranjos conferidos pra amanhã.',
+      'Último dia de preparação. Tudo certo com as cifras?',
+    ]);
+    else if (isSono) msg = _pick([
+      'Sábado de preparação técnica. Roteiro de som do culto revisado?',
+      'Véspera do culto. Mesa de som pronta, microfones testados?',
+    ]);
+    else msg = _pick([
+      'Sábado de ensaio! Melhor errar hoje do que amanhã no culto.',
+      'Último dia de preparação antes do culto. Tudo certo?',
+    ]);
   } else if (dow >= 1 && dow <= 3) {
-    // Início de semana: segunda, terça, quarta
+    // Segunda, terça, quarta — pools exclusivos
     const diasNome = ['', 'segunda', 'terça', 'quarta'][dow];
-    const base = [
-      `${diasNome.charAt(0).toUpperCase() + diasNome.slice(1)}-feira. Começo de semana — bom momento pra mergulhar em uma cifra nova.`,
-      'Início de semana é quando o repertório da semana passada ainda está fresco. Que tal revisá-lo?',
+    const dn = diasNome.charAt(0).toUpperCase() + diasNome.slice(1);
+    if (isMin) msg = _pick([
+      `${dn}-feira. Bom momento pra orar pela ministração do próximo culto.`,
+      'Início de semana é quando a intimidade com Deus começa a preparar o domingo.',
+      `${dn}-feira. Que o próximo culto já comece a ser gestado na sua vida devocional.`,
+    ]);
+    else if (isVoice) msg = _pick([
+      `${dn}-feira. Bom momento pra memorizar as letras do próximo setlist.`,
+      'Início de semana: aquece a voz com leveza — o culto ainda está longe.',
+      `${dn}-feira. Explore as letras do repertório com mais atenção hoje.`,
+    ]);
+    else if (isGuitar) msg = _pick([
+      `${dn}-feira: perfeito pra trabalhar aquela passagem difícil com calma.`,
+      `${dn}-feira. Que tal aquele acorde que sempre trava?`,
+      'Início de semana é quando o repertório da semana passada ainda está fresco.',
+    ]);
+    else if (isBass) msg = _pick([
+      `${dn}-feira. Bom tempo pra refinar as linhas de baixo do repertório.`,
+      'Início de semana: o groove é construído na prática diária.',
+    ]);
+    else if (isDrums) msg = _pick([
+      'Início de semana é hora de trabalhar dinâmica e independência no pad.',
+      `${dn}-feira. Metrônomo ligado, padrões novos em prática.`,
+    ]);
+    else if (isKeys) msg = _pick([
+      `${dn}-feira. Que tal explorar um arranjo novo no teclado essa semana?`,
+      'Início de semana: boa hora pra trabalhar as texturas do próximo setlist.',
+    ]);
+    else if (isSono) msg = _pick([
+      `${dn}-feira. Mesa de som revisada após o culto do domingo?`,
+      'Início de semana: bom momento pra estudar o repertório e preparar os presets.',
+    ]);
+    else msg = _pick([
+      'Início de semana é quando o repertório da semana passada ainda está fresco.',
       'Nova semana começa agora. O banco de músicas tem muita coisa boa esperando.',
-    ];
-    if (isGuitar) base.push(`${diasNome.charAt(0).toUpperCase() + diasNome.slice(1)}-feira: perfeito pra trabalhar aquela passagem difícil com calma.`);
-    if (isDrums)  base.push('Início de semana é hora de trabalhar dinâmica e independência no pad.');
-    if (isKeys)   base.push('Que tal explorar um arranjo novo no teclado essa semana?');
-    if (isVoice)  base.push('Bom momento pra memorizar as letras do próximo setlist.');
-    if (isBass)   base.push('Início de semana: bom tempo pra refinar as linhas de baixo do repertório.');
-    msg = _pick(base);
+      'Cada ensaio é investimento. O culto colhe o que a semana plantou.',
+    ]);
   } else if (dow === 4 || dow === 5) {
     // Quinta ou sexta
     const diasNome = ['', '', '', '', 'quinta', 'sexta'][dow];
-    const base = [
-      `${diasNome.charAt(0).toUpperCase() + diasNome.slice(1)}-feira — o domingo está chegando. Repertório em dia?`,
-      `Já é ${diasNome}-feira! Bom momento pra uma última passagem geral.`,
+    const dn = diasNome.charAt(0).toUpperCase() + diasNome.slice(1);
+    if (isMin) msg = _pick([
+      `${dn}-feira. O domingo está chegando — como está o preparo espiritual da ministração?`,
+      `Já é ${dn}-feira! Bom momento pra uma última entrega em oração.`,
+    ]);
+    else if (isVoice) msg = _pick([
+      `${dn}-feira. Aquece a voz e passa as entradas difíceis.`,
+      `Já é ${dn}-feira! Domingo perto — letras e tonalidades estão no ponto?`,
+      `${dn}-feira — o domingo está chegando. Voz descansada e letras decoradas?`,
+    ]);
+    else if (isGuitar) msg = _pick([
+      `${dn}-feira: revisa os trechos que geralmente travam no culto.`,
+      `Já é ${dn}-feira! Uma última passagem geral nas cifras do setlist.`,
+      `${dn}-feira — faltam ${7 - dow} dias. Capo e transposições estão certos?`,
+    ]);
+    else if (isBass) msg = _pick([
+      `${dn}-feira. Linha de baixo bem marcada pra cada música?`,
+      `Já é ${dn}-feira! Faltam ${7 - dow} dias — groove pronto pro domingo?`,
+    ]);
+    else if (isDrums) msg = _pick([
+      `${dn}-feira. Confirma a abertura e o final de cada música.`,
+      `Já é ${dn}-feira! Semana avançando — dinamica de culto revisada?`,
+    ]);
+    else if (isKeys) msg = _pick([
+      `${dn}-feira. Patches e arranjos prontos pro domingo?`,
+      `Já é ${dn}-feira! Faltam ${7 - dow} dias — transposições confirmadas?`,
+    ]);
+    else if (isSono) msg = _pick([
+      `${dn}-feira. Roteiro de som do próximo culto já está pronto?`,
+      `Já é ${dn}-feira! Microfones, ganhos e monitores — tudo revisado pro domingo?`,
+    ]);
+    else msg = _pick([
+      `${dn}-feira — o domingo está chegando. Repertório em dia?`,
+      `Já é ${dn}-feira! Bom momento pra uma última passagem geral.`,
       `Faltam ${7 - dow} dias pro culto. Ritmo de preparação.`,
-    ];
-    if (isGuitar) base.push(`${diasNome.charAt(0).toUpperCase() + diasNome.slice(1)}: revisa os trechos que geralmente travam no culto.`);
-    if (isDrums)  base.push('Semana avançando — confirma a abertura e o final de cada música.');
-    if (isVoice)  base.push(`${diasNome.charAt(0).toUpperCase() + diasNome.slice(1)}: aquece a voz e passa as entradas difíceis.`);
-    msg = _pick(base);
+    ]);
   } else {
-    if (isGuitar) msg = _pick(['Dó, Mi, Sol… qual cifra vamos estudar hoje?','Uma progressão nova por semana transforma o louvor.','Já aqueceu os dedos hoje?']);
-    else if (isBass)  msg = _pick(['Fundamental, literalmente. O baixo define a harmonia do louvor.','Sem o baixo, a congregação sente — mesmo sem saber o porquê.','O groove certo faz o culto fluir.']);
-    else if (isDrums) msg = _pick(['O tempo é tudo no louvor. E o tempo começa em você.','Quatro tempos, uma congregação.','Metrônomo ligado?']);
-    else if (isKeys)  msg = _pick(['Das 88 teclas, hoje usaremos quantas?','Pad atmosférico ou piano solo — a escolha define o tom do culto.','Qual textura harmônica o próximo setlist pede?']);
-    else if (isMin)   msg = _pick(['Ministrar é muito mais que cantar — é conduzir o coração do povo à presença do Senhor.','A ministração começa na intimidade com Deus. O palco é só a extensão disso.','Quem ministra prepara o terreno para a Palavra. Que este culto seja fértil.','A unção não dispensa o preparo. Letra, tom e sensibilidade ao Espírito, juntos.']);
-    else if (isVoice) msg = _pick(['A voz conecta a letra à alma. Cuide bem do instrumento.','Hidratação e descanso são parte do preparo vocal.','Tonal ou congregacional — cada música pede uma abordagem.','A congregação canta junto quando a voz lidera com convicção.']);
-    else if (isSono)  msg = _pick(['O som que a congregação ouve define a experiência do culto. Você faz isso acontecer.','Mesa de som invisível ao olho, essencial ao coração. Seu trabalho importa.','Equalização, ganho, monitor — cada ajuste é um ato de serviço ao louvor.']);
+    // Fallback — pools exclusivos
+    if (isMin) msg = _pick([
+      'Ministrar é conduzir o coração do povo à presença do Senhor.',
+      'A ministração começa na intimidade com Deus. O palco é só a extensão disso.',
+      'Quem ministra prepara o terreno para a Palavra. Que este culto seja fértil.',
+      'A unção não dispensa o preparo. Sensibilidade ao Espírito e preparo: juntos.',
+    ]);
+    else if (isVoice) msg = _pick([
+      'A voz conecta a letra à alma. Cuide bem do instrumento.',
+      'Hidratação e descanso são parte do preparo vocal.',
+      'Tonal ou congregacional — cada música pede uma entrega diferente.',
+      'A congregação canta junto quando a voz lidera com convicção.',
+    ]);
+    else if (isGuitar) msg = _pick([
+      'Dó, Mi, Sol… qual progressão vamos estudar hoje?',
+      'Uma progressão nova por semana transforma o louvor.',
+      'Já aqueceu os dedos hoje?',
+      'Violão: o instrumento mais democrático do ministério presbiteriano.',
+    ]);
+    else if (isBass) msg = _pick([
+      'Fundamental, literalmente. O baixo define a harmonia do louvor.',
+      'Sem o baixo, a congregação sente — mesmo sem saber o porquê.',
+      'O groove certo faz o culto fluir.',
+    ]);
+    else if (isDrums) msg = _pick([
+      'O tempo é tudo no louvor. E o tempo começa em você.',
+      'Quatro tempos, uma congregação.',
+      'Metrônomo ligado?',
+    ]);
+    else if (isKeys) msg = _pick([
+      'Das 88 teclas, hoje usaremos exatamente as certas.',
+      'Pad atmosférico ou piano solo — a escolha define o tom do culto.',
+      'Qual textura harmônica o próximo setlist pede?',
+    ]);
+    else if (isSono) msg = _pick([
+      'O som que a congregação ouve define a experiência do culto. Você faz isso acontecer.',
+      'Mesa de som invisível ao olho, essencial ao coração. Seu trabalho importa.',
+      'Equalização, ganho, monitor — cada ajuste é um ato de serviço ao louvor.',
+    ]);
     else msg = _pick([
       'Cada ensaio é investimento. O culto colhe o que a semana plantou.',
       'Ministério de louvor presbiteriano: excelência a serviço da Palavra.',
-      'O cifrei está aqui pra facilitar o que você já faz bem.',
       'Serve com música. Tudo o mais, Deus provê.',
     ]);
   }
@@ -3427,13 +3616,32 @@ function _atualizarWelcomeCard() {
   if (elPeriod) elPeriod.textContent = periodo;
   if (elName)   elName.textContent   = nome + '!';
 
-  // Badge de instrumento
+  // Badge de instrumento — mostra função da escala se houver
   const badgeEl = document.getElementById('hw-instr-badge');
-  if (badgeEl && instr) {
-    const instrMap = {'violão':'🎸 Violonista','guitarra':'🎸 Guitarrista','baixo':'🎸 Baixista','bateria':'🥁 Baterista','teclado':'🎹 Tecladista','piano':'🎹 Pianista','voz':'🎤 Vocalista','vocal':'🎤 Vocalista','canto':'🎤 Vocalista','trompete':'🎺 Trompetista','trombeta':'🎺 Trombetista','ministra':'🎙️ Ministração','ministração':'🎙️ Ministração'};
-    const key = Object.keys(instrMap).find(k => instr.toLowerCase().includes(k));
-    if (key) { badgeEl.textContent = instrMap[key]; badgeEl.style.display = 'block'; }
-    else { badgeEl.textContent = '🎵 ' + instr; badgeEl.style.display = 'block'; }
+  if (badgeEl) {
+    const instrMap = {'violão':'🎸 Violonista','guitarra':'🎸 Guitarrista','baixo':'🎸 Baixista','bateria':'🥁 Baterista','teclado':'🎹 Tecladista','piano':'🎹 Pianista','voz':'🎤 Vocalista','vocal':'🎤 Vocalista','canto':'🎤 Vocalista','trompete':'🎺 Trompetista','trombeta':'🎺 Trombetista','violino':'🎻 Violinista','ministra':'🎙️ Ministração','ministração':'🎙️ Ministração','sonoplasta':'🎛️ Sonoplasta','sono':'🎛️ Sonoplasta'};
+    // Verifica se está escalado(a) como Ministração para priorizar esse badge
+    let funcaoEscalaLabel = '';
+    const nomeCompBadge = (localStorage.getItem('cifrei_username') || '').toLowerCase().trim();
+    if (_escalasCache && _escalasCache.length && nomeCompBadge) {
+      const hojeStrB = new Date().toISOString().slice(0, 10);
+      const proxB = _escalasCache.filter(e => (e.data||'') >= hojeStrB).sort((a,b) => (a.data||'').localeCompare(b.data||''))[0];
+      if (proxB) {
+        const meB = (proxB.funcoes||[]).find(f => (f.nome||'').toLowerCase().trim() === nomeCompBadge);
+        if (meB && meB.funcao) {
+          const fc = meB.funcao.toLowerCase();
+          if (/ministra/i.test(fc)) funcaoEscalaLabel = '🎙️ Ministração';
+          else if (/voz|vocal|canto/i.test(fc)) funcaoEscalaLabel = '🎤 Vocalista';
+        }
+      }
+    }
+    const labelToShow = funcaoEscalaLabel || (() => {
+      if (!instr) return '';
+      const key = Object.keys(instrMap).find(k => instr.toLowerCase().includes(k));
+      return key ? instrMap[key] : ('🎵 ' + instr);
+    })();
+    if (labelToShow) { badgeEl.textContent = labelToShow; badgeEl.style.display = 'block'; }
+    else badgeEl.style.display = 'none';
   }
 
   // Mensagem principal
