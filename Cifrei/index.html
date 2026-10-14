@@ -1321,9 +1321,22 @@ window.addEventListener('unhandledrejection', function(e) {
 
     </div><!-- /home-cards-grid -->
 
-    <!-- Banner gerenciado pelo admin (oculto se sem imagem) -->
-    <div id="home-banner-wrap" style="display:none;width:100%;border-radius:18px;overflow:hidden;animation:cardIn .5s cubic-bezier(.22,1,.36,1) .2s both;">
-      <img id="home-banner-img" src="" alt="" style="width:100%;display:block;border-radius:18px;object-fit:cover;">
+    <!-- Quadro de Avisos — gerenciado pelo admin (oculto se sem mensagem) -->
+    <div id="home-aviso-wrap" style="display:none;width:100%;animation:cardIn .5s cubic-bezier(.22,1,.36,1) .2s both;">
+      <div style="background:linear-gradient(135deg,rgba(52,211,153,.07) 0%,rgba(16,185,129,.04) 100%);border:1px solid rgba(52,211,153,.22);border-radius:18px;padding:16px 20px;display:flex;align-items:flex-start;gap:14px;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,rgba(52,211,153,.5),rgba(16,185,129,.2),transparent);border-radius:99px;"></div>
+        <div style="width:38px;height:38px;border-radius:12px;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(52,211,153,.9)" stroke-width="1.8" width="18" height="18"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:10px;font-weight:800;letter-spacing:1.2px;color:rgba(52,211,153,.6);text-transform:uppercase;margin-bottom:5px;">Aviso</div>
+          <div id="home-aviso-texto" style="font-size:13px;font-weight:500;color:#c8e8d8;line-height:1.58;white-space:pre-wrap;"></div>
+          <a id="home-aviso-link" href="#" target="_blank" rel="noopener" style="display:none;margin-top:10px;display:none;align-items:center;gap:6px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;color:#34d399;text-decoration:none;width:fit-content;transition:background .15s;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            <span id="home-aviso-link-texto">Saiba mais</span>
+          </a>
+        </div>
+      </div>
     </div>
 
   </div><!-- /home-area -->
@@ -3390,22 +3403,30 @@ function _atualizarWelcomeCard() {
 
   card.style.display = 'flex';
 
-  // Banner — busca assíncrona do Firestore
-  _carregarHomeBanner();
+  // Quadro de avisos — busca assíncrona do Firestore
+  _carregarHomeAviso();
 }
 
-async function _carregarHomeBanner() {
+async function _carregarHomeAviso() {
   try {
     if (!fbDb || !window._fbDoc || !window._fbGetDoc) return;
-    const snap = await window._fbGetDoc(window._fbDoc(fbDb, 'config', 'home_banner'));
+    const snap = await window._fbGetDoc(window._fbDoc(fbDb, 'config', 'home_aviso'));
     if (!snap.exists()) return;
-    const url = snap.data()?.url || '';
-    if (!url) return;
-    const wrap = document.getElementById('home-banner-wrap');
-    const img  = document.getElementById('home-banner-img');
-    if (!wrap || !img) return;
-    img.src = url;
-    img.onload = () => { wrap.style.display = 'block'; };
+    const d = snap.data() || {};
+    const msg = d.mensagem?.trim() || '';
+    if (!msg) return;
+    const wrap     = document.getElementById('home-aviso-wrap');
+    const textoEl  = document.getElementById('home-aviso-texto');
+    const linkEl   = document.getElementById('home-aviso-link');
+    const linkTxt  = document.getElementById('home-aviso-link-texto');
+    if (!wrap || !textoEl) return;
+    textoEl.textContent = msg;
+    if (d.link?.trim()) {
+      linkEl.href = d.link.trim();
+      if (linkTxt && d.linkTexto?.trim()) linkTxt.textContent = d.linkTexto.trim();
+      linkEl.style.display = 'inline-flex';
+    }
+    wrap.style.display = 'block';
   } catch(e) {}
 }
 
