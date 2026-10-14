@@ -3135,15 +3135,19 @@ async function _refreshDadosUsuario() {
   try {
     const PROJECT = 'cifrei-e37f6';
     const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
-    const body = { structuredQuery: {
-      from: [{ collectionId: 'avatars_musicos' }],
-      where: { fieldFilter: { field: { fieldPath: 'login' }, op: 'EQUAL', value: { stringValue: login } } },
-      limit: 1
-    }};
-    const res = await fetch(`${BASE}:runQuery`, { method: 'POST', body: JSON.stringify(body) });
-    if (!res.ok) return;
-    const rows = await res.json();
-    const doc = rows.find(r => r.document)?.document;
+    const _q = async (fieldPath, value) => {
+      const body = { structuredQuery: {
+        from: [{ collectionId: 'avatars_musicos' }],
+        where: { fieldFilter: { field: { fieldPath }, op: 'EQUAL', value: { stringValue: value } } },
+        limit: 1
+      }};
+      const res = await fetch(`${BASE}:runQuery`, { method: 'POST', body: JSON.stringify(body) });
+      if (!res.ok) return null;
+      const rows = await res.json();
+      return rows.find(r => r.document)?.document || null;
+    };
+    // Tenta campo 'login' primeiro; se não achar, tenta 'nome' (alguns usuários não têm campo login)
+    const doc = (await _q('login', login)) || (await _q('nome', login));
     if (!doc) return;
     const f = doc.fields || {};
     const instr = f.instrumento?.stringValue || '';
