@@ -9173,83 +9173,76 @@ window.selecionarCorda = selecionarCorda;
 </script>
 
 <!-- ═══ PAD ══════════════════════════════════════════════════════════════════ -->
-<div id="modal-pad" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.95);backdrop-filter:blur(20px);align-items:flex-end;justify-content:center;" onclick="if(event.target===this)fecharPad()">
-  <div style="width:100%;max-width:480px;padding-bottom:env(safe-area-inset-bottom,0);animation:slideUp .35s cubic-bezier(.22,1,.36,1);">
+<div id="modal-pad" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.97);backdrop-filter:blur(24px);align-items:flex-end;justify-content:center;" onclick="if(event.target===this)fecharPad()">
+  <div style="width:100%;max-width:460px;padding-bottom:env(safe-area-inset-bottom,0);animation:slideUp .35s cubic-bezier(.22,1,.36,1);">
 
     <!-- Handle -->
-    <div style="display:flex;justify-content:center;padding:10px 0 0;">
-      <div style="width:36px;height:4px;background:rgba(255,255,255,.15);border-radius:2px;"></div>
+    <div style="display:flex;justify-content:center;padding:12px 0 0;">
+      <div style="width:40px;height:4px;background:rgba(255,255,255,.12);border-radius:2px;"></div>
     </div>
 
     <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 0;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="width:36px;height:36px;background:linear-gradient(135deg,#1a0a2e,#16082e);border:1px solid rgba(139,92,246,.3);border-radius:10px;display:flex;align-items:center;justify-content:center;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" width="18" height="18"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-        </div>
-        <div>
-          <div style="font-size:15px;font-weight:800;color:#fff;letter-spacing:-.3px;">Pad</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase;">Worship Synth</div>
-        </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px 0;">
+      <div>
+        <div style="font-size:16px;font-weight:800;color:#fff;letter-spacing:-.3px;">Pad</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1.5px;text-transform:uppercase;margin-top:1px;">Worship Synth</div>
       </div>
-      <button onclick="fecharPad()" style="width:32px;height:32px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:50%;color:rgba(255,255,255,.4);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      <button onclick="fecharPad()" style="width:32px;height:32px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50%;color:rgba(255,255,255,.4);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;">✕</button>
     </div>
 
-    <!-- Display central -->
-    <div style="margin:16px 20px 0;background:linear-gradient(180deg,#0a0510 0%,#0d0818 100%);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:22px 20px 18px;position:relative;overflow:hidden;">
-      <div id="pad-glow" style="position:absolute;inset:0;border-radius:20px;background:radial-gradient(ellipse at 50% 80%,rgba(139,92,246,.0) 0%,transparent 70%);transition:background .5s;pointer-events:none;"></div>
-
-      <!-- Nota tocando -->
-      <div style="text-align:center;position:relative;z-index:1;margin-bottom:16px;">
-        <div id="pad-nota-display" style="font-size:64px;font-weight:900;font-family:var(--font-chord);color:rgba(255,255,255,.15);line-height:1;transition:color .3s,text-shadow .3s;letter-spacing:-2px;">—</div>
-        <div id="pad-modo-display" style="font-size:12px;color:rgba(255,255,255,.2);margin-top:2px;transition:color .3s;letter-spacing:1px;text-transform:uppercase;min-height:16px;"></div>
+    <!-- Display de nota + waveform -->
+    <div style="margin:14px 20px 0;background:linear-gradient(160deg,#08051a 0%,#0c0820 100%);border:1px solid rgba(139,92,246,.12);border-radius:24px;overflow:hidden;position:relative;">
+      <!-- Glow dinâmico -->
+      <div id="pad-glow" style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,rgba(139,92,246,0) 0%,transparent 70%);transition:background .6s;pointer-events:none;z-index:0;"></div>
+      <!-- Canvas waveform como fundo -->
+      <canvas id="pad-canvas" width="460" height="64" style="position:absolute;bottom:0;left:0;width:100%;height:64px;opacity:.5;pointer-events:none;z-index:1;"></canvas>
+      <!-- Conteúdo do display -->
+      <div style="position:relative;z-index:2;padding:22px 20px 20px;text-align:center;">
+        <div id="pad-nota-display" style="font-size:72px;font-weight:900;font-family:var(--font-chord);color:rgba(255,255,255,.12);line-height:1;transition:color .4s,text-shadow .4s;letter-spacing:-3px;">—</div>
+        <div id="pad-modo-display" style="font-size:11px;color:rgba(255,255,255,.2);margin-top:6px;transition:color .3s;letter-spacing:1.5px;text-transform:uppercase;min-height:16px;"></div>
       </div>
-
-      <!-- Visualizador de ondas -->
-      <canvas id="pad-canvas" width="400" height="48" style="width:100%;height:48px;border-radius:8px;opacity:.7;display:block;margin-bottom:14px;"></canvas>
-
-      <!-- Volume e reverb -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <!-- Sliders no footer do card -->
+      <div style="position:relative;z-index:2;padding:0 20px 18px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
         <div>
-          <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Volume</div>
-          <input type="range" id="pad-volume" min="0" max="100" value="70" oninput="setPadVolume(this.value)"
-            style="width:100%;accent-color:#a78bfa;cursor:pointer;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+            <span style="font-size:9px;color:rgba(255,255,255,.25);letter-spacing:1.5px;text-transform:uppercase;">Volume</span>
+          </div>
+          <input type="range" id="pad-volume" min="0" max="100" value="70" oninput="setPadVolume(this.value)" style="width:100%;accent-color:#a78bfa;cursor:pointer;height:4px;">
         </div>
         <div>
-          <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Reverb</div>
-          <input type="range" id="pad-reverb" min="0" max="100" value="60" oninput="setPadReverb(this.value)"
-            style="width:100%;accent-color:#a78bfa;cursor:pointer;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+            <span style="font-size:9px;color:rgba(255,255,255,.25);letter-spacing:1.5px;text-transform:uppercase;">Reverb</span>
+          </div>
+          <input type="range" id="pad-reverb" min="0" max="100" value="60" oninput="setPadReverb(this.value)" style="width:100%;accent-color:#a78bfa;cursor:pointer;height:4px;">
         </div>
       </div>
     </div>
 
-    <!-- Seletor de modo -->
+    <!-- Seletor de modo (sintetizador) -->
+    <div style="padding:12px 20px 0;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+      <span style="font-size:9px;color:rgba(255,255,255,.25);letter-spacing:1.5px;text-transform:uppercase;margin-right:2px;">Modo</span>
+      <button class="pad-modo active" data-modo="major" onclick="selecionarModoPad('major',this)">Maior</button>
+      <button class="pad-modo" data-modo="minor" onclick="selecionarModoPad('minor',this)">Menor</button>
+      <button class="pad-modo" data-modo="sus2" onclick="selecionarModoPad('sus2',this)">Sus2</button>
+      <button class="pad-modo" data-modo="sus4" onclick="selecionarModoPad('sus4',this)">Sus4</button>
+      <button class="pad-modo" data-modo="maj7" onclick="selecionarModoPad('maj7',this)">Maj7</button>
+      <button class="pad-modo" data-modo="min7" onclick="selecionarModoPad('min7',this)">Min7</button>
+    </div>
+
+    <!-- Grid de notas -->
     <div style="padding:12px 20px 0;">
-      <div style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Modo</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="pad-modo active" data-modo="major" onclick="selecionarModoPad('major',this)">Maior</button>
-        <button class="pad-modo" data-modo="minor" onclick="selecionarModoPad('minor',this)">Menor</button>
-        <button class="pad-modo" data-modo="sus2" onclick="selecionarModoPad('sus2',this)">Sus2</button>
-        <button class="pad-modo" data-modo="sus4" onclick="selecionarModoPad('sus4',this)">Sus4</button>
-        <button class="pad-modo" data-modo="maj7" onclick="selecionarModoPad('maj7',this)">Maj7</button>
-        <button class="pad-modo" data-modo="min7" onclick="selecionarModoPad('min7',this)">Min7</button>
-      </div>
-    </div>
-
-    <!-- Teclado de notas -->
-    <div style="padding:12px 20px 0;">
-      <div id="pad-notas-label" style="font-size:10px;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Carregando...</div>
-      <div id="pad-notas-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;">
-        <!-- Preenchido dinamicamente via JS -->
+      <div id="pad-notas-label" style="font-size:9px;color:rgba(255,255,255,.25);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">Carregando...</div>
+      <div id="pad-notas-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:7px;">
+        <!-- Preenchido via JS -->
       </div>
     </div>
 
     <!-- Botão parar -->
     <div style="padding:14px 20px 28px;">
       <button id="btn-pad-parar" onclick="pararPad()" disabled
-        style="width:100%;padding:15px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;color:rgba(255,255,255,.3);font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .3s,color .3s;letter-spacing:-.2px;">
-        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-        Parar
+        style="width:100%;padding:15px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;color:rgba(255,255,255,.25);font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background .3s,border-color .3s,color .3s,box-shadow .3s;letter-spacing:-.2px;">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><rect x="6" y="6" width="12" height="12" rx="3"/></svg>
+        Parar Pad
       </button>
     </div>
 
@@ -9258,25 +9251,26 @@ window.selecionarCorda = selecionarCorda;
 
 <style>
 .pad-modo {
-  padding: 6px 14px; background: rgba(255,255,255,.04);
+  padding: 5px 13px; background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.4);
-  border-radius: 99px; font-size: 12px; font-weight: 700;
-  cursor: pointer; transition:background .15s,border-color .15s,color .15s,transform .15s,opacity .15s; white-space: nowrap;
+  border-radius: 99px; font-size: 11px; font-weight: 700;
+  cursor: pointer; transition: background .15s, border-color .15s, color .15s; white-space: nowrap;
 }
 .pad-modo.active {
-  background: rgba(139,92,246,.15); border-color: rgba(139,92,246,.4); color: #a78bfa;
+  background: rgba(139,92,246,.18); border-color: rgba(139,92,246,.5); color: #a78bfa;
 }
 .pad-key {
-  padding: 12px 4px; background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.6);
-  border-radius: 10px; font-size: 13px; font-weight: 800;
+  aspect-ratio: 1; background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.09); color: rgba(255,255,255,.65);
+  border-radius: 14px; font-size: 15px; font-weight: 900;
   cursor: pointer; font-family: var(--font-chord);
-  transition:background .15s,border-color .15s,color .15s,transform .15s,opacity .15s; text-align: center;
+  transition: background .12s, border-color .12s, color .12s, box-shadow .2s, transform .1s;
+  display: flex; align-items: center; justify-content: center;
 }
-.pad-key:active { transform: scale(.94); }
+.pad-key:active { transform: scale(.92); }
 .pad-key.tocando {
-  background: rgba(139,92,246,.2); border-color: rgba(139,92,246,.6);
-  color: #c4b5fd; box-shadow: 0 0 16px rgba(139,92,246,.25);
+  background: rgba(139,92,246,.22); border-color: rgba(139,92,246,.65);
+  color: #c4b5fd; box-shadow: 0 0 20px rgba(139,92,246,.35), inset 0 1px 0 rgba(255,255,255,.1);
 }
 </style>
 
@@ -9677,37 +9671,38 @@ async function pararPad() {
 
 function _padDesenharCanvas() {
   const canvas = document.getElementById('pad-canvas');
-  if (!canvas || !_padCtx || !_padOscs.length) return;
-  const ctx2d = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-
-  // Cria analyser para visualização
-  if (!_padCtx._visAnalyser) {
+  if (!canvas || !_padCtx) return;
+  // Cria analyser para sintetizador se não existir ainda
+  if (!_padCtx._visAnalyser && _padGainNode) {
     const va = _padCtx.createAnalyser();
     va.fftSize = 512;
-    if (_padGainNode) _padGainNode.connect(va);
+    _padGainNode.connect(va);
     _padCtx._visAnalyser = va;
   }
   const va = _padCtx._visAnalyser;
+  if (!va) return;
+
+  const ctx2d = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
   const buf = new Uint8Array(va.frequencyBinCount);
 
   function draw() {
-    if (!_padOscs.length || !_padCtx) return;
+    if (!_padNotaAtual || !_padCtx) return;
     _padCanvasRAF = requestAnimationFrame(draw);
     va.getByteTimeDomainData(buf);
 
     ctx2d.clearRect(0, 0, W, H);
     ctx2d.beginPath();
-    ctx2d.strokeStyle = 'rgba(167,139,250,.6)';
+    ctx2d.strokeStyle = 'rgba(167,139,250,.55)';
     ctx2d.lineWidth = 1.5;
-    ctx2d.shadowColor = 'rgba(139,92,246,.4)';
-    ctx2d.shadowBlur = 6;
+    ctx2d.shadowColor = 'rgba(139,92,246,.5)';
+    ctx2d.shadowBlur = 8;
 
     const sl = W / buf.length;
     let x = 0;
     for (let i = 0; i < buf.length; i++) {
       const v = buf[i] / 128;
-      const y = v * H / 2;
+      const y = (v * H) / 2;
       i === 0 ? ctx2d.moveTo(x, y) : ctx2d.lineTo(x, y);
       x += sl;
     }
