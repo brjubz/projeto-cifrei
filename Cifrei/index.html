@@ -439,6 +439,8 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-nav-cnt{font-size:12px;font-weight:700;color:rgba(52,211,153,.55);font-family:var(--font-chord);letter-spacing:.3px;}
 .lctrl-blank-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 14px;cursor:pointer;color:rgba(170,195,185,.55);font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all .18s;position:relative;}
 .lctrl-blank-btn:hover{background:rgba(255,255,255,.09);color:rgba(220,235,230,.75);}
+.lctrl-fsize-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:8px;width:30px;height:30px;cursor:pointer;color:rgba(180,205,195,.55);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;letter-spacing:0;font-family:var(--font-chord);}
+.lctrl-fsize-btn:hover{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.3);color:#34d399;}
 .lctrl-blank-btn.on{background:linear-gradient(135deg,rgba(251,191,36,.18),rgba(245,158,11,.1));border-color:rgba(251,191,36,.55);color:#fbbf24;box-shadow:0 0 18px rgba(251,191,36,.2),0 0 0 1px rgba(251,191,36,.15) inset;font-weight:800;}
 .lctrl-blank-btn.on svg{filter:drop-shadow(0 0 4px rgba(251,191,36,.6));}
 .lctrl-blank-btn .lctrl-blank-dot{width:5px;height:5px;border-radius:50%;background:rgba(170,195,185,.25);flex-shrink:0;transition:all .18s;}
@@ -10869,13 +10871,12 @@ function _ltProjetar(idx) {
   if (!strophe) return;
   _LT.stropheIdx = idx;
   _LT.previewIdx = idx;
-  _LT.blank = false;
   _LT.bibleMode = null;
-  document.getElementById('lctrl-blank-btn')?.classList.remove('on');
   document.querySelectorAll('.lctrl-strophe-card').forEach((c, i) => _ltAtualizarClassCard(c, i));
   document.querySelector('.lctrl-strophe-card.active')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   _ltAtualizarBox();
   _ltAtualizarNav();
+  if (_LT.blank) return;
   if (_LT.win && !_LT.win.closed) {
     _LT.win.postMessage({ type: 'show', text: strophe.text, label: strophe.label, song: S.songs[_LT.songIdx]?.title || '' }, '*');
   }
@@ -11060,10 +11061,11 @@ function _ltToggleBlank() {
       _LT.win.postMessage({ type: 'blank', waitScreen: _LT.waitScreen || null }, '*');
     } else {
       _LT.win.postMessage({ type: 'unblank' }, '*');
-      if (_LT.stropheIdx >= 0) _ltProjetar(_LT.stropheIdx);
-      else if (_LT.bibleMode) {
+      if (_LT.bibleMode) {
         const { bookNum, chapNum, verseNum } = _LT.bibleMode;
         _ltBibliaProjetarVerso(bookNum, chapNum, verseNum);
+      } else if (_LT.stropheIdx >= 0) {
+        _ltProjetar(_LT.stropheIdx);
       }
     }
   }
@@ -11085,8 +11087,9 @@ function _ltAbrirJanela() {
 html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;transition:background .5s;}
 body{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 80px;font-family:'Segoe UI',system-ui,sans-serif;}
 #song-label{position:fixed;top:22px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--meta);letter-spacing:3px;text-transform:uppercase;transition:opacity .35s,color .5s;white-space:nowrap;}
-#section-label{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--meta);letter-spacing:2px;text-transform:uppercase;transition:opacity .35s,color .5s;white-space:nowrap;}
-#lyric{font-size:clamp(24px,4.8vw,74px);font-weight:600;text-align:center;line-height:1.72;color:var(--fg);white-space:pre-line;transition:color .5s;}
+#section-label{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);font-size:16px;font-weight:500;color:rgba(255,255,255,.55);letter-spacing:.3px;transition:opacity .35s,color .5s;text-align:center;max-width:80%;}
+[data-theme="light"] #section-label{color:rgba(0,0,0,.45);}
+#lyric{font-size:var(--fs,clamp(24px,4.8vw,74px));font-weight:600;text-align:center;line-height:var(--lh,1.72);color:var(--fg);white-space:pre-line;transition:color .5s;}
 #lyric.out{animation:lyricOut .22s ease forwards;}
 #lyric.in{animation:lyricIn .32s ease forwards;}
 @keyframes lyricOut{to{opacity:0;transform:scale(.96) translateY(-10px);filter:blur(2px);}}
@@ -11134,6 +11137,7 @@ window.addEventListener('message',(e)=>{
     BL.classList.add('on');
   }
   else if(type==='unblank')BL.classList.remove('on');
+  else if(type==='fontsize'){if(e.data.fs)document.documentElement.style.setProperty('--fs',e.data.fs+'px');if(e.data.lh)document.documentElement.style.setProperty('--lh',String(e.data.lh));}
   else if(type==='theme')document.documentElement.setAttribute('data-theme',theme);
 });
 document.addEventListener('keydown',(e)=>{
@@ -11154,13 +11158,25 @@ if(window.opener)window.opener.postMessage({type:'ready'},'*');
   setTimeout(() => {
     if (_LT.win && !_LT.win.closed) {
       _LT.win.postMessage({ type: 'theme', theme: _ltTema }, '*');
-      if (_LT.stropheIdx >= 0) _ltProjetar(_LT.stropheIdx);
+      if (_ltFontSize !== 48 || Math.abs(_ltLineHeight - 1.72) > 0.01) {
+        _LT.win.postMessage({ type: 'fontsize', fs: _ltFontSize, lh: _ltLineHeight }, '*');
+      }
+      if (_LT.blank) {
+        _LT.win.postMessage({ type: 'blank', waitScreen: _LT.waitScreen || null }, '*');
+      } else if (_LT.bibleMode) {
+        const { bookNum, chapNum, verseNum } = _LT.bibleMode;
+        _ltBibliaProjetarVerso(bookNum, chapNum, verseNum);
+      } else if (_LT.stropheIdx >= 0) {
+        _ltProjetar(_LT.stropheIdx);
+      }
     }
   }, 900);
 }
 // ══════════════════════════════════════════════════════════════════
 // ── PROJEÇÃO: TEMA + BÍBLIA ARA ──────────────────────────────────
 let _ltTema = 'dark';
+let _ltFontSize = 48;
+let _ltLineHeight = 1.72;
 const _BIBLE_CACHE = new Map();
 
 const _BIBLE_MAP = (()=>{
@@ -11218,6 +11234,23 @@ function _ltToggleTema() {
     btn.innerHTML = icon + ' Tema';
   }
   if (_LT.win && !_LT.win.closed) _LT.win.postMessage({ type: 'theme', theme: _ltTema }, '*');
+}
+
+function _ltFontSizeUp() {
+  _ltFontSize = Math.min(_ltFontSize + 4, 120);
+  if (_LT.win && !_LT.win.closed) _LT.win.postMessage({ type: 'fontsize', fs: _ltFontSize, lh: _ltLineHeight }, '*');
+}
+function _ltFontSizeDown() {
+  _ltFontSize = Math.max(_ltFontSize - 4, 16);
+  if (_LT.win && !_LT.win.closed) _LT.win.postMessage({ type: 'fontsize', fs: _ltFontSize, lh: _ltLineHeight }, '*');
+}
+function _ltLineHeightUp() {
+  _ltLineHeight = Math.min(parseFloat((_ltLineHeight + 0.1).toFixed(2)), 3.0);
+  if (_LT.win && !_LT.win.closed) _LT.win.postMessage({ type: 'fontsize', fs: _ltFontSize, lh: _ltLineHeight }, '*');
+}
+function _ltLineHeightDown() {
+  _ltLineHeight = Math.max(parseFloat((_ltLineHeight - 0.1).toFixed(2)), 1.0);
+  if (_LT.win && !_LT.win.closed) _LT.win.postMessage({ type: 'fontsize', fs: _ltFontSize, lh: _ltLineHeight }, '*');
 }
 
 // Ouvir mensagens da janela de projeção
@@ -11506,11 +11539,13 @@ function _ltBibliaOpenVerso(bookNum, chapNum, verseNum) {
 async function _ltBibliaFetchCap(bookNum, chapter) {
   const key = bookNum + ':' + chapter;
   if (_BIBLE_CACHE.has(key)) return _BIBLE_CACHE.get(key);
-  const r = await fetch('https://api.getbible.net/v2/almeida/' + bookNum + '/' + chapter + '.json');
+  let r = await fetch('https://api.getbible.net/v2/ara/' + bookNum + '/' + chapter + '.json');
+  if (!r.ok) r = await fetch('https://api.getbible.net/v2/almeida/' + bookNum + '/' + chapter + '.json');
   if (!r.ok) throw new Error('HTTP ' + r.status);
   const data = await r.json();
   const verses = data && data.verses
     ? Object.entries(data.verses)
+        .filter(([k]) => parseInt(k) >= 1)
         .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
         .map(([k, v]) => ({ v: parseInt(k), t: (v.text || '').replace(/<[^>]*>/g, '').trim() }))
     : [];
@@ -11564,7 +11599,8 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
   });
   const el = document.getElementById('bv-' + bookNum + '-' + chapNum + '-' + verseNum);
   if (el) el.classList.add('projecting');
-  const text = vObj.t;
+  const text = vObj.v + '. ' + vObj.t;
+  const slideLabel = _BIBLE_NAMES[bookNum] + ' ' + chapNum + ' — ARA';
   // Atualizar cards
   const previewEl = document.getElementById('lctrl-preview-text');
   const projectEl = document.getElementById('lctrl-projecting-text');
@@ -11572,14 +11608,15 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
   if (previewEl) { previewEl.textContent = text; }
   if (projectEl) { projectEl.textContent = text; }
   if (projectCard) projectCard.classList.add('has-content');
-  if (_LT.win && !_LT.win.closed) {
-    _LT.win.postMessage({ type: 'theme', theme: _ltTema }, '*');
-    _LT.win.postMessage({ type: 'show', text, song: ref, label: 'Bíblia' }, '*');
-  }
   // Habilita navegação por setas nos versículos
   const verseIdx = cached.findIndex(x => x.v === verseNum);
   _LT.bibleMode = { bookNum, chapNum, verseNum, verses: cached, idx: verseIdx };
   _ltAtualizarNav();
+  if (_LT.blank) return;
+  if (_LT.win && !_LT.win.closed) {
+    _LT.win.postMessage({ type: 'theme', theme: _ltTema }, '*');
+    _LT.win.postMessage({ type: 'show', text, song: '', label: slideLabel }, '*');
+  }
   // Mostra badge AO VIVO
   const badge = document.getElementById('lctrl-live-badge');
   if (badge) { badge.classList.add('on'); badge.innerHTML = '<span class="ldot"></span>AO VIVO'; }
@@ -11675,8 +11712,8 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
   <!-- Top bar -->
   <div class="lctrl-header">
     <div class="lctrl-header-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      Transmitir Letras
+      <img src="https://lh3.googleusercontent.com/d/1TfaZoO-9Y0jobluCMj8LaPAcIk9AhaZn" style="height:22px;width:auto;object-fit:contain;" alt="Cifrei">
+      <span style="font-weight:300;letter-spacing:.5px;">Letras</span>
     </div>
     <span class="lctrl-current-song" id="lctrl-current-song">—</span>
     <div id="lctrl-live-badge" class="lctrl-live-badge"><span class="ldot"></span>AGUARDANDO</div>
@@ -11770,6 +11807,12 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
         </button>
         <div style="display:flex;align-items:center;gap:10px;">
           <span class="lctrl-nav-cnt" id="lctrl-nav-cnt">—</span>
+          <div style="display:flex;align-items:center;gap:3px;">
+            <button class="lctrl-fsize-btn" onclick="_ltFontSizeDown()" title="Diminuir fonte">A−</button>
+            <button class="lctrl-fsize-btn" onclick="_ltFontSizeUp()" title="Aumentar fonte">A+</button>
+            <button class="lctrl-fsize-btn" onclick="_ltLineHeightDown()" title="Reduzir espaçamento">≡−</button>
+            <button class="lctrl-fsize-btn" onclick="_ltLineHeightUp()" title="Aumentar espaçamento">≡+</button>
+          </div>
           <button id="lctrl-blank-btn" class="lctrl-blank-btn" onclick="_ltToggleBlank()" title="Tela de espera / B">
             <span class="lctrl-blank-dot"></span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
