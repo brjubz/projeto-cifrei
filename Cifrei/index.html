@@ -10212,6 +10212,8 @@ function _fecharChordPopup(e) {
 
 // ══ LYRICS TRANSMITTER ════════════════════════════════════════════
 const _LT = { win: null, channel: null, songIdx: -1, stropheIdx: -1, strophes: [], blank: false };
+// esc não está no escopo deste script block (está no módulo ES6); usa versão local
+function _ltEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function _ltParsearEstrofes(letra) {
   if (!letra) return [];
@@ -10299,7 +10301,7 @@ function _ltRenderSongs() {
     row.className = 'lctrl-song-row' + (_LT.songIdx === i ? ' active' : '');
     if (!temLetra) row.style.opacity = '0.38';
     row.dataset.idx = i;
-    row.innerHTML = `<span class="lctrl-song-num">${i+1}</span><span class="lctrl-song-name">${esc(s.title)}</span>`;
+    row.innerHTML = `<span class="lctrl-song-num">${i+1}</span><span class="lctrl-song-name">${_ltEsc(s.title)}</span>`;
     if (temLetra) row.addEventListener('click', () => _ltSelectSong(i));
     list.appendChild(row);
   });
@@ -10331,7 +10333,7 @@ function _ltRenderStrophes() {
     const card = document.createElement('div');
     card.className = 'lctrl-strophe-card' + (_LT.stropheIdx === i ? ' active' : '');
     card.dataset.idx = i;
-    card.innerHTML = `<div class="lctrl-strophe-dot"></div><div class="lctrl-strophe-section">${esc(s.label)}</div><div class="lctrl-strophe-preview">${esc(s.text)}</div>`;
+    card.innerHTML = `<div class="lctrl-strophe-dot"></div><div class="lctrl-strophe-section">${_ltEsc(s.label)}</div><div class="lctrl-strophe-preview">${_ltEsc(s.text)}</div>`;
     card.addEventListener('click', () => _ltProjetar(i));
     grid.appendChild(card);
   });
