@@ -1327,6 +1327,39 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:1
           </button>
         </div>
       </div>
+
+      <!-- ── TELA DE ESPERA ── -->
+      <div class="card" style="margin-top:16px;" id="cfg-wait-screen-card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          Tela de Espera — Projeção
+        </div>
+        <div class="card-sub">Imagem exibida na projeção ao clicar em <strong>Tela Preta</strong> no módulo de transmissão. Ideal para a logo da sua igreja. Recomendado: 1920×1080px (JPEG ou PNG).</div>
+
+        <div id="cfg-wait-screen-preview-wrap" style="display:none;margin-bottom:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);position:relative;aspect-ratio:16/9;max-height:200px;background:#000;">
+          <img id="cfg-wait-screen-preview" src="" alt="Tela de espera" style="width:100%;height:100%;object-fit:contain;display:block;">
+          <div id="cfg-wait-screen-status" style="position:absolute;bottom:6px;right:8px;font-size:10px;color:rgba(255,255,255,.4);background:rgba(0,0,0,.6);padding:2px 8px;border-radius:99px;"></div>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <label class="btn btn-secondary" style="cursor:pointer;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            Escolher imagem
+            <input type="file" id="cfg-wait-screen-input" accept="image/*" style="display:none;" onchange="previewWaitScreen(this)">
+          </label>
+          <button class="btn btn-primary" id="cfg-wait-screen-save-btn" onclick="salvarWaitScreen()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+            Salvar
+          </button>
+          <button class="btn btn-secondary" id="cfg-wait-screen-remove-btn" onclick="removerWaitScreen()" style="display:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            Remover
+          </button>
+        </div>
+        <div id="cfg-wait-screen-size-warn" style="display:none;margin-top:10px;background:var(--ydim);border:1px solid rgba(251,191,36,.2);border-radius:8px;padding:8px 12px;font-size:12px;color:#fbbf24;">
+          ⚠️ Imagem grande — será comprimida para caber no limite de armazenamento.
+        </div>
+      </div>
         </div>
     </div>
 
@@ -3360,6 +3393,7 @@ function goToPage(id) {
   if (id === 'backup') goToBackup();
   if (id === 'notificacoes') goToNotificacoes();
   if (id === 'avisos') _avisoCarregar();
+  if (id === 'config') setTimeout(carregarWaitScreen, 400);
   if (id === 'dashboard') iaDashRefresh && setTimeout(iaDashRefresh, 1500);
   history.pushState({ admPage: id }, '');
 }
@@ -5034,6 +5068,106 @@ function importarUsuarios() {
     showToast('Código inválido — verifique se copiou corretamente', 'error');
   }
 }
+
+// ── TELA DE ESPERA (WAIT SCREEN) ────────────────────────────────────────────
+let _waitScreenPendingBase64 = null;
+
+function previewWaitScreen(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  const sizeWarn = document.getElementById('cfg-wait-screen-size-warn');
+  if (sizeWarn) sizeWarn.style.display = file.size > 3 * 1024 * 1024 ? 'flex' : 'none';
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const maxW = 1920, maxH = 1080;
+      let w = img.width, h = img.height;
+      if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+      if (h > maxH) { w = Math.round(w * maxH / h); h = maxH; }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      // Start at quality 0.78, reduce until under 900KB
+      let q = 0.78, b64;
+      do { b64 = canvas.toDataURL('image/jpeg', q); q -= 0.08; } while (b64.length > 900000 && q > 0.3);
+      _waitScreenPendingBase64 = b64;
+      const preview = document.getElementById('cfg-wait-screen-preview');
+      const wrap = document.getElementById('cfg-wait-screen-preview-wrap');
+      if (preview) { preview.src = b64; }
+      if (wrap) wrap.style.display = 'block';
+      const saveBtn = document.getElementById('cfg-wait-screen-save-btn');
+      if (saveBtn) saveBtn.disabled = false;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function salvarWaitScreen() {
+  if (!_waitScreenPendingBase64) return;
+  if (!fbDb || !window._fbSetDoc || !window._fbDoc) { showToast('Firebase não conectado', 'error'); return; }
+  const btn = document.getElementById('cfg-wait-screen-save-btn');
+  const orig = btn?.innerHTML;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Salvando…'; }
+  try {
+    await window._fbSetDoc(
+      window._fbDoc(fbDb, 'artifacts', 'cifrei-app', 'public', 'data', 'config'),
+      { waitScreenBase64: _waitScreenPendingBase64, waitScreenUpdated: new Date().toISOString() },
+      { merge: true }
+    );
+    _waitScreenPendingBase64 = null;
+    document.getElementById('cfg-wait-screen-input').value = '';
+    if (btn) { btn.disabled = true; btn.innerHTML = orig; }
+    document.getElementById('cfg-wait-screen-remove-btn').style.display = 'inline-flex';
+    document.getElementById('cfg-wait-screen-status').textContent = 'Salvo agora';
+    document.getElementById('cfg-wait-screen-size-warn').style.display = 'none';
+    showToast('✅ Tela de espera salva com sucesso!', 'success', 4000);
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+    showToast('❌ Erro ao salvar: ' + e.message, 'error', 5000);
+  }
+}
+
+async function removerWaitScreen() {
+  if (!fbDb || !window._fbSetDoc || !window._fbDoc) return;
+  if (!confirm('Remover a tela de espera?')) return;
+  try {
+    await window._fbSetDoc(
+      window._fbDoc(fbDb, 'artifacts', 'cifrei-app', 'public', 'data', 'config'),
+      { waitScreenBase64: null, waitScreenUpdated: null },
+      { merge: true }
+    );
+    document.getElementById('cfg-wait-screen-preview-wrap').style.display = 'none';
+    document.getElementById('cfg-wait-screen-remove-btn').style.display = 'none';
+    document.getElementById('cfg-wait-screen-save-btn').disabled = true;
+    _waitScreenPendingBase64 = null;
+    showToast('Tela de espera removida', 'success');
+  } catch(e) { showToast('Erro: ' + e.message, 'error'); }
+}
+
+async function carregarWaitScreen() {
+  if (!fbDb || !window._fbGetDoc || !window._fbDoc) return;
+  try {
+    const snap = await window._fbGetDoc(window._fbDoc(fbDb, 'artifacts', 'cifrei-app', 'public', 'data', 'config'));
+    if (!snap.exists()) return;
+    const data = snap.data();
+    if (data?.waitScreenBase64) {
+      const preview = document.getElementById('cfg-wait-screen-preview');
+      const wrap = document.getElementById('cfg-wait-screen-preview-wrap');
+      const status = document.getElementById('cfg-wait-screen-status');
+      const removeBtn = document.getElementById('cfg-wait-screen-remove-btn');
+      if (preview) preview.src = data.waitScreenBase64;
+      if (wrap) wrap.style.display = 'block';
+      if (removeBtn) removeBtn.style.display = 'inline-flex';
+      if (status && data.waitScreenUpdated) {
+        status.textContent = new Date(data.waitScreenUpdated).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'numeric' });
+      }
+    }
+  } catch(e) {}
+}
+// ── fim TELA DE ESPERA ────────────────────────────────────────────────────────
 
 // ── ONBOARDING ADM ───────────────────────────────────────────────────────────
 const ONB_ADM_STEPS = [
