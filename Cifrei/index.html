@@ -435,28 +435,31 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 /* ── BÍBLIA HOLYRICS-STYLE ────────────────────────────── */
 .lctrl-bible-panel{flex:1;overflow:hidden;display:none;flex-direction:column;}
 .lctrl-bible-panel.active{display:flex;}
-/* Barra de navegação breadcrumb */
-.lctrl-bible-nav{display:flex;align-items:center;gap:4px;padding:6px 8px 4px;flex-shrink:0;min-height:30px;border-bottom:1px solid rgba(255,255,255,.05);margin-bottom:2px;}
-.lctrl-bible-nav-btn{background:none;border:none;color:rgba(52,211,153,.65);font-size:11px;font-weight:700;cursor:pointer;padding:2px 6px;border-radius:6px;transition:all .12s;white-space:nowrap;}
-.lctrl-bible-nav-btn:hover{background:rgba(52,211,153,.1);color:#34d399;}
-.lctrl-bible-nav-sep{color:rgba(255,255,255,.2);font-size:10px;flex-shrink:0;}
-.lctrl-bible-nav-cur{font-size:11px;font-weight:700;color:#e5f0ea;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-/* Corpo com scroll */
-.lctrl-bible-body{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(52,211,153,.2) transparent;}
-/* Lista de livros */
-.lctrl-bible-section-hdr{font-size:9px;font-weight:800;letter-spacing:1.2px;color:rgba(52,211,153,.4);text-transform:uppercase;padding:8px 8px 3px;}
-.lctrl-bible-book-btn{display:block;width:100%;text-align:left;background:none;border:none;border-radius:0;padding:5px 10px;font-size:12px;font-weight:600;color:#bfcfc8;cursor:pointer;transition:all .1s;border-bottom:1px solid rgba(255,255,255,.03);}
-.lctrl-bible-book-btn:hover{background:rgba(52,211,153,.09);color:#34d399;}
-/* Grid de capítulos */
-.lctrl-bible-chap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(34px,1fr));gap:5px;padding:8px;}
-.lctrl-bible-chap-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:6px 2px;font-size:12px;font-weight:700;color:#a8bfb5;cursor:pointer;text-align:center;transition:all .1s;}
-.lctrl-bible-chap-btn:hover{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.3);color:#34d399;}
-/* Lista de versículos */
-.lctrl-bible-verse{display:flex;align-items:flex-start;gap:6px;padding:5px 8px;cursor:pointer;transition:background .1s;}
-.lctrl-bible-verse:hover{background:rgba(52,211,153,.08);}
-.lctrl-bible-verse.projecting{background:rgba(52,211,153,.14);}
-.lctrl-bible-verse-num{font-size:10px;font-weight:800;color:rgba(52,211,153,.5);min-width:18px;padding-top:2px;flex-shrink:0;text-align:right;}
-.lctrl-bible-verse-text{font-size:12px;color:#c8d8d0;line-height:1.5;}
+/* Breadcrumb nav */
+.lctrl-bible-nav{display:flex;align-items:center;gap:2px;padding:5px 8px;flex-shrink:0;background:rgba(0,0,0,.25);border-bottom:1px solid rgba(255,255,255,.06);}
+.lctrl-bible-nav-btn{background:none;border:none;color:rgba(52,211,153,.7);font-size:11px;font-weight:600;cursor:pointer;padding:2px 5px;border-radius:4px;transition:all .1s;white-space:nowrap;}
+.lctrl-bible-nav-btn:hover{background:rgba(52,211,153,.12);color:#34d399;}
+.lctrl-bible-nav-sep{color:rgba(255,255,255,.18);font-size:10px;flex-shrink:0;padding:0 1px;}
+.lctrl-bible-nav-cur{font-size:11px;font-weight:700;color:#d4e8de;}
+/* Scroll body */
+.lctrl-bible-body{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(52,211,153,.15) transparent;}
+/* Cabeçalho AT/NT */
+.lctrl-bible-section-hdr{font-size:9px;font-weight:800;letter-spacing:1.4px;color:rgba(52,211,153,.45);text-transform:uppercase;padding:9px 10px 3px;background:rgba(0,0,0,.15);}
+/* Linhas de livros — estilo lista compacta tipo Holyrics */
+.lctrl-bible-book-btn{display:flex;align-items:center;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid rgba(255,255,255,.03);padding:6px 10px;font-size:12.5px;color:#c2d5cc;cursor:pointer;transition:background .09s;gap:6px;}
+.lctrl-bible-book-btn::before{content:'';display:block;width:3px;height:3px;border-radius:50%;background:rgba(52,211,153,.3);flex-shrink:0;}
+.lctrl-bible-book-btn:hover{background:rgba(52,211,153,.1);color:#e0f2ea;}
+.lctrl-bible-book-btn:hover::before{background:#34d399;}
+/* Grid de capítulos — quadradinhos compactos */
+.lctrl-bible-chap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(30px,1fr));gap:4px;padding:8px;}
+.lctrl-bible-chap-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:5px;padding:5px 2px;font-size:12px;font-weight:700;color:#96b0a6;cursor:pointer;text-align:center;transition:all .09s;line-height:1;}
+.lctrl-bible-chap-btn:hover{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.35);color:#fff;}
+/* Versículos */
+.lctrl-bible-verse{display:flex;align-items:flex-start;gap:7px;padding:4px 8px 4px 6px;cursor:pointer;transition:background .09s;border-left:2px solid transparent;}
+.lctrl-bible-verse:hover{background:rgba(52,211,153,.07);border-left-color:rgba(52,211,153,.3);}
+.lctrl-bible-verse.projecting{background:rgba(52,211,153,.13);border-left-color:#34d399;}
+.lctrl-bible-verse-num{font-size:9.5px;font-weight:800;color:rgba(52,211,153,.55);min-width:16px;padding-top:3px;flex-shrink:0;text-align:right;}
+.lctrl-bible-verse-text{font-size:12px;color:#c0d4ca;line-height:1.48;}
 .lctrl-tema-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:6px 12px;cursor:pointer;color:var(--faint);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .14s;flex-shrink:0;}
 .lctrl-tema-btn:hover{background:rgba(255,255,255,.09);color:var(--muted);}
 .lctrl-tema-btn.light{color:#fbbf24;border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08);}
@@ -11116,17 +11119,9 @@ const _BIBLE_CHAPS = [0,
   1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,4,3,1,13,5,5,3,5,1,1,1,22
 ];
 // Categorias para tela de livros
-const _BIBLE_CATS = [
-  ['Pentateuco', [1,2,3,4,5]],
-  ['Históricos', [6,7,8,9,10,11,12,13,14,15,16,17]],
-  ['Poéticos', [18,19,20,21,22]],
-  ['Proféticos maiores', [23,24,25,26,27]],
-  ['Proféticos menores', [28,29,30,31,32,33,34,35,36,37,38,39]],
-  ['Evangelhos', [40,41,42,43]],
-  ['História NT', [44]],
-  ['Cartas de Paulo', [45,46,47,48,49,50,51,52,53,54,55,56,57]],
-  ['Cartas gerais', [58,59,60,61,62,63,64,65]],
-  ['Profecia NT', [66]]
+const _BIBLE_SECS = [
+  ['Antigo Testamento', Array.from({length:39},(_,i)=>i+1)],
+  ['Novo Testamento', Array.from({length:27},(_,i)=>i+40)]
 ];
 
 let _bibliaNav = { level: 'books', book: null, chap: null };
@@ -11160,8 +11155,8 @@ function _ltBibliaRenderBooks() {
   const body = document.getElementById('lctrl-bible-body');
   if (!body) return;
   const esc = s => s.replace(/"/g, '&quot;');
-  body.innerHTML = _BIBLE_CATS.map(([cat, books]) =>
-    '<div class="lctrl-bible-section-hdr">' + cat + '</div>' +
+  body.innerHTML = _BIBLE_SECS.map(([sec, books]) =>
+    '<div class="lctrl-bible-section-hdr">' + sec + '</div>' +
     books.map(n =>
       '<button class="lctrl-bible-book-btn" onclick="_ltBibliaOpenBook(' + n + ')">' + _BIBLE_NAMES[n] + '</button>'
     ).join('')
@@ -11221,7 +11216,7 @@ function _ltBibliaOpenChap(bookNum, chapNum) {
 async function _ltBibliaFetchCap(bookNum, chapter) {
   const key = bookNum + ':' + chapter;
   if (_BIBLE_CACHE.has(key)) return _BIBLE_CACHE.get(key);
-  const r = await fetch('https://getbible.net/v2/acf/' + bookNum + '/' + chapter + '.json');
+  const r = await fetch('https://api.getbible.net/v2/ara/' + bookNum + '/' + chapter + '.json');
   if (!r.ok) throw new Error('HTTP ' + r.status);
   const data = await r.json();
   const verses = data && data.verses
