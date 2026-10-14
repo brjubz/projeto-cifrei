@@ -1323,18 +1323,18 @@ window.addEventListener('unhandledrejection', function(e) {
 
     <!-- Quadro de Avisos — gerenciado pelo admin (oculto se sem mensagem) -->
     <div id="home-aviso-wrap" style="display:none;width:100%;animation:cardIn .5s cubic-bezier(.22,1,.36,1) .2s both;">
-      <div style="position:relative;padding-top:11px;">
-        <!-- orelhinha do post-it -->
-        <div style="position:absolute;top:0;left:16px;width:34px;height:12px;border:1px solid rgba(52,211,153,.4);border-bottom:none;border-radius:5px 5px 0 0;"></div>
-        <!-- corpo do post-it -->
-        <div style="border:1px solid rgba(52,211,153,.4);border-radius:0 10px 10px 10px;padding:12px 15px;background:transparent;">
-          <div style="font-size:9px;font-weight:700;letter-spacing:1.8px;color:rgba(52,211,153,.4);text-transform:uppercase;margin-bottom:7px;">Aviso</div>
-          <div id="home-aviso-texto" style="font-size:13px;font-weight:400;color:rgba(255,255,255,.82);line-height:1.65;white-space:pre-wrap;"></div>
-          <a id="home-aviso-link" href="#" target="_blank" rel="noopener" style="display:none;margin-top:10px;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:rgba(52,211,153,.7);text-decoration:none;">
+      <div style="position:relative;">
+        <!-- corpo do post-it com canto dobrado (clip-path corta o canto inferior esquerdo) -->
+        <div style="background:rgba(255,255,255,.07);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.11);border-radius:10px 10px 10px 0;clip-path:polygon(0 0,100% 0,100% 100%,20px 100%,0 calc(100% - 20px));padding:11px 14px 22px;">
+          <div style="font-size:9px;font-weight:600;letter-spacing:1.8px;color:rgba(255,255,255,.3);text-transform:uppercase;margin-bottom:6px;">aviso</div>
+          <div id="home-aviso-texto" style="font-size:11.5px;font-weight:400;color:rgba(255,255,255,.78);line-height:1.62;white-space:pre-wrap;"></div>
+          <a id="home-aviso-link" href="#" target="_blank" rel="noopener" style="display:none;margin-top:9px;align-items:center;gap:4px;font-size:11px;font-weight:500;color:rgba(255,255,255,.45);text-decoration:none;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             <span id="home-aviso-link-texto">Saiba mais</span>
           </a>
         </div>
+        <!-- triângulo do canto dobrado -->
+        <div style="position:absolute;bottom:0;left:0;width:0;height:0;border-style:solid;border-width:20px 0 0 20px;border-color:transparent transparent transparent rgba(255,255,255,.06);"></div>
       </div>
     </div>
 
