@@ -10648,7 +10648,8 @@ function _fecharChordPopup(e) {
 
 // ══ LYRICS TRANSMITTER ════════════════════════════════════════════
 // previewIdx = estrofe visível no box (1 clique); stropheIdx = estrofe projetada (2 cliques)
-const _LT = { win: null, songIdx: -1, stropheIdx: -1, previewIdx: -1, strophes: [], blank: false };
+// bibleMode = { bookNum, chapNum, verseNum, verses, idx } quando está projetando versículo
+const _LT = { win: null, songIdx: -1, stropheIdx: -1, previewIdx: -1, strophes: [], blank: false, bibleMode: null };
 function _ltEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function _ltParsearEstrofes(letra) {
@@ -10766,12 +10767,22 @@ function _ltRenderSongs() {
   S.songs.forEach((s, i) => {
     const row = document.createElement('div');
     const temLetra = !!(s.letra?.trim());
+    const fromBanco = !!s._fromBanco;
     row.className = 'lctrl-song-row' + (_LT.songIdx === i ? ' active' : '');
     if (!temLetra) row.style.opacity = '0.55';
     row.dataset.idx = i;
-    row.innerHTML = `<span class="lctrl-song-num">${i+1}</span><span class="lctrl-song-name">${_ltEsc(s.title)}</span><button class="lctrl-song-edit-btn" title="Editar letra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>`;
+    const editBtn = `<button class="lctrl-song-edit-btn" title="Editar letra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>`;
+    const removeBtn = fromBanco ? `<button class="lctrl-song-remove-btn" title="Remover da lista" style="background:none;border:none;cursor:pointer;color:rgba(248,113,113,.55);padding:3px 5px;border-radius:5px;display:flex;align-items:center;transition:color .1s;" onmouseenter="this.style.color='#f87171'" onmouseleave="this.style.color='rgba(248,113,113,.55)'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>` : '';
+    row.innerHTML = `<span class="lctrl-song-num">${i+1}</span><span class="lctrl-song-name">${_ltEsc(s.title)}</span>${editBtn}${removeBtn}`;
     row.addEventListener('click', (e) => {
       if (e.target.closest('.lctrl-song-edit-btn')) { _ltAbrirEditarLetra(i); return; }
+      if (e.target.closest('.lctrl-song-remove-btn')) {
+        S.songs.splice(i, 1);
+        if (_LT.songIdx === i) { _LT.songIdx = -1; _LT.strophes = []; _ltRenderStrophes(); _ltAtualizarBox(); _ltAtualizarNav(); }
+        else if (_LT.songIdx > i) _LT.songIdx--;
+        _ltRenderSongs();
+        return;
+      }
       if (temLetra) _ltSelectSong(i);
     });
     list.appendChild(row);
@@ -10785,6 +10796,7 @@ function _ltSelectSong(idx) {
   _LT.strophes = _ltParsearEstrofes(song.letra);
   _LT.stropheIdx = -1;
   _LT.previewIdx = -1;
+  _LT.bibleMode = null;
   document.querySelectorAll('.lctrl-song-row').forEach(r => r.classList.toggle('active', parseInt(r.dataset.idx) === idx));
   const nameEl = document.getElementById('lctrl-current-song');
   if (nameEl) nameEl.textContent = song.title;
@@ -10841,6 +10853,7 @@ function _ltProjetar(idx) {
   _LT.stropheIdx = idx;
   _LT.previewIdx = idx;
   _LT.blank = false;
+  _LT.bibleMode = null;
   document.getElementById('lctrl-blank-btn')?.classList.remove('on');
   document.querySelectorAll('.lctrl-strophe-card').forEach((c, i) => _ltAtualizarClassCard(c, i));
   document.querySelector('.lctrl-strophe-card.active')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -10969,6 +10982,13 @@ function _ltAtualizarNav() {
   const prev = document.getElementById('lctrl-nav-prev');
   const next = document.getElementById('lctrl-nav-next');
   const cnt  = document.getElementById('lctrl-nav-cnt');
+  if (_LT.bibleMode) {
+    const { idx, verses } = _LT.bibleMode;
+    if (prev) prev.disabled = idx <= 0;
+    if (next) next.disabled = idx >= verses.length - 1;
+    if (cnt) cnt.textContent = `${idx+1} / ${verses.length}`;
+    return;
+  }
   const refIdx = _LT.stropheIdx >= 0 ? _LT.stropheIdx : _LT.previewIdx;
   if (prev) prev.disabled = refIdx <= 0;
   if (next) next.disabled = refIdx >= _LT.strophes.length - 1 || refIdx < 0;
@@ -10976,10 +10996,20 @@ function _ltAtualizarNav() {
 }
 
 function _ltNavPrev() {
+  if (_LT.bibleMode) {
+    const { bookNum, chapNum, verses, idx } = _LT.bibleMode;
+    if (idx > 0) _ltBibliaProjetarVerso(bookNum, chapNum, verses[idx-1].v);
+    return;
+  }
   const ref = _LT.stropheIdx >= 0 ? _LT.stropheIdx : _LT.previewIdx;
   if (ref > 0) _ltProjetar(ref - 1);
 }
 function _ltNavNext() {
+  if (_LT.bibleMode) {
+    const { bookNum, chapNum, verses, idx } = _LT.bibleMode;
+    if (idx < verses.length - 1) _ltBibliaProjetarVerso(bookNum, chapNum, verses[idx+1].v);
+    return;
+  }
   const ref = _LT.stropheIdx >= 0 ? _LT.stropheIdx : _LT.previewIdx;
   if (ref >= 0 && ref < _LT.strophes.length - 1) _ltProjetar(ref + 1);
   else if (ref < 0 && _LT.strophes.length) _ltProjetar(0);
@@ -11252,10 +11282,11 @@ function _ltBiblioPreview(song) {
   const previewEl  = document.getElementById('lctrl-preview-text');
   const previewCard = document.getElementById('lctrl-pcard-preview');
   if (!previewEl) return;
-  const texto = song.letra?.trim()
-    ? song.letra.trim().split(/\n{2,}/)[0]  // primeira estrofe
-    : '(' + _ltEsc(song.title) + ')';
-  previewEl.innerHTML = '<strong style="display:block;font-size:11px;color:rgba(52,211,153,.7);margin-bottom:4px;">' + _ltEsc(song.title) + '</strong>' + _ltEsc(texto).replace(/\n/g,'<br>');
+  const letra = song.letra?.trim();
+  const corpo = letra
+    ? _ltEsc(letra).replace(/\n/g,'<br>')
+    : '<em style="color:rgba(150,170,160,.4);font-size:11px;">letra não cadastrada</em>';
+  previewEl.innerHTML = '<strong style="display:block;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:rgba(52,211,153,.6);margin-bottom:6px;">' + _ltEsc(song.title) + '</strong>' + corpo;
   previewCard?.classList.add('has-content');
 }
 
@@ -11495,6 +11526,13 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
     _LT.win.postMessage({ type: 'theme', theme: _ltTema }, '*');
     _LT.win.postMessage({ type: 'show', text, song: ref, label: 'Bíblia' }, '*');
   }
+  // Habilita navegação por setas nos versículos
+  const verseIdx = cached.findIndex(x => x.v === verseNum);
+  _LT.bibleMode = { bookNum, chapNum, verseNum, verses: cached, idx: verseIdx };
+  _ltAtualizarNav();
+  // Mostra badge AO VIVO
+  const badge = document.getElementById('lctrl-live-badge');
+  if (badge) { badge.classList.add('on'); badge.innerHTML = '<span class="ldot"></span>AO VIVO'; }
 }
 // ── fim BÍBLIA ────────────────────────────────────────────────────
 
