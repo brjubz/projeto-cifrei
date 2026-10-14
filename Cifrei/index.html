@@ -303,67 +303,89 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .list-title-grad{background:linear-gradient(135deg,#fff 30%,rgba(255,255,255,.55));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
 /* === LYRICS TRANSMITTER === */
-/* Na view-list esconder em mobile; no sono sempre visível */
 #view-list .lyrics-transmit-btn{display:none;}
 @media(min-width:768px){#view-list .lyrics-transmit-btn{display:flex;}}
-.lyrics-transmit-btn{background:linear-gradient(135deg,rgba(192,132,252,.14),rgba(139,92,246,.09));border:1px solid rgba(192,132,252,.28);border-radius:8px;padding:5px 11px;cursor:pointer;display:flex;align-items:center;gap:5px;color:#c084fc;font-size:10px;font-weight:700;letter-spacing:.3px;transition:all .2s;flex-shrink:0;align-self:flex-start;margin-top:4px;}
-.lyrics-transmit-btn:hover{background:linear-gradient(135deg,rgba(192,132,252,.22),rgba(139,92,246,.16));border-color:rgba(192,132,252,.48);box-shadow:0 0 10px rgba(192,132,252,.15);}
+.lyrics-transmit-btn{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28);border-radius:8px;padding:5px 11px;cursor:pointer;display:flex;align-items:center;gap:5px;color:#34d399;font-size:10px;font-weight:700;letter-spacing:.3px;transition:all .2s;flex-shrink:0;align-self:flex-start;margin-top:4px;}
+.lyrics-transmit-btn:hover{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.48);box-shadow:0 0 10px rgba(52,211,153,.15);}
 /* Overlay */
-.lctrl-overlay{position:fixed;inset:0;z-index:9998;display:none;flex-direction:column;background:#09090e;}
+.lctrl-overlay{position:fixed;inset:0;z-index:9998;display:none;flex-direction:column;background:#080c0a;}
 .lctrl-overlay.open{display:flex;}
-/* Header bar */
-.lctrl-header{display:flex;align-items:center;gap:12px;padding:12px 18px;background:#0e0e16;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;}
-.lctrl-header-title{font-family:var(--font-chord);font-size:14px;font-weight:800;color:#e5e5f0;flex:1;}
-.lctrl-current-song{font-size:12px;color:var(--muted);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.lctrl-live-badge{background:rgba(100,100,120,.12);border:1px solid rgba(100,100,120,.2);border-radius:99px;padding:3px 10px;font-size:9px;font-weight:800;color:var(--faint);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:5px;transition:all .3s;}
+/* Top bar */
+.lctrl-header{display:flex;align-items:center;gap:10px;padding:10px 18px;background:#0a110e;border-bottom:1px solid rgba(52,211,153,.1);flex-shrink:0;}
+.lctrl-header-title{font-family:var(--font-chord);font-size:13px;font-weight:800;color:#e5f0ea;display:flex;align-items:center;gap:7px;flex:1;}
+.lctrl-live-badge{background:rgba(100,120,110,.12);border:1px solid rgba(100,120,110,.2);border-radius:99px;padding:3px 10px;font-size:9px;font-weight:800;color:var(--faint);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:5px;transition:all .3s;}
 .lctrl-live-badge.on{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.32);color:#f87171;}
-.lctrl-live-badge .ldot{width:6px;height:6px;border-radius:50%;background:rgba(150,150,180,.4);flex-shrink:0;}
+.lctrl-live-badge .ldot{width:6px;height:6px;border-radius:50%;background:rgba(150,180,160,.4);flex-shrink:0;}
 .lctrl-live-badge.on .ldot{background:#ef4444;animation:sonoLedBlink 1.4s ease infinite;}
-.lctrl-proj-btn{background:rgba(192,132,252,.12);border:1px solid rgba(192,132,252,.28);border-radius:8px;padding:5px 12px;cursor:pointer;color:#c084fc;font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .15s;letter-spacing:.2px;}
-.lctrl-proj-btn:hover{background:rgba(192,132,252,.2);border-color:rgba(192,132,252,.45);}
+.lctrl-proj-btn{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.28);border-radius:8px;padding:5px 12px;cursor:pointer;color:#34d399;font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.lctrl-proj-btn:hover{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.5);}
 .lctrl-close-btn{background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px 12px;cursor:pointer;color:var(--faint);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;transition:all .15s;}
 .lctrl-close-btn:hover{border-color:rgba(239,68,68,.4);color:#f87171;}
+/* Greeting bar */
+.lctrl-greeting{display:flex;align-items:center;gap:16px;padding:14px 20px 12px;background:linear-gradient(135deg,rgba(10,20,14,.95),rgba(8,16,12,.95));border-bottom:1px solid rgba(52,211,153,.08);flex-shrink:0;}
+.lctrl-avatar{width:44px;height:44px;border-radius:50%;border:2px solid rgba(52,211,153,.35);background:linear-gradient(135deg,rgba(52,211,153,.2),rgba(45,214,137,.1));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#34d399;flex-shrink:0;overflow:hidden;}
+.lctrl-avatar img{width:100%;height:100%;object-fit:cover;}
+.lctrl-greeting-text{flex:1;min-width:0;}
+.lctrl-greeting-name{font-family:var(--font-chord);font-size:14px;font-weight:800;color:#e5f0ea;margin-bottom:2px;}
+.lctrl-greeting-sub{font-size:11px;color:rgba(52,211,153,.7);font-weight:600;}
+.lctrl-instructions{display:flex;align-items:center;gap:16px;flex-shrink:0;}
+.lctrl-inst-item{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(200,220,210,.55);font-weight:600;}
+.lctrl-inst-key{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:5px;padding:1px 6px;font-family:var(--font-chord);font-size:10px;color:#34d399;font-weight:800;}
 /* Body */
 .lctrl-body{flex:1;display:flex;overflow:hidden;}
 /* Songs panel */
-.lctrl-songs-panel{width:220px;flex-shrink:0;border-right:1px solid rgba(255,255,255,.06);overflow-y:auto;padding:8px 0;}
-.lctrl-songs-panel-title{font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--faint);text-transform:uppercase;padding:8px 16px 6px;}
+.lctrl-songs-panel{width:215px;flex-shrink:0;border-right:1px solid rgba(52,211,153,.07);overflow-y:auto;padding:8px 0;background:rgba(4,10,7,.4);}
+.lctrl-songs-panel-title{font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.4);text-transform:uppercase;padding:8px 16px 6px;}
 .lctrl-song-row{padding:9px 16px;cursor:pointer;transition:background .12s;border-left:3px solid transparent;display:flex;align-items:center;gap:8px;}
-.lctrl-song-row:hover{background:rgba(255,255,255,.04);}
-.lctrl-song-row.active{background:rgba(192,132,252,.08);border-left-color:#c084fc;}
-.lctrl-song-num{font-family:var(--font-chord);font-size:10px;font-weight:800;color:var(--faint);flex-shrink:0;width:16px;}
-.lctrl-song-name{font-size:12px;font-weight:600;color:#d4d4e0;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
-.lctrl-song-row.active .lctrl-song-name{color:#e0d4f8;}
+.lctrl-song-row:hover{background:rgba(52,211,153,.05);}
+.lctrl-song-row.active{background:rgba(52,211,153,.08);border-left-color:#34d399;}
+.lctrl-song-num{font-family:var(--font-chord);font-size:10px;font-weight:800;color:rgba(52,211,153,.35);flex-shrink:0;width:16px;}
+.lctrl-song-name{font-size:12px;font-weight:600;color:#c8d8cc;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.lctrl-song-row.active .lctrl-song-name{color:#e5f0ea;}
 .lctrl-song-noletras{font-size:11px;color:var(--faint);font-style:italic;padding:12px 16px;}
 /* Main area */
-.lctrl-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:18px 22px 14px;}
-/* Preview */
-.lctrl-preview-wrap{flex-shrink:0;background:linear-gradient(135deg,#0c0c18,#111120);border:1px solid rgba(192,132,252,.12);border-radius:14px;padding:18px 22px 16px;min-height:110px;position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
-.lctrl-preview-wrap::before{content:'PROJETANDO AGORA';position:absolute;top:10px;left:16px;font-size:8px;font-weight:800;letter-spacing:1.5px;color:rgba(192,132,252,.4);text-transform:uppercase;}
-#lctrl-preview-text{font-size:16px;font-weight:600;color:#fff;text-align:center;line-height:1.7;white-space:pre-line;padding-top:10px;width:100%;}
+.lctrl-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:16px 22px 14px;}
+/* Preview box */
+.lctrl-preview-wrap{flex-shrink:0;background:linear-gradient(135deg,rgba(8,20,12,.95),rgba(6,16,10,.95));border:1px solid rgba(52,211,153,.1);border-radius:14px;padding:16px 22px 14px;min-height:100px;position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:12px;transition:border-color .2s;}
+.lctrl-preview-wrap::before{content:attr(data-label);position:absolute;top:10px;left:16px;font-size:8px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.45);text-transform:uppercase;}
+.lctrl-preview-wrap.previewing{border-color:rgba(251,191,36,.22);}
+.lctrl-preview-wrap.previewing::before{color:rgba(251,191,36,.6);}
+.lctrl-preview-wrap.projecting{border-color:rgba(52,211,153,.32);box-shadow:0 0 20px rgba(52,211,153,.05);}
+.lctrl-preview-wrap.projecting::before{color:rgba(52,211,153,.7);}
+#lctrl-preview-text{font-size:15px;font-weight:600;color:#e5f0ea;text-align:center;line-height:1.72;white-space:pre-line;padding-top:10px;width:100%;transition:color .2s;}
+.lctrl-preview-wrap.previewing #lctrl-preview-text{color:#fde68a;}
 .lctrl-preview-idle{font-size:13px;color:var(--faint);font-style:italic;}
+/* Hint under preview */
+.lctrl-preview-hint{text-align:center;font-size:10px;color:rgba(52,211,153,.35);margin-bottom:10px;flex-shrink:0;font-weight:600;letter-spacing:.3px;}
 /* Strophes grid */
-.lctrl-strophes-label{font-size:9px;font-weight:800;letter-spacing:1.5px;color:var(--faint);text-transform:uppercase;margin-bottom:10px;flex-shrink:0;}
+.lctrl-strophes-label{font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.4);text-transform:uppercase;margin-bottom:8px;flex-shrink:0;}
 .lctrl-strophes-scroll{flex:1;overflow-y:auto;min-height:0;}
 .lctrl-strophes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:7px;}
-.lctrl-strophe-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .14s;position:relative;}
-.lctrl-strophe-card:hover{background:rgba(192,132,252,.07);border-color:rgba(192,132,252,.22);}
-.lctrl-strophe-card.active{background:rgba(192,132,252,.13);border-color:rgba(192,132,252,.45);box-shadow:0 0 12px rgba(192,132,252,.1);}
-.lctrl-strophe-section{font-size:8px;font-weight:800;letter-spacing:.8px;color:rgba(192,132,252,.75);text-transform:uppercase;margin-bottom:4px;}
-.lctrl-strophe-card.active .lctrl-strophe-section{color:#c084fc;}
-.lctrl-strophe-preview{font-size:11px;color:rgba(210,210,230,.72);line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
-.lctrl-strophe-card.active .lctrl-strophe-preview{color:#e8e8f4;}
-.lctrl-strophe-dot{position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:#c084fc;box-shadow:0 0 5px rgba(192,132,252,.5);display:none;}
-.lctrl-strophe-card.active .lctrl-strophe-dot{display:block;}
+.lctrl-strophe-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .14s;position:relative;user-select:none;}
+.lctrl-strophe-card:hover{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.2);}
+/* preview = 1 click */
+.lctrl-strophe-card.preview{background:rgba(251,191,36,.07);border-color:rgba(251,191,36,.28);}
+.lctrl-strophe-card.preview .lctrl-strophe-dot{background:#fbbf24;box-shadow:0 0 5px rgba(251,191,36,.5);}
+/* active = projetando (2 clicks) */
+.lctrl-strophe-card.active{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.42);box-shadow:0 0 12px rgba(52,211,153,.08);}
+.lctrl-strophe-section{font-size:8px;font-weight:800;letter-spacing:.8px;color:rgba(52,211,153,.6);text-transform:uppercase;margin-bottom:4px;}
+.lctrl-strophe-card.preview .lctrl-strophe-section{color:#fbbf24;}
+.lctrl-strophe-card.active .lctrl-strophe-section{color:#34d399;}
+.lctrl-strophe-preview{font-size:11px;color:rgba(210,225,215,.68);line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.lctrl-strophe-card.preview .lctrl-strophe-preview{color:#fde68a;}
+.lctrl-strophe-card.active .lctrl-strophe-preview{color:#d4eedd;}
+.lctrl-strophe-dot{position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 5px rgba(52,211,153,.5);display:none;}
+.lctrl-strophe-card.preview .lctrl-strophe-dot,.lctrl-strophe-card.active .lctrl-strophe-dot{display:block;}
 /* Nav */
-.lctrl-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 0 0;flex-shrink:0;border-top:1px solid rgba(255,255,255,.06);margin-top:10px;}
-.lctrl-nav-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 18px;cursor:pointer;color:#d4d4e0;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all .14s;}
-.lctrl-nav-btn:hover:not(:disabled){background:rgba(192,132,252,.1);border-color:rgba(192,132,252,.3);color:#c084fc;}
-.lctrl-nav-btn:disabled{opacity:.28;cursor:default;}
-.lctrl-nav-cnt{font-size:12px;color:var(--muted);}
+.lctrl-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;flex-shrink:0;border-top:1px solid rgba(52,211,153,.07);margin-top:8px;}
+.lctrl-nav-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:8px 18px;cursor:pointer;color:#c8d8cc;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all .14s;}
+.lctrl-nav-btn:hover:not(:disabled){background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.3);color:#34d399;}
+.lctrl-nav-btn:disabled{opacity:.25;cursor:default;}
+.lctrl-nav-cnt{font-size:12px;color:rgba(52,211,153,.5);}
 .lctrl-blank-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:8px 14px;cursor:pointer;color:var(--faint);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .14s;}
 .lctrl-blank-btn:hover{background:rgba(255,255,255,.08);color:var(--muted);}
-.lctrl-blank-btn.on{background:rgba(15,15,20,.9);border-color:rgba(255,255,255,.25);color:#fff;}
+.lctrl-blank-btn.on{background:rgba(10,10,10,.9);border-color:rgba(255,255,255,.2);color:#fff;}
+.lctrl-current-song{font-size:11px;color:rgba(52,211,153,.5);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 @keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
 /* ── DECK DE ESCALAS (swipe) ─────────────────────────────────────── */
 @keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
@@ -10211,8 +10233,8 @@ function _fecharChordPopup(e) {
 }
 
 // ══ LYRICS TRANSMITTER ════════════════════════════════════════════
-const _LT = { win: null, channel: null, songIdx: -1, stropheIdx: -1, strophes: [], blank: false };
-// esc não está no escopo deste script block (está no módulo ES6); usa versão local
+// previewIdx = estrofe visível no box (1 clique); stropheIdx = estrofe projetada (2 cliques)
+const _LT = { win: null, songIdx: -1, stropheIdx: -1, previewIdx: -1, strophes: [], blank: false };
 function _ltEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function _ltParsearEstrofes(letra) {
@@ -10237,11 +10259,33 @@ function _ltParsearEstrofes(letra) {
   return result;
 }
 
+function _ltGetNomeUsuario() {
+  try {
+    const p = JSON.parse(localStorage.getItem('cifrei_perms') || '{}');
+    if (p.nome) return p.nome;
+    const u = JSON.parse(localStorage.getItem('cifrei_user') || '{}');
+    if (u.nome) return u.nome;
+  } catch(e){}
+  // Tenta pegar do DOM (header de equipe ou perfil)
+  const perfilEl = document.querySelector('[data-meu-nome]');
+  if (perfilEl) return perfilEl.dataset.meuNome;
+  return null;
+}
+
 function abrirTransmitirLetras() {
   const overlay = document.getElementById('lctrl-overlay');
   if (!overlay) return;
   overlay.classList.add('open');
-  // Escuta mensagens do popup (ready, etc.)
+  // Preenche saudação com nome do usuário
+  const nome = _ltGetNomeUsuario();
+  const nomeEl = document.getElementById('lctrl-greeting-name');
+  if (nomeEl && nome) {
+    const primeiro = nome.split(' ')[0];
+    nomeEl.textContent = `Olá, ${primeiro}!`;
+    const av = document.getElementById('lctrl-avatar');
+    if (av) av.textContent = primeiro.charAt(0).toUpperCase();
+  }
+  // Escuta mensagens do popup
   if (!_LT._msgListener) {
     _LT._msgListener = (e) => {
       if (e.data?.type === 'ready' && _LT.stropheIdx >= 0) _ltProjetar(_LT.stropheIdx);
@@ -10259,14 +10303,10 @@ function abrirTransmitirLetras() {
     };
     document.addEventListener('keydown', overlay._keyHandler);
   }
-  // Se setlist ainda não carregou, carrega primeiro
   if (!S.songs.length) {
     const list = document.getElementById('lctrl-songs-list');
     if (list) list.innerHTML = '<div class="lctrl-song-noletras" style="padding:14px 16px;">Carregando repertório…</div>';
-    _carregarSetlistAsync().then(() => {
-      _ltRenderSongs();
-      _ltAutoSelectFirst();
-    });
+    _carregarSetlistAsync().then(() => { _ltRenderSongs(); _ltAutoSelectFirst(); });
     return;
   }
   _ltRenderSongs();
@@ -10286,7 +10326,6 @@ function fecharTransmitirLetras() {
   const overlay = document.getElementById('lctrl-overlay');
   overlay?.classList.remove('open');
   if (overlay?._keyHandler) document.removeEventListener('keydown', overlay._keyHandler);
-  // Tela preta na janela de projeção ao fechar
   if (_LT.win && !_LT.win.closed) _LT.win.postMessage({ type: 'blank' }, '*');
 }
 
@@ -10298,7 +10337,6 @@ function _ltRenderSongs() {
     list.innerHTML = '<div class="lctrl-song-noletras" style="padding:12px 16px;">Setlist vazio.</div>';
     return;
   }
-  // Tenta enriquecer letras do banco caso ainda não estejam
   if (typeof _enriquecerSetlistComLetras === 'function') _enriquecerSetlistComLetras();
   S.songs.forEach((s, i) => {
     const row = document.createElement('div');
@@ -10318,11 +10356,12 @@ function _ltSelectSong(idx) {
   _LT.songIdx = idx;
   _LT.strophes = _ltParsearEstrofes(song.letra);
   _LT.stropheIdx = -1;
+  _LT.previewIdx = -1;
   document.querySelectorAll('.lctrl-song-row').forEach(r => r.classList.toggle('active', parseInt(r.dataset.idx) === idx));
   const nameEl = document.getElementById('lctrl-current-song');
   if (nameEl) nameEl.textContent = song.title;
   _ltRenderStrophes();
-  _ltAtualizarPreview();
+  _ltAtualizarBox();
   _ltAtualizarNav();
 }
 
@@ -10336,25 +10375,50 @@ function _ltRenderStrophes() {
   }
   _LT.strophes.forEach((s, i) => {
     const card = document.createElement('div');
-    card.className = 'lctrl-strophe-card' + (_LT.stropheIdx === i ? ' active' : '');
     card.dataset.idx = i;
+    _ltAtualizarClassCard(card, i);
     card.innerHTML = `<div class="lctrl-strophe-dot"></div><div class="lctrl-strophe-section">${_ltEsc(s.label)}</div><div class="lctrl-strophe-preview">${_ltEsc(s.text)}</div>`;
-    card.addEventListener('click', () => _ltProjetar(i));
+    // 1 clique = preview; 2 cliques = projetar
+    card.addEventListener('click', () => _ltCliqueCard(i));
+    card.addEventListener('dblclick', (e) => { e.preventDefault(); _ltProjetar(i); });
     grid.appendChild(card);
   });
+}
+
+function _ltAtualizarClassCard(card, i) {
+  card.className = 'lctrl-strophe-card' +
+    (i === _LT.stropheIdx ? ' active' : (i === _LT.previewIdx ? ' preview' : ''));
+}
+
+function _ltCliqueCard(idx) {
+  if (_LT.previewIdx === idx && _LT.stropheIdx !== idx) {
+    // Segundo clique na mesma estrofe em prévia → projeta
+    _ltProjetar(idx);
+    return;
+  }
+  _ltPreviewEstrofe(idx);
+}
+
+function _ltPreviewEstrofe(idx) {
+  const strophe = _LT.strophes[idx];
+  if (!strophe) return;
+  _LT.previewIdx = idx;
+  document.querySelectorAll('.lctrl-strophe-card').forEach((c, i) => _ltAtualizarClassCard(c, i));
+  document.querySelector('.lctrl-strophe-card.preview')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  _ltAtualizarBox();
 }
 
 function _ltProjetar(idx) {
   const strophe = _LT.strophes[idx];
   if (!strophe) return;
   _LT.stropheIdx = idx;
+  _LT.previewIdx = idx;
   _LT.blank = false;
   document.getElementById('lctrl-blank-btn')?.classList.remove('on');
-  document.querySelectorAll('.lctrl-strophe-card').forEach((c, i) => c.classList.toggle('active', i === idx));
+  document.querySelectorAll('.lctrl-strophe-card').forEach((c, i) => _ltAtualizarClassCard(c, i));
   document.querySelector('.lctrl-strophe-card.active')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  _ltAtualizarPreview();
+  _ltAtualizarBox();
   _ltAtualizarNav();
-  // Envia para a janela de projeção via postMessage (mais confiável que BroadcastChannel em PWA)
   if (_LT.win && !_LT.win.closed) {
     _LT.win.postMessage({ type: 'show', text: strophe.text, label: strophe.label, song: S.songs[_LT.songIdx]?.title || '' }, '*');
   }
@@ -10362,24 +10426,45 @@ function _ltProjetar(idx) {
   if (badge) { badge.classList.add('on'); badge.innerHTML = '<span class="ldot"></span>AO VIVO'; }
 }
 
-function _ltAtualizarPreview() {
+function _ltAtualizarBox() {
   const el = document.getElementById('lctrl-preview-text');
+  const wrap = document.getElementById('lctrl-preview-wrap');
   if (!el) return;
-  const s = _LT.strophes[_LT.stropheIdx];
-  el.innerHTML = s ? esc(s.text).replace(/\n/g,'<br>') : '<span class="lctrl-preview-idle">Selecione uma estrofe para projetar</span>';
+  const isProjecting = _LT.stropheIdx >= 0 && _LT.previewIdx === _LT.stropheIdx;
+  const isPreviewing = _LT.previewIdx >= 0 && !isProjecting;
+  const showIdx = _LT.previewIdx >= 0 ? _LT.previewIdx : _LT.stropheIdx;
+  const s = _LT.strophes[showIdx];
+  if (s) {
+    el.innerHTML = _ltEsc(s.text).replace(/\n/g,'<br>');
+  } else {
+    el.innerHTML = '<span class="lctrl-preview-idle">Selecione uma estrofe</span>';
+  }
+  if (wrap) {
+    wrap.classList.toggle('projecting', isProjecting);
+    wrap.classList.toggle('previewing', isPreviewing);
+    wrap.dataset.label = isProjecting ? 'PROJETANDO AGORA' : (isPreviewing ? 'PRÉVIA' : 'PROJEÇÃO');
+  }
 }
 
 function _ltAtualizarNav() {
   const prev = document.getElementById('lctrl-nav-prev');
   const next = document.getElementById('lctrl-nav-next');
   const cnt  = document.getElementById('lctrl-nav-cnt');
-  if (prev) prev.disabled = _LT.stropheIdx <= 0;
-  if (next) next.disabled = _LT.stropheIdx >= _LT.strophes.length - 1 || _LT.stropheIdx < 0;
-  if (cnt) cnt.textContent = _LT.stropheIdx >= 0 ? `${_LT.stropheIdx+1} / ${_LT.strophes.length}` : `0 / ${_LT.strophes.length}`;
+  const refIdx = _LT.stropheIdx >= 0 ? _LT.stropheIdx : _LT.previewIdx;
+  if (prev) prev.disabled = refIdx <= 0;
+  if (next) next.disabled = refIdx >= _LT.strophes.length - 1 || refIdx < 0;
+  if (cnt) cnt.textContent = refIdx >= 0 ? `${refIdx+1} / ${_LT.strophes.length}` : `0 / ${_LT.strophes.length}`;
 }
 
-function _ltNavPrev() { if (_LT.stropheIdx > 0) _ltProjetar(_LT.stropheIdx - 1); }
-function _ltNavNext() { if (_LT.stropheIdx < _LT.strophes.length - 1 && _LT.stropheIdx >= 0) _ltProjetar(_LT.stropheIdx + 1); else if (_LT.stropheIdx < 0 && _LT.strophes.length) _ltProjetar(0); }
+function _ltNavPrev() {
+  const ref = _LT.stropheIdx >= 0 ? _LT.stropheIdx : _LT.previewIdx;
+  if (ref > 0) _ltProjetar(ref - 1);
+}
+function _ltNavNext() {
+  const ref = _LT.stropheIdx >= 0 ? _LT.stropheIdx : _LT.previewIdx;
+  if (ref >= 0 && ref < _LT.strophes.length - 1) _ltProjetar(ref + 1);
+  else if (ref < 0 && _LT.strophes.length) _ltProjetar(0);
+}
 
 function _ltToggleBlank() {
   _LT.blank = !_LT.blank;
@@ -10419,21 +10504,38 @@ function _ltAbrirJanela() {
 
 <!-- ══ LYRICS TRANSMITTER OVERLAY ══════════════════════ -->
 <div id="lctrl-overlay" class="lctrl-overlay">
+  <!-- Top bar -->
   <div class="lctrl-header">
     <div class="lctrl-header-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align:-3px;margin-right:6px;"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
       Transmitir Letras
     </div>
     <span class="lctrl-current-song" id="lctrl-current-song">—</span>
     <div id="lctrl-live-badge" class="lctrl-live-badge"><span class="ldot"></span>AGUARDANDO</div>
     <button class="lctrl-proj-btn" onclick="_ltAbrirJanela()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       Abrir Projeção
     </button>
     <button class="lctrl-close-btn" onclick="fecharTransmitirLetras()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       Fechar
     </button>
+  </div>
+  <!-- Greeting bar -->
+  <div class="lctrl-greeting">
+    <div class="lctrl-avatar" id="lctrl-avatar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    </div>
+    <div class="lctrl-greeting-text">
+      <div class="lctrl-greeting-name" id="lctrl-greeting-name">Olá, Sonoplasta!</div>
+      <div class="lctrl-greeting-sub">Módulo de projeção de letras — data show</div>
+    </div>
+    <div class="lctrl-instructions">
+      <div class="lctrl-inst-item"><span class="lctrl-inst-key">1×</span> prévia</div>
+      <div class="lctrl-inst-item"><span class="lctrl-inst-key">2×</span> projetar</div>
+      <div class="lctrl-inst-item"><span class="lctrl-inst-key">← →</span> navegar</div>
+      <div class="lctrl-inst-item"><span class="lctrl-inst-key">B</span> tela preta</div>
+    </div>
   </div>
   <div class="lctrl-body">
     <div class="lctrl-songs-panel">
@@ -10441,9 +10543,10 @@ function _ltAbrirJanela() {
       <div id="lctrl-songs-list"></div>
     </div>
     <div class="lctrl-main">
-      <div class="lctrl-preview-wrap">
-        <div id="lctrl-preview-text"><span class="lctrl-preview-idle">Selecione uma estrofe para projetar</span></div>
+      <div class="lctrl-preview-wrap" id="lctrl-preview-wrap" data-label="PROJEÇÃO">
+        <div id="lctrl-preview-text"><span class="lctrl-preview-idle">Selecione uma estrofe</span></div>
       </div>
+      <div class="lctrl-preview-hint">1× clique = prévia &nbsp;•&nbsp; 2× clique = projetar no data show</div>
       <div class="lctrl-strophes-label">Estrofes</div>
       <div class="lctrl-strophes-scroll">
         <div class="lctrl-strophes-grid" id="lctrl-strophes-grid"></div>
