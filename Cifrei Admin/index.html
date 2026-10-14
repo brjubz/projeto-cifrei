@@ -6040,22 +6040,58 @@ function _parsearJinaMd(md, url) {
   const cifraEnd = cifraSection.search(/Informa\u00e7\u00f5es da m\u00fasica|Composi\u00e7\u00e3o:|##\s*Todos artistas/);
   if (cifraEnd > 0) cifraSection = cifraSection.slice(0, cifraEnd);
 
-  // Converte markdown Jina para formato cifra padr\u00e3o: acordes numa linha, letra na pr\u00f3xima
+  // Converte markdown Jina para formato cifra padr\u00e3o: acordes posicionados acima da s\u00edlaba correta
   const CHORD_RE = /\*\*([A-G][^*]*)\*\*/g;
+
+  function convertLine(line) {
+    CHORD_RE.lastIndex = 0;
+    if (!CHORD_RE.test(line)) return line;
+    CHORD_RE.lastIndex = 0;
+
+    const secMatch = line.match(/^\[([^\]]+)\]\s*/);
+    let sec = '';
+    if (secMatch) {
+      sec = '[' + secMatch[1] + ']\n';
+      line = line.slice(secMatch[0].length);
+    }
+
+    // Acumula letra e registra posi\u00e7\u00e3o de cada acorde dentro da letra
+    const chords = [];
+    let lyric = '';
+    let lastEnd = 0;
+    let match;
+    CHORD_RE.lastIndex = 0;
+    while ((match = CHORD_RE.exec(line)) !== null) {
+      lyric += line.slice(lastEnd, match.index);
+      chords.push({ chord: match[1].trim(), pos: lyric.length });
+      lastEnd = match.index + match[0].length;
+    }
+    lyric += line.slice(lastEnd);
+
+    const lyricClean = lyric.replace(/[()]/g, '');
+    const lyricFinal = lyricClean.trim();
+    const isChordOnly = !lyricFinal;
+
+    // Para linhas s\u00f3 com acordes (intros, riffs) usa posi\u00e7\u00e3o original; caso contr\u00e1rio ajusta pelo trim
+    const trimOffset = isChordOnly ? 0 : (lyricClean.length - lyricClean.trimStart().length);
+    const adjusted = chords.map(c => ({ chord: c.chord, pos: Math.max(0, c.pos - trimOffset) }));
+
+    // Monta linha de acordes respeitando posi\u00e7\u00e3o; se houver colis\u00e3o, separa por 1 espa\u00e7o
+    let chordLine = '';
+    for (const { chord, pos } of adjusted) {
+      const target = pos > chordLine.length ? pos : chordLine.length + (chordLine.length > 0 ? 1 : 0);
+      chordLine = chordLine.padEnd(target, ' ') + chord;
+    }
+    chordLine = chordLine.trimEnd();
+
+    return isChordOnly ? sec + chordLine : sec + chordLine + '\n' + lyricFinal;
+  }
+
   const cifra = cifraSection
     .replace(/##[^\n]*/g, '')
     .replace(/\[.*?\]\(.*?\)/g, '')
     .split('\n')
-    .map(line => {
-      const chords = [...line.matchAll(CHORD_RE)].map(m => m[1].trim());
-      if (!chords.length) return line;
-      // Remove marcador de se\u00e7\u00e3o do lyric (ser\u00e1 colocado separado via sec)
-      const secMatch = line.match(/^\[([^\]]+)\]/);
-      const lyric = line.replace(CHORD_RE, '').replace(/^\[[^\]]+\]/, '').replace(/[()]/g, '').trim();
-      const sec = secMatch ? '[' + secMatch[1] + ']\n' : '';
-      const chordLine = chords.join('  ');
-      return lyric ? sec + chordLine + '\n' + lyric : sec + chordLine;
-    })
+    .map(line => convertLine(line))
     .join('\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
