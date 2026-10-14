@@ -371,11 +371,13 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-strophes-label{font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.35);text-transform:uppercase;margin-bottom:8px;flex-shrink:0;}
 .lctrl-strophes-scroll{flex:1;overflow-y:auto;min-height:0;}
 .lctrl-strophes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;align-items:start;}
-.lctrl-strophe-card{background:rgba(10,22,16,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 13px 12px;cursor:pointer;transition:all .15s;position:relative;user-select:none;min-height:120px;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;}
-.lctrl-strophe-card::-webkit-scrollbar{display:none;}
+.lctrl-strophe-card{background:rgba(10,22,16,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 13px 12px;cursor:pointer;transition:all .15s;position:relative;user-select:none;height:152px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(52,211,153,.2) transparent;display:flex;flex-direction:column;flex-shrink:0;}
+.lctrl-strophe-card::-webkit-scrollbar{width:3px;}
+.lctrl-strophe-card::-webkit-scrollbar-thumb{background:rgba(52,211,153,.2);border-radius:99px;}
 .lctrl-strophe-card:hover{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.22);}
 .lctrl-strophe-card.preview{background:rgba(30,22,4,.55);border-color:rgba(251,191,36,.3);}
 .lctrl-strophe-card.preview .lctrl-strophe-dot{background:#fbbf24;box-shadow:0 0 6px rgba(251,191,36,.6);}
+/* Card ativo = projetando: borda verde mas ponto VERMELHO piscando */
 .lctrl-strophe-card.active{background:rgba(4,20,12,.7);border-color:rgba(52,211,153,.45);box-shadow:0 0 14px rgba(52,211,153,.1);}
 .lctrl-strophe-section{font-size:8px;font-weight:800;letter-spacing:.8px;color:rgba(52,211,153,.55);text-transform:uppercase;margin-bottom:5px;flex-shrink:0;}
 .lctrl-strophe-card.preview .lctrl-strophe-section{color:#fbbf24;}
@@ -383,8 +385,11 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-strophe-preview{font-size:11.5px;color:rgba(210,228,218,.7);line-height:1.52;white-space:pre-line;flex:1;}
 .lctrl-strophe-card.preview .lctrl-strophe-preview{color:#fef3c7;}
 .lctrl-strophe-card.active .lctrl-strophe-preview{color:#ccf0e0;}
-.lctrl-strophe-dot{position:absolute;top:9px;right:9px;width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 6px rgba(52,211,153,.6);display:none;}
-.lctrl-strophe-card.preview .lctrl-strophe-dot,.lctrl-strophe-card.active .lctrl-strophe-dot{display:block;}
+.lctrl-strophe-dot{position:absolute;top:9px;right:9px;width:7px;height:7px;border-radius:50%;display:none;}
+/* preview = ponto âmbar estático */
+.lctrl-strophe-card.preview .lctrl-strophe-dot{display:block;background:#fbbf24;box-shadow:0 0 6px rgba(251,191,36,.6);}
+/* active = ponto vermelho piscando (AO VIVO) */
+.lctrl-strophe-card.active .lctrl-strophe-dot{display:block;background:#ef4444;box-shadow:0 0 7px rgba(239,68,68,.7);animation:sonoLedBlink 1.1s ease infinite;}
 .lctrl-preview-idle{font-size:12px;color:var(--faint);font-style:italic;}
 /* Botão de editar letra na lista de músicas */
 .lctrl-song-edit-btn{background:none;border:none;padding:2px 4px;cursor:pointer;color:rgba(52,211,153,.3);border-radius:5px;flex-shrink:0;display:flex;align-items:center;opacity:0;transition:opacity .15s,color .15s;margin-left:auto;}
@@ -10422,9 +10427,17 @@ function _ltRenderStrophes() {
     card.dataset.idx = i;
     _ltAtualizarClassCard(card, i);
     card.innerHTML = `<div class="lctrl-strophe-dot"></div><div class="lctrl-strophe-section">${_ltEsc(s.label)}</div><div class="lctrl-strophe-preview">${_ltEsc(s.text)}</div>`;
-    // 1 clique = preview; 2 cliques = projetar
-    card.addEventListener('click', () => _ltCliqueCard(i));
-    card.addEventListener('dblclick', (e) => { e.preventDefault(); _ltProjetar(i); });
+    // 1 clique = preview; dblclick simultâneo = projetar
+    let _ltCt = null;
+    card.addEventListener('click', () => {
+      clearTimeout(_ltCt);
+      _ltCt = setTimeout(() => _ltPreviewEstrofe(i), 230);
+    });
+    card.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      clearTimeout(_ltCt);
+      _ltProjetar(i);
+    });
     grid.appendChild(card);
   });
 }
@@ -10432,15 +10445,6 @@ function _ltRenderStrophes() {
 function _ltAtualizarClassCard(card, i) {
   card.className = 'lctrl-strophe-card' +
     (i === _LT.stropheIdx ? ' active' : (i === _LT.previewIdx ? ' preview' : ''));
-}
-
-function _ltCliqueCard(idx) {
-  if (_LT.previewIdx === idx && _LT.stropheIdx !== idx) {
-    // Segundo clique na mesma estrofe em prévia → projeta
-    _ltProjetar(idx);
-    return;
-  }
-  _ltPreviewEstrofe(idx);
 }
 
 function _ltPreviewEstrofe(idx) {
