@@ -397,6 +397,27 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .sono-hist-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(63,63,70,.2);}
 .sono-hist-row:last-child{border-bottom:none;}
 
+/* ── SONO V2 — Mixer/EQ ──────────────────── */
+@keyframes eqA{0%,100%{transform:scaleY(1)}40%{transform:scaleY(.12)}70%{transform:scaleY(.65)}}
+@keyframes eqB{0%,100%{transform:scaleY(.45)}35%{transform:scaleY(1)}65%{transform:scaleY(.18)}}
+@keyframes eqC{0%,100%{transform:scaleY(.75)}30%{transform:scaleY(.08)}62%{transform:scaleY(.95)}}
+@keyframes eqD{0%,100%{transform:scaleY(.28)}45%{transform:scaleY(.88)}75%{transform:scaleY(.42)}}
+@keyframes sonoLedBlink{0%,45%{opacity:1}50%,95%{opacity:.25}100%{opacity:1}}
+.sono-hero{background:linear-gradient(135deg,#0d0d15 0%,#12121e 55%,#0a0c16 100%);border:1px solid rgba(192,132,252,.2);border-radius:var(--radius-card);padding:22px 22px 18px;position:relative;overflow:hidden;min-height:120px;}
+.sono-hero::before{content:'';position:absolute;top:-50px;right:-30px;width:230px;height:230px;background:radial-gradient(circle,rgba(192,132,252,.09) 0%,transparent 65%);pointer-events:none;}
+.sono-hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(192,132,252,.3),transparent);}
+.sono-status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.sono-dot-on{background:#34d399;box-shadow:0 0 7px rgba(52,211,153,.75);}
+.sono-dot-off{background:rgba(255,255,255,.14);}
+.sono-dot-alert{background:#e11d48;box-shadow:0 0 7px rgba(225,29,72,.8);animation:sonoLedBlink .7s ease-in-out infinite;}
+.sono-ch-label{font-family:'Courier New',monospace;font-size:9px;font-weight:700;color:rgba(192,132,252,.75);background:rgba(192,132,252,.08);border:1px solid rgba(192,132,252,.18);border-radius:3px;padding:1px 5px;letter-spacing:.3px;}
+.sono-member-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;transition:background .15s;}
+.sono-member-row:hover{background:rgba(255,255,255,.04);}
+.sono-online-dot{width:9px;height:9px;border-radius:50%;background:#34d399;box-shadow:0 0 6px rgba(52,211,153,.6);flex-shrink:0;display:none;}
+.sono-online-dot.visible{display:block;}
+.sono-extra-online{margin-top:8px;padding-top:8px;border-top:1px solid rgba(63,63,70,.25);}
+.sono-nav-cnt{font-size:11px;font-weight:700;color:#34d399;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:99px;padding:2px 9px;letter-spacing:.3px;}
+
 /* ── BANCO ───────────────────────────────── */
 .banco-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
 .banco-header h2{font-family:var(--font-chord);font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px;}
@@ -1547,14 +1568,14 @@ window.addEventListener('unhandledrejection', function(e) {
   <div class="view" id="view-sono">
 
     <!-- Header fixo com navegação -->
-    <div style="position:sticky;top:0;z-index:30;background:rgba(9,9,11,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(63,63,70,.4);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="position:sticky;top:0;z-index:30;background:rgba(9,9,11,.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(192,132,252,.12);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;">
       <button class="reader-back" onclick="voltarHome()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
         Início
       </button>
-      <div style="font-size:12px;font-weight:800;color:var(--green);letter-spacing:2px;text-transform:uppercase;">Sonoplastia</div>
+      <div style="font-size:12px;font-weight:800;color:#c084fc;letter-spacing:2.5px;text-transform:uppercase;font-family:var(--font-chord);">MIXER</div>
       <div style="display:flex;align-items:center;gap:8px;">
-        <div id="sono-online-cnt" style="font-size:11px;color:var(--faint);font-weight:600;"></div>
+        <div id="sono-online-cnt" class="sono-nav-cnt" style="display:none;"></div>
         <button id="sono-notif-btn" onclick="_toggleNotifSono()" title="Notificações"
           style="background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:background .15s;">
           <svg id="sono-notif-icon" viewBox="0 0 24 24" fill="none" stroke="var(--faint)" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -1564,47 +1585,71 @@ window.addEventListener('unhandledrejection', function(e) {
 
     <div style="padding:16px 16px 100px;display:flex;flex-direction:column;gap:14px;">
 
-      <!-- Card saudação -->
-      <div id="sono-sky-card" style="position:relative;border-radius:20px;overflow:hidden;min-height:130px;background:#1e3a5f;">
-        <div id="sono-sky-scene" style="position:absolute;inset:0;width:100%;height:100%;overflow:hidden;"></div>
-        <div style="position:relative;z-index:2;padding:22px 22px 18px;">
-          <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;" id="sono-saudacao-label">Bom dia</div>
-          <div style="font-size:26px;font-weight:900;color:#fff;font-family:var(--font-chord);line-height:1;" id="sono-nome">Sonoplastia</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:6px;">🎵 Ministério de Louvor · 7ª Presbiteriana</div>
+      <!-- Hero card — mixer/EQ visual -->
+      <div class="sono-hero" id="sono-hero-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:relative;z-index:2;">
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+              <span class="sono-status-dot sono-dot-on" id="sono-live-dot"></span>
+              <span style="font-size:9px;font-weight:800;color:rgba(52,211,153,.8);letter-spacing:2px;text-transform:uppercase;" id="sono-live-label">AO VIVO</span>
+            </div>
+            <div style="font-size:10px;font-weight:700;color:rgba(192,132,252,.65);text-transform:uppercase;letter-spacing:2px;margin-bottom:3px;" id="sono-saudacao-label">Bom dia</div>
+            <div style="font-size:24px;font-weight:900;color:#fff;font-family:var(--font-chord);line-height:1.1;" id="sono-nome">Sonoplastia</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:6px;">Ministério de Louvor · 7ª Presbiteriana</div>
+          </div>
+          <!-- EQ bars display -->
+          <div id="sono-eq-display" style="flex-shrink:0;width:120px;align-self:flex-end;"></div>
+        </div>
+        <!-- Slot info row -->
+        <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid rgba(192,132,252,.1);position:relative;z-index:2;flex-wrap:wrap;">
+          <span class="sono-ch-label">CH 01 · VOZ</span>
+          <span class="sono-ch-label">CH 02 · GUIT</span>
+          <span class="sono-ch-label">CH 03 · BX</span>
+          <span class="sono-ch-label">CH 04 · BATERIA</span>
+          <span class="sono-ch-label">CH 05 · TECLA</span>
         </div>
       </div>
 
       <!-- Card chamados — destaque máximo -->
-      <div class="sono-card" id="sono-chamados-card" style="min-height:200px;display:flex;flex-direction:column;transition:border-color .3s,box-shadow .3s;">
+      <div class="sono-card" id="sono-chamados-card" style="min-height:180px;display:flex;flex-direction:column;transition:border-color .3s,box-shadow .3s;">
         <div class="sono-section-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <!-- Ícone "sinal de chamada" -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.58 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.48 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.13 6.13l.82-1.82a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           Chamados em aberto
           <div id="sono-chamados-badge" style="display:none;margin-left:auto;background:#e11d48;color:#fff;border-radius:99px;padding:1px 9px;font-size:10px;font-weight:800;letter-spacing:0;"></div>
         </div>
         <div id="sono-chamados-lista" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:8px;">
-          <div style="text-align:center;padding:28px 0;">
-            <div style="font-size:28px;margin-bottom:8px;">✅</div>
-            <div style="font-size:14px;font-weight:700;color:var(--muted);">Tudo certo por aqui</div>
-            <div style="font-size:12px;color:var(--faint);margin-top:3px;">Nenhum chamado no momento</div>
+          <div style="text-align:center;padding:24px 0;">
+            <div style="margin-bottom:8px;display:flex;align-items:center;justify-content:center;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="rgba(52,211,153,.6)" stroke-width="1.5" width="32" height="32"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div style="font-size:14px;font-weight:700;color:var(--muted);">Monitor limpo</div>
+            <div style="font-size:11px;color:var(--faint);margin-top:3px;">Nenhum chamado em aberto</div>
           </div>
         </div>
       </div>
 
-      <!-- Grid 2 colunas: Equipe + Repertório -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;align-items:start;">
+      <!-- Grid 2 colunas: Equipe (com online) + Repertório -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;align-items:start;">
 
-        <!-- Card escala próximo domingo -->
+        <!-- Card equipe — escala + dots online -->
         <div class="sono-card" id="sono-escala-card">
           <div class="sono-section-label">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             Equipe
+            <span style="margin-left:auto;font-size:10px;color:var(--faint);">● online</span>
           </div>
           <div id="sono-escala-lista">
             <div style="color:var(--faint);font-size:12px;text-align:center;padding:12px;">Carregando...</div>
           </div>
+          <!-- Usuários online que não estão na escala -->
+          <div id="sono-extra-online-wrap" style="display:none;" class="sono-extra-online">
+            <div style="font-size:10px;color:var(--faint);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Também online</div>
+            <div id="sono-presence-lista" style="display:flex;flex-direction:column;gap:4px;"></div>
+          </div>
         </div>
 
-        <!-- Card setlist -->
+        <!-- Card setlist / repertório -->
         <div class="sono-card">
           <div class="sono-section-label">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
@@ -1617,41 +1662,30 @@ window.addEventListener('unhandledrejection', function(e) {
 
       </div>
 
-      <!-- Grid 2 colunas: Online + Chamados hoje -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;">
-
-        <!-- Card online agora -->
-        <div class="sono-card">
-          <div class="sono-section-label">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="2"/><path d="M12 2a10 10 0 0 1 10 10"/><path d="M12 6a6 6 0 0 1 6 6"/><path d="M12 22a10 10 0 0 1-10-10"/><path d="M12 18a6 6 0 0 1-6-6"/></svg>
-            Online
-          </div>
-          <div id="sono-presence-lista" style="display:flex;flex-direction:column;gap:6px;">
-            <div style="color:var(--faint);font-size:12px;text-align:center;padding:8px 0;">—</div>
-          </div>
-        </div>
+      <!-- Grid 2 colunas: Chamados hoje + Histórico -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;">
 
         <!-- Card chamados hoje -->
-        <div class="sono-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
-          <div class="sono-section-label" style="justify-content:center;margin-bottom:6px;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="sono-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px 20px;">
+          <div class="sono-section-label" style="justify-content:center;margin-bottom:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.58 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.48 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.91a16 16 0 0 0 6.13 6.13l.82-1.82a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             Chamados hoje
           </div>
           <div id="sono-chamados-hoje-num" style="font-size:52px;font-weight:900;color:#fff;font-family:var(--font-chord);line-height:1;">0</div>
           <div style="font-size:10px;color:var(--faint);margin-top:4px;">registrados</div>
         </div>
 
-      </div>
+        <!-- Card histórico -->
+        <div class="sono-card">
+          <div class="sono-section-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Histórico de chamados
+          </div>
+          <div id="sono-historico-lista">
+            <div style="color:var(--faint);font-size:12px;text-align:center;padding:12px;">Nenhum chamado registrado</div>
+          </div>
+        </div>
 
-      <!-- Card histórico -->
-      <div class="sono-card">
-        <div class="sono-section-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Histórico de chamados
-        </div>
-        <div id="sono-historico-lista">
-          <div style="color:var(--faint);font-size:12px;text-align:center;padding:12px;">Nenhum chamado registrado</div>
-        </div>
       </div>
 
     </div>
@@ -6276,10 +6310,10 @@ async function abrirSonoplastia() {
     startOnlinePresence();
     _iniciarSono();
     _renderEscalaSono();
-    // Se ainda não tem songs, aguarda o carregamento do setlist e re-renderiza
+    // Se ainda não tem songs, carrega o setlist (pode não ter sido carregado neste fluxo)
     if (!S.songs.length) {
       _renderSonoSetlistSkeleton();
-      _aguardarSetlistEReRenderizar();
+      _carregarSetlistAsync().then(() => { if (S.songs.length) _renderSonoSetlist(); });
     }
   }, 300);
 }
@@ -6314,22 +6348,52 @@ function _aguardarSetlistEReRenderizar() {
 function _iniciarSono() {
   const nome = localStorage.getItem('cifrei_username') || 'Equipe';
   const h = _brtNow().getHours();
-  let saud, periodo;
-  if (h >= 5 && h < 12)      { saud = 'Bom dia';    periodo = 'dia'; }
-  else if (h >= 12 && h < 18){ saud = 'Boa tarde';  periodo = 'tarde'; }
-  else if (h >= 18 && h < 20){ saud = 'Boa tarde';  periodo = 'tardinha'; }
-  else                        { saud = 'Boa noite';  periodo = 'noite'; }
+  let saud;
+  if (h >= 5 && h < 12)      saud = 'Bom dia';
+  else if (h >= 12 && h < 18) saud = 'Boa tarde';
+  else if (h >= 18 && h < 20) saud = 'Boa tarde';
+  else                         saud = 'Boa noite';
   const lbl = document.getElementById('sono-saudacao-label');
   const nomeEl = document.getElementById('sono-nome');
   if (lbl) lbl.textContent = saud + ',';
   if (nomeEl) nomeEl.textContent = nome;
-  _construirCeuSono(periodo);
+  _construirEqHeroSono();
   _renderSonoSetlist();
   _sonoIdsConhecidos = null;
   _escutarChamadosSono();
   // Pede permissão de notificação (silencioso se já decidido)
   _pedirPermissaoNotif();
   _atualizarIconeNotif();
+}
+
+function _construirEqHeroSono() {
+  const el = document.getElementById('sono-eq-display');
+  if (!el) return;
+  const anims   = ['eqA','eqB','eqC','eqD'];
+  const heights = [35,60,85,50,70,40,90,55,75,30,65,80,45,70,55,85,40,60];
+  const count   = heights.length;
+  const barW = 5, gap = 3, total = count * (barW + gap);
+  const svgH = 52;
+  const bars = heights.map((h, i) => {
+    const barH  = Math.round(h * svgH / 100);
+    const x     = i * (barW + gap);
+    const y     = svgH - barH;
+    const anim  = anims[i % 4];
+    const dur   = (1.1 + (i % 7) * 0.2).toFixed(1);
+    const delay = (i * 0.09).toFixed(2);
+    return `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="2" fill="url(#eqG)"
+      style="transform-origin:${x + barW/2}px ${svgH}px;animation:${anim} ${dur}s ${delay}s ease-in-out infinite;"/>`;
+  }).join('');
+  el.innerHTML = `<svg viewBox="0 0 ${total} ${svgH}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:${svgH}px;" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="eqG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#34d399" stop-opacity=".95"/>
+        <stop offset="50%" stop-color="#a78bfa" stop-opacity=".8"/>
+        <stop offset="100%" stop-color="#c084fc" stop-opacity=".4"/>
+      </linearGradient>
+    </defs>
+    ${bars}
+  </svg>`;
 }
 
 function _construirCeuSono(periodo) {
@@ -6798,60 +6862,94 @@ function _dispararNotifAtendimento(texto, atendidoPor) {
 
 
 function _atualizarSonoPresence(users) {
-  const el = document.getElementById('sono-presence-lista');
+  // Atualiza contador no header
   const cnt = document.getElementById('sono-online-cnt');
-  if (cnt) cnt.textContent = users.length ? `${users.length} online` : '';
-  if (!el) return;
-  el.innerHTML = '';
+  if (cnt) {
+    if (users.length) { cnt.textContent = `${users.length} online`; cnt.style.display = ''; }
+    else { cnt.style.display = 'none'; }
+  }
+
+  // Apaga todos os dots da escala antes de reacender
+  document.querySelectorAll('#sono-escala-lista .sono-online-dot').forEach(d => d.classList.remove('visible'));
+
   if (!users.length) {
-    el.innerHTML = '<div style="color:var(--faint);font-size:12px;text-align:center;padding:8px 0;">Ninguém online ainda</div>';
+    const extraWrap = document.getElementById('sono-extra-online-wrap');
+    if (extraWrap) extraWrap.style.display = 'none';
+    const el = document.getElementById('sono-presence-lista');
+    if (el) el.innerHTML = '';
     return;
   }
+
   const meuNome = (localStorage.getItem('cifrei_username') || '').toLowerCase().trim();
   const minhaFoto = localStorage.getItem('cifrei_foto');
+  const escalaNomes = new Set();
+
+  // Acende dots para membros da escala que estão online
   users.forEach(u => {
-    const temSala = !!_salasAtivas[u.id];
+    const chave = (u.name || '').toLowerCase().trim();
+    const row = document.querySelector(`#sono-escala-lista .sono-member-row[data-nome="${CSS.escape(chave)}"]`);
+    if (row) {
+      escalaNomes.add(chave);
+      const dot = row.querySelector('.sono-online-dot');
+      if (dot) dot.classList.add('visible');
+      // Ring verde no avatar se estiver tocando
+      const av = row.querySelector('.sono-avatar,[style*="border-radius:50%"]');
+      if (av && _salasAtivas[u.id]) av.style.boxShadow = '0 0 0 2.5px #34d399,0 0 8px rgba(52,211,153,.4)';
+    }
+  });
+
+  // Usuários online que não estão na escala → seção "também online"
+  const extras = users.filter(u => !escalaNomes.has((u.name||'').toLowerCase().trim()));
+  const extraWrap = document.getElementById('sono-extra-online-wrap');
+  const extraEl   = document.getElementById('sono-presence-lista');
+  if (!extraEl) return;
+
+  if (!extras.length) {
+    if (extraWrap) extraWrap.style.display = 'none';
+    extraEl.innerHTML = '';
+    return;
+  }
+
+  if (extraWrap) extraWrap.style.display = '';
+  extraEl.innerHTML = '';
+
+  extras.forEach(u => {
     const chave = (u.name||'').toLowerCase().trim();
     const euMesmo = chave === meuNome;
-    // Foto: localStorage tem prioridade para o próprio usuário
     const fotoUrl = euMesmo ? (minhaFoto || _avatarsCache[chave]?.foto) : _avatarsCache[chave]?.foto;
-    const row = document.createElement('div');
-    row.className = 'sono-presence-row';
-    const avatarEl = document.createElement('div');
-    avatarEl.className = 'sono-avatar';
-    avatarEl.dataset.name = u.name || '';
-    if (fotoUrl) {
-      avatarEl.style.backgroundImage = `url(${fotoUrl})`;
-      avatarEl.style.backgroundSize = 'cover';
-      avatarEl.style.backgroundPosition = 'center';
-      avatarEl.style.backgroundColor = 'transparent';
-      if (temSala) avatarEl.style.boxShadow = '0 0 0 2.5px #34d399,0 0 8px rgba(52,211,153,.4)';
-    } else {
-      avatarEl.style.background = avatarColors[(u.name||'').length % avatarColors.length];
-      avatarEl.textContent = (u.name||'?').charAt(0).toUpperCase();
-      if (temSala) avatarEl.style.boxShadow = '0 0 0 2.5px #34d399,0 0 8px rgba(52,211,153,.4)';
-    }
-    // Monta a row com todos os elementos
-    const infoDiv = document.createElement('div');
-    infoDiv.style.cssText = 'flex:1;min-width:0;';
-    infoDiv.innerHTML = `
-      <div style="font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.name)}</div>
-      ${temSala
-        ? '<div style="font-size:10px;color:#34d399;font-weight:700;margin-top:1px;">● tocando agora</div>'
-        : '<div style="font-size:10px;color:var(--faint);margin-top:1px;">● online</div>'}`;
+    const temSala = !!_salasAtivas[u.id];
 
-    row.appendChild(avatarEl);
-    row.appendChild(infoDiv);
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 0;';
+
+    const av = document.createElement('div');
+    av.style.cssText = 'width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#000;flex-shrink:0;background-size:cover;background-position:center;';
+    if (fotoUrl) {
+      av.style.backgroundImage = `url(${fotoUrl})`;
+      av.style.backgroundColor = 'transparent';
+    } else {
+      av.style.background = avatarColors[(u.name||'').length % avatarColors.length];
+      av.textContent = (u.name||'?').charAt(0).toUpperCase();
+    }
+    if (temSala) av.style.boxShadow = '0 0 0 2px #34d399';
+
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:0;';
+    info.innerHTML = `<div style="font-size:12px;font-weight:700;color:#e4e4e7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(u.name)}</div>
+      <div style="font-size:10px;color:${temSala?'#34d399':'var(--faint)'};">${temSala?'tocando agora':'online'}</div>`;
+
+    row.appendChild(av);
+    row.appendChild(info);
 
     if (!euMesmo) {
-      const msgBtn = document.createElement('button');
-      msgBtn.style.cssText = 'background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:5px 10px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;white-space:nowrap;';
-      msgBtn.textContent = '✉️ msg';
-      msgBtn.onclick = () => abrirModalMsgSono(u.name);
-      row.appendChild(msgBtn);
+      const btn = document.createElement('button');
+      btn.style.cssText = 'background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:8px;padding:4px 8px;color:var(--green);font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;';
+      btn.textContent = '✉️ msg';
+      btn.onclick = () => abrirModalMsgSono(u.name);
+      row.appendChild(btn);
     }
 
-    el.appendChild(row);
+    extraEl.appendChild(row);
   });
 }
 
@@ -8120,8 +8218,9 @@ async function _renderEscalaSono() {
       const ministro = _isMinistro(f.funcao);
       const av = _avatarMiniEscala(f.nome, ministro ? 40 : 32);
       const icone = _iconeEscala(f.funcao);
+      const nomeKey = (f.nome || '').toLowerCase().trim();
       if (ministro) {
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:6px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);border-radius:10px;">
+        return `<div class="sono-member-row" data-nome="${nomeKey}" style="margin-bottom:4px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.18);border-radius:12px;padding:8px 10px;">
           ${av}
           <div style="flex:1;min-width:0;">
             <div style="font-size:14px;font-weight:900;color:#fff;">${esc(f.nome || '—')}</div>
@@ -8130,10 +8229,10 @@ async function _renderEscalaSono() {
               <span style="font-size:10px;font-weight:700;color:var(--green);">${esc(f.funcao || '')}</span>
             </div>
           </div>
-          <span style="font-size:16px;">🎤</span>
+          <span class="sono-online-dot" title="Online agora"></span>
         </div>`;
       }
-      return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(63,63,70,.15);">
+      return `<div class="sono-member-row" data-nome="${nomeKey}">
         ${av}
         <div style="flex:1;min-width:0;">
           <div style="font-size:12px;font-weight:700;color:#e4e4e7;">${esc(f.nome || '—')}</div>
@@ -8142,6 +8241,7 @@ async function _renderEscalaSono() {
             <span style="font-size:10px;color:var(--faint);">${esc(f.funcao || '')}</span>
           </div>
         </div>
+        <span class="sono-online-dot" title="Online agora"></span>
       </div>`;
     }).join('') + (proxima.obs ? `<div style="margin-top:8px;font-size:11px;color:#fbbf24;">⭐ ${esc(proxima.obs)}</div>` : '');
 }
