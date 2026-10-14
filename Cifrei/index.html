@@ -477,6 +477,31 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-tema-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:6px 12px;cursor:pointer;color:var(--faint);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .14s;flex-shrink:0;}
 .lctrl-tema-btn:hover{background:rgba(255,255,255,.09);color:var(--muted);}
 .lctrl-tema-btn.light{color:#fbbf24;border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08);}
+/* ── BÍBLIA: grade de versículos (navegação numérica) ─────────────── */
+.lctrl-bible-verse-nav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(30px,1fr));gap:4px;padding:8px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.18);}
+.lctrl-bible-verse-nav-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:5px;padding:5px 2px;font-size:12px;font-weight:700;color:#96b0a6;cursor:pointer;text-align:center;transition:all .09s;line-height:1;}
+.lctrl-bible-verse-nav-btn:hover{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.35);color:#fff;}
+.lctrl-bible-verse-nav-btn.selected{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.5);color:#34d399;}
+.lctrl-bible-verse-nav-btn.preview{background:rgba(251,191,36,.15);border-color:#fbbf24;color:#fbbf24;}
+.lctrl-bible-verse-nav-btn.projecting{background:rgba(52,211,153,.3);border-color:#34d399;color:#fff;}
+.lctrl-bible-verse-txt-scroll{flex:1;overflow-y:auto;}
+.lctrl-bible-verse-item{border-bottom:1px solid rgba(255,255,255,.03);padding:7px 10px;cursor:pointer;transition:background .09s;display:flex;gap:7px;border-left:3px solid transparent;}
+.lctrl-bible-verse-item:hover{background:rgba(52,211,153,.06);}
+.lctrl-bible-verse-item.preview{background:rgba(251,191,36,.07);border-left-color:#fbbf24;}
+.lctrl-bible-verse-item.projecting{background:rgba(52,211,153,.1);border-left-color:#34d399;}
+.lctrl-bible-verse-item-num{font-size:10px;font-weight:800;color:rgba(52,211,153,.6);min-width:18px;flex-shrink:0;line-height:1.6;}
+.lctrl-bible-verse-item-text{font-size:12.5px;color:#c2d5cc;line-height:1.6;}
+/* ── BIBLIOTECA ────────────────────────────────────────────────────── */
+.lctrl-biblio-panel{flex:1;overflow:hidden;display:none;flex-direction:column;}
+.lctrl-biblio-panel.active{display:flex;}
+.lctrl-biblio-search-wrap{padding:6px 8px 4px;flex-shrink:0;}
+.lctrl-biblio-search-inp{width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:5px 10px;color:#d4e8de;font-size:12px;outline:none;transition:border-color .12s;}
+.lctrl-biblio-search-inp:focus{border-color:rgba(52,211,153,.35);}
+.lctrl-biblio-cnt{font-size:10px;color:rgba(52,211,153,.45);padding:2px 10px 5px;font-weight:700;flex-shrink:0;}
+.lctrl-biblio-body{flex:1;overflow-y:auto;}
+.lctrl-biblio-row{display:flex;align-items:center;width:100%;border-bottom:1px solid rgba(255,255,255,.03);padding:6px 10px;gap:6px;}
+.lctrl-biblio-title{flex:1;min-width:0;font-size:12.5px;color:#c2d5cc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lctrl-biblio-meta{font-size:10.5px;color:var(--faint);flex-shrink:0;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;}
 /* ── DECK DE ESCALAS (swipe) ─────────────────────────────────────── */
 @keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideInLeft{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:translateX(0)}}
@@ -11142,21 +11167,65 @@ let _bibliaNav = { level: 'books', book: null, chap: null };
 let _bibliaProjectingVerse = null;
 
 function _ltTabMusicas() {
-  document.getElementById('lctrl-tab-musicas')?.classList.add('active');
-  document.getElementById('lctrl-tab-biblia')?.classList.remove('active');
+  ['lctrl-tab-musicas','lctrl-tab-biblia','lctrl-tab-biblioteca'].forEach(id => {
+    document.getElementById(id)?.classList.toggle('active', id === 'lctrl-tab-musicas');
+  });
   const sl = document.getElementById('lctrl-songs-list');
   if (sl) sl.style.display = '';
   document.getElementById('lctrl-bible-panel')?.classList.remove('active');
+  document.getElementById('lctrl-biblio-panel')?.classList.remove('active');
 }
 
 function _ltTabBiblia() {
-  document.getElementById('lctrl-tab-musicas')?.classList.remove('active');
-  document.getElementById('lctrl-tab-biblia')?.classList.add('active');
+  ['lctrl-tab-musicas','lctrl-tab-biblia','lctrl-tab-biblioteca'].forEach(id => {
+    document.getElementById(id)?.classList.toggle('active', id === 'lctrl-tab-biblia');
+  });
   const sl = document.getElementById('lctrl-songs-list');
   if (sl) sl.style.display = 'none';
   document.getElementById('lctrl-bible-panel')?.classList.add('active');
+  document.getElementById('lctrl-biblio-panel')?.classList.remove('active');
   if (_bibliaNav.level === 'books') _ltBibliaRenderBooks();
 }
+
+function _ltTabBiblioteca() {
+  ['lctrl-tab-musicas','lctrl-tab-biblia','lctrl-tab-biblioteca'].forEach(id => {
+    document.getElementById(id)?.classList.toggle('active', id === 'lctrl-tab-biblioteca');
+  });
+  const sl = document.getElementById('lctrl-songs-list');
+  if (sl) sl.style.display = 'none';
+  document.getElementById('lctrl-bible-panel')?.classList.remove('active');
+  document.getElementById('lctrl-biblio-panel')?.classList.add('active');
+  _ltRenderBiblioteca();
+}
+
+function _ltRenderBiblioteca(filter) {
+  const body = document.getElementById('lctrl-biblio-body');
+  const cnt  = document.getElementById('lctrl-biblio-cnt');
+  if (!body) return;
+  const lista = S.banco || [];
+  if (!lista.length) {
+    body.innerHTML = '<div style="padding:14px 10px;font-size:12px;color:var(--faint);">Banco vazio ou não carregado.</div>';
+    if (cnt) cnt.textContent = '';
+    return;
+  }
+  const q = (filter || '').toLowerCase().trim();
+  const filtrada = q
+    ? lista.filter(s => (s.title||'').toLowerCase().includes(q) || (s.artist||'').toLowerCase().includes(q))
+    : lista;
+  if (cnt) cnt.textContent = filtrada.length + ' música' + (filtrada.length !== 1 ? 's' : '');
+  if (!filtrada.length) {
+    body.innerHTML = '<div style="padding:14px 10px;font-size:12px;color:var(--faint);">Nenhuma música encontrada.</div>';
+    return;
+  }
+  body.innerHTML = filtrada.map(s =>
+    '<div class="lctrl-biblio-row">' +
+    '<span class="lctrl-biblio-title">' + _ltEsc(s.title || '') + '</span>' +
+    (s.artist ? '<span class="lctrl-biblio-meta">' + _ltEsc(s.artist) + '</span>' : '') +
+    '</div>'
+  ).join('');
+}
+
+function _ltBibliotecaFiltrar(val) { _ltRenderBiblioteca(val); }
 
 function _ltBibliaSetNav(html) {
   const nav = document.getElementById('lctrl-bible-nav');
@@ -11172,6 +11241,7 @@ function _ltBibliaRenderBooks(filter) {
   if (inp && !filter) inp.value = '';
   const body = document.getElementById('lctrl-bible-body');
   if (!body) return;
+  body.style.display = ''; body.style.flexDirection = ''; body.style.overflow = '';
   const q = (filter || '').trim();
   const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
   const qn = norm(q);
@@ -11202,6 +11272,7 @@ function _ltBibliaOpenBook(bookNum) {
   const total = _BIBLE_CHAPS[bookNum];
   const body = document.getElementById('lctrl-bible-body');
   if (!body) return;
+  body.style.display = ''; body.style.flexDirection = ''; body.style.overflow = '';
   let btns = '<div class="lctrl-bible-chap-grid">';
   for (let c = 1; c <= total; c++) {
     btns += '<button class="lctrl-bible-chap-btn" onclick="_ltBibliaOpenChap(' + bookNum + ',' + c + ')">' + c + '</button>';
@@ -11211,7 +11282,7 @@ function _ltBibliaOpenBook(bookNum) {
 }
 
 function _ltBibliaOpenChap(bookNum, chapNum) {
-  _bibliaNav = { level: 'verses', book: bookNum, chap: chapNum };
+  _bibliaNav = { level: 'verses', book: bookNum, chap: chapNum, verse: null };
   const name = _BIBLE_NAMES[bookNum];
   _ltBibliaSetNav(
     '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaRenderBooks()">Bíblia</button>' +
@@ -11222,28 +11293,84 @@ function _ltBibliaOpenChap(bookNum, chapNum) {
   );
   const body = document.getElementById('lctrl-bible-body');
   if (!body) return;
+  body.style.display = ''; body.style.flexDirection = ''; body.style.overflow = '';
   body.innerHTML = '<div style="padding:12px 8px;font-size:11px;color:rgba(52,211,153,.5);">Carregando…</div>';
   _ltBibliaFetchCap(bookNum, chapNum)
     .then(verses => {
       if (_bibliaNav.book !== bookNum || _bibliaNav.chap !== chapNum) return;
-      const ref = name + ' ' + chapNum;
-      const cards = verses.map(v => {
-        const vref = ref + ':' + v.v;
-        const cls = _bibliaProjectingVerse === vref ? ' projecting' : (_bibliaPreviewVerse === vref ? ' preview' : '');
-        const txt = v.t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        return '<div class="lctrl-bible-verse' + cls + '" ' +
-          'id="bv-' + bookNum + '-' + chapNum + '-' + v.v + '" ' +
-          'onclick="_ltBibliaVersoClick(' + bookNum + ',' + chapNum + ',' + v.v + ')" ' +
-          'ondblclick="_ltBibliaVersoDblClick(' + bookNum + ',' + chapNum + ',' + v.v + ')">' +
-          '<span class="lctrl-bible-verse-num">' + v.v + '</span>' +
-          '<span class="lctrl-bible-verse-text">' + txt + '</span>' +
-          '</div>';
-      }).join('');
-      body.innerHTML = '<div class="lctrl-bible-verse-grid">' + cards + '</div>';
+      // Mostra grade de números de versículos (igual capítulos)
+      let btns = '<div class="lctrl-bible-chap-grid">';
+      verses.forEach(v => {
+        btns += '<button class="lctrl-bible-chap-btn" onclick="_ltBibliaOpenVerso(' + bookNum + ',' + chapNum + ',' + v.v + ')">' + v.v + '</button>';
+      });
+      btns += '</div>';
+      body.innerHTML = btns;
     })
     .catch(() => {
       if (body) body.innerHTML = '<div style="padding:12px 8px;font-size:11px;color:#ef4444;">⚠ Erro. Verifique a conexão.</div>';
     });
+}
+
+function _ltBibliaOpenVerso(bookNum, chapNum, verseNum) {
+  _bibliaNav = { level: 'verse-view', book: bookNum, chap: chapNum, verse: verseNum };
+  const name = _BIBLE_NAMES[bookNum];
+  _ltBibliaSetNav(
+    '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaRenderBooks()">Bíblia</button>' +
+    '<span class="lctrl-bible-nav-sep">›</span>' +
+    '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaOpenBook(' + bookNum + ')">' + name + '</button>' +
+    '<span class="lctrl-bible-nav-sep">›</span>' +
+    '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaOpenChap(' + bookNum + ',' + chapNum + ')">Cap. ' + chapNum + ' ▾</button>'
+  );
+  const body = document.getElementById('lctrl-bible-body');
+  if (!body) return;
+  const verses = _BIBLE_CACHE.get(bookNum + ':' + chapNum);
+  if (!verses) {
+    body.innerHTML = '<div style="padding:12px 8px;font-size:11px;color:rgba(52,211,153,.5);">Carregando…</div>';
+    _ltBibliaFetchCap(bookNum, chapNum).then(() => {
+      if (_bibliaNav.book === bookNum && _bibliaNav.chap === chapNum) _ltBibliaOpenVerso(bookNum, chapNum, verseNum);
+    }).catch(() => {
+      if (body) body.innerHTML = '<div style="padding:12px 8px;font-size:11px;color:#ef4444;">⚠ Erro. Verifique a conexão.</div>';
+    });
+    return;
+  }
+  const ref = name + ' ' + chapNum;
+  // Grade de números de versículos no topo (fixa, para navegação)
+  let navGrid = '<div class="lctrl-bible-verse-nav-grid">';
+  verses.forEach(v => {
+    const vref = ref + ':' + v.v;
+    let cls = '';
+    if (v.v === verseNum) cls = ' selected';
+    else if (_bibliaProjectingVerse === vref) cls = ' projecting';
+    else if (_bibliaPreviewVerse === vref) cls = ' preview';
+    navGrid += '<button class="lctrl-bible-verse-nav-btn' + cls + '" onclick="_ltBibliaOpenVerso(' + bookNum + ',' + chapNum + ',' + v.v + ')">' + v.v + '</button>';
+  });
+  navGrid += '</div>';
+  // Lista de versículos com texto
+  let txtList = '<div class="lctrl-bible-verse-txt-scroll">';
+  verses.forEach(v => {
+    const vref = ref + ':' + v.v;
+    let cls = '';
+    if (_bibliaProjectingVerse === vref) cls = ' projecting';
+    else if (_bibliaPreviewVerse === vref) cls = ' preview';
+    const txt = v.t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    txtList += '<div class="lctrl-bible-verse-item' + cls + '" ' +
+      'id="bv-' + bookNum + '-' + chapNum + '-' + v.v + '" ' +
+      'onclick="_ltBibliaVersoClick(' + bookNum + ',' + chapNum + ',' + v.v + ')" ' +
+      'ondblclick="_ltBibliaVersoDblClick(' + bookNum + ',' + chapNum + ',' + v.v + ')">' +
+      '<span class="lctrl-bible-verse-item-num">' + v.v + '</span>' +
+      '<span class="lctrl-bible-verse-item-text">' + txt + '</span>' +
+      '</div>';
+  });
+  txtList += '</div>';
+  body.style.display = 'flex';
+  body.style.flexDirection = 'column';
+  body.style.overflow = 'hidden';
+  body.innerHTML = navGrid + txtList;
+  // Scroll ao versículo selecionado
+  requestAnimationFrame(() => {
+    const el = document.getElementById('bv-' + bookNum + '-' + chapNum + '-' + verseNum);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 }
 
 async function _ltBibliaFetchCap(bookNum, chapter) {
@@ -11282,8 +11409,8 @@ function _ltBibliaPreviewVerso(bookNum, chapNum, verseNum) {
   if (!vObj) return;
   const ref = _BIBLE_NAMES[bookNum] + ' ' + chapNum + ':' + verseNum;
   _bibliaPreviewVerse = ref;
-  // Destaque visual preview (amarelo)
-  document.querySelectorAll('.lctrl-bible-verse.preview').forEach(el => el.classList.remove('preview'));
+  // Destaque visual preview (amarelo) — verso-item ou verso-nav-btn
+  document.querySelectorAll('.lctrl-bible-verse-item.preview,.lctrl-bible-verse-nav-btn.preview').forEach(el => el.classList.remove('preview'));
   const el = document.getElementById('bv-' + bookNum + '-' + chapNum + '-' + verseNum);
   if (el) el.classList.add('preview');
   // Atualizar card de prévia
@@ -11302,7 +11429,7 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
   const ref = _BIBLE_NAMES[bookNum] + ' ' + chapNum + ':' + verseNum;
   _bibliaProjectingVerse = ref;
   _bibliaPreviewVerse = ref;
-  document.querySelectorAll('.lctrl-bible-verse.projecting,.lctrl-bible-verse.preview').forEach(el => {
+  document.querySelectorAll('.lctrl-bible-verse-item.projecting,.lctrl-bible-verse-item.preview,.lctrl-bible-verse-nav-btn.projecting,.lctrl-bible-verse-nav-btn.preview').forEach(el => {
     el.classList.remove('projecting'); el.classList.remove('preview');
   });
   const el = document.getElementById('bv-' + bookNum + '-' + chapNum + '-' + verseNum);
@@ -11415,6 +11542,7 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
       <div class="lctrl-tabs">
         <button class="lctrl-tab-btn active" id="lctrl-tab-musicas" onclick="_ltTabMusicas()">Músicas</button>
         <button class="lctrl-tab-btn" id="lctrl-tab-biblia" onclick="_ltTabBiblia()">📖 Bíblia</button>
+        <button class="lctrl-tab-btn" id="lctrl-tab-biblioteca" onclick="_ltTabBiblioteca()">📚 Banco</button>
       </div>
       <div id="lctrl-songs-list"></div>
       <div class="lctrl-bible-panel" id="lctrl-bible-panel">
@@ -11425,6 +11553,13 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
           <span class="lctrl-bible-nav-cur">Bíblia</span>
         </div>
         <div class="lctrl-bible-body" id="lctrl-bible-body"></div>
+      </div>
+      <div class="lctrl-biblio-panel" id="lctrl-biblio-panel">
+        <div class="lctrl-biblio-search-wrap">
+          <input class="lctrl-biblio-search-inp" id="lctrl-biblio-search-inp" type="text" placeholder="Buscar música…" oninput="_ltBibliotecaFiltrar(this.value)">
+        </div>
+        <div class="lctrl-biblio-cnt" id="lctrl-biblio-cnt"></div>
+        <div class="lctrl-biblio-body" id="lctrl-biblio-body"></div>
       </div>
     </div>
     <div class="lctrl-resize-handle" id="lctrl-resize-handle"></div>
