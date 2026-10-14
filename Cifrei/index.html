@@ -3127,6 +3127,33 @@ function renderPresence(users) {
   if (typeof _atualizarSonoPresence === 'function') _atualizarSonoPresence(users);
 }
 
+let _escalasCache = null; // declarado cedo para evitar TDZ em _atualizarWelcomeCard
+
+async function _refreshDadosUsuario() {
+  const login = localStorage.getItem('cifrei_login');
+  if (!login) return;
+  try {
+    const PROJECT = 'cifrei-e37f6';
+    const BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
+    const body = { structuredQuery: {
+      from: [{ collectionId: 'avatars_musicos' }],
+      where: { fieldFilter: { field: { fieldPath: 'login' }, op: 'EQUAL', value: { stringValue: login } } },
+      limit: 1
+    }};
+    const res = await fetch(`${BASE}:runQuery`, { method: 'POST', body: JSON.stringify(body) });
+    if (!res.ok) return;
+    const rows = await res.json();
+    const doc = rows.find(r => r.document)?.document;
+    if (!doc) return;
+    const f = doc.fields || {};
+    const instr = f.instrumento?.stringValue || '';
+    const foto  = f.foto?.stringValue || '';
+    if (instr) localStorage.setItem('cifrei_instrumento', instr);
+    if (foto)  localStorage.setItem('cifrei_foto', foto);
+    else       localStorage.removeItem('cifrei_foto');
+  } catch(e) { /* silently fail */ }
+}
+
 function _bootCifrei() {
   const savedName  = localStorage.getItem('cifrei_username');
   const codigoOk   = localStorage.getItem('cifrei_codigo_ok') === '1';
@@ -3141,7 +3168,12 @@ function _bootCifrei() {
   if (savedName && sessaoValida) {
     _atualizarWelcomeCard();
     _fbInitPromise = initFirebase();
-    _fbInitPromise.then(() => _carregarHomeAviso());
+    _fbInitPromise.then(async () => {
+      _carregarHomeAviso();
+      try { await _refreshDadosUsuario(); } catch(e) {}
+      try { await _carregarEscalas(); } catch(e) {}
+      _atualizarWelcomeCard();
+    });
   } else {
     const modal = document.getElementById('modal-boas-vindas');
     if (modal) modal.style.display = 'flex';
@@ -3215,6 +3247,18 @@ function _gerarMensagemHome() {
   const isDrums  = /bater/.test(instr);
   const isKeys   = /teclado|piano/.test(instr);
   const isVoice  = /voz|vocal|canto/.test(instr);
+  const isSono   = /sonoplasta|sono/.test(instr);
+  // Detecta se está escalado(a) como ministro(a) na próxima escala
+  let isMin = false;
+  if (_escalasCache && _escalasCache.length) {
+    const hojeStr2 = new Date().toISOString().slice(0, 10);
+    const nomeLow2 = nome.toLowerCase().trim();
+    const prox2 = _escalasCache.filter(e => (e.data||'') >= hojeStr2).sort((a,b) => (a.data||'').localeCompare(b.data||''))[0];
+    if (prox2) {
+      const meFuncao = (prox2.funcoes||[]).find(f => (f.nome||'').toLowerCase().trim() === nomeLow2);
+      if (meFuncao) isMin = /ministra/i.test(meFuncao.funcao || '');
+    }
+  }
 
   // Faixas de hora
   const isMadrugada = h >= 0  && h < 5;
@@ -3245,6 +3289,8 @@ function _gerarMensagemHome() {
       if (isKeys)   base.push('Patches e transposições conferidas? Domingo não tem segunda chance ao vivo.');
       if (isVoice)  base.push('Aquece bem a voz e bebe água. Você é a ponte entre a letra e o coração.');
       if (isBass)   base.push('O grave ancora todo mundo. Hoje a congregação vai sentir o fundamento.');
+      if (isMin)    base.push('Você ministra hoje. Que o Espírito guie cada palavra e cada transição.');
+      if (isSono)   base.push('Mesa zerada, ganhos conferidos? O som do culto começa em você.');
       msg = _pick(base);
     } else if (isTarde || isNoite) {
       const base = [
@@ -3255,6 +3301,8 @@ function _gerarMensagemHome() {
       if (isGuitar) base.push('Violão afinado, coração alinhado. Vamos!');
       if (isDrums)  base.push('O ritmo do louvor começa com você. Confia no que foi ensaiado.');
       if (isVoice)  base.push('A congregação vai seguir sua voz. Lidere com fé.');
+      if (isMin)    base.push('Hora de ministrar. O Senhor vai à frente — você só declara o que Ele já preparou.');
+      if (isSono)   base.push('Sem o som, não há culto. Sua mesa é tão essencial quanto o púlpito.');
       msg = _pick(base);
     } else {
       msg = _pick([
@@ -3275,6 +3323,8 @@ function _gerarMensagemHome() {
     if (isKeys)   base.push(`Domingo é ${prep}. Patches e arranjos prontos?`);
     if (isVoice)  base.push(`Domingo é ${prep}. Letras decoradas e tonalidades certas?`);
     if (isBass)   base.push(`Domingo é ${prep}. Linha de baixo definida pra cada música?`);
+    if (isMin)    base.push(`Você ministra ${prep}. A unção do Espírito supre onde o preparo humano tem limite.`);
+    if (isSono)   base.push(`Domingo é ${prep}. Roteiro da mesa de som revisado?`);
     msg = _pick(base);
   } else if (isMadrugada || (isNoiteTarde && h >= 22)) {
     const base = [
@@ -3328,7 +3378,9 @@ function _gerarMensagemHome() {
     else if (isBass)  msg = _pick(['Fundamental, literalmente. O baixo define a harmonia do louvor.','Sem o baixo, a congregação sente — mesmo sem saber o porquê.','O groove certo faz o culto fluir.']);
     else if (isDrums) msg = _pick(['O tempo é tudo no louvor. E o tempo começa em você.','Quatro tempos, uma congregação.','Metrônomo ligado?']);
     else if (isKeys)  msg = _pick(['Das 88 teclas, hoje usaremos quantas?','Pad atmosférico ou piano solo — a escolha define o tom do culto.','Qual textura harmônica o próximo setlist pede?']);
-    else if (isVoice) msg = _pick(['A voz conecta a letra à alma. Cuide bem do instrumento.','Hidratação e descanso são parte do preparo vocal.','Tonal ou congregacional — cada música pede uma abordagem.']);
+    else if (isMin)   msg = _pick(['Ministrar é muito mais que cantar — é conduzir o coração do povo à presença do Senhor.','A ministração começa na intimidade com Deus. O palco é só a extensão disso.','Quem ministra prepara o terreno para a Palavra. Que este culto seja fértil.','A unção não dispensa o preparo. Letra, tom e sensibilidade ao Espírito, juntos.']);
+    else if (isVoice) msg = _pick(['A voz conecta a letra à alma. Cuide bem do instrumento.','Hidratação e descanso são parte do preparo vocal.','Tonal ou congregacional — cada música pede uma abordagem.','A congregação canta junto quando a voz lidera com convicção.']);
+    else if (isSono)  msg = _pick(['O som que a congregação ouve define a experiência do culto. Você faz isso acontecer.','Mesa de som invisível ao olho, essencial ao coração. Seu trabalho importa.','Equalização, ganho, monitor — cada ajuste é um ato de serviço ao louvor.']);
     else msg = _pick([
       'Cada ensaio é investimento. O culto colhe o que a semana plantou.',
       'Ministério de louvor presbiteriano: excelência a serviço da Palavra.',
@@ -3389,10 +3441,31 @@ function _atualizarWelcomeCard() {
   const chipsEl = document.getElementById('hw-chips');
   if (chipsEl) {
     const chips = [];
-    const diasParaDom = dow === 0 ? 0 : 7 - dow;
-    if (dow === 0) chips.push('📅 É domingo!');
-    else if (diasParaDom === 1) chips.push('📅 Domingo amanhã');
-    else chips.push(`📅 Dom em ${diasParaDom} dias`);
+    // Chip escala: cruza escalasCache com nome do usuário
+    let chipEscalaDone = false;
+    if (_escalasCache && _escalasCache.length) {
+      const hojeStr = new Date().toISOString().slice(0, 10);
+      const nomeComp = (localStorage.getItem('cifrei_username') || '').toLowerCase().trim();
+      const proxEscala = _escalasCache
+        .filter(e => (e.data || '') >= hojeStr && (e.funcoes || []).some(f => (f.nome || '').toLowerCase().trim() === nomeComp))
+        .sort((a, b) => (a.data || '').localeCompare(b.data || ''))[0];
+      if (proxEscala) {
+        const [ey, em, ed] = proxEscala.data.split('-').map(Number);
+        const dEscala = new Date(ey, em - 1, ed);
+        const dHoje = new Date(); dHoje.setHours(0, 0, 0, 0);
+        const diff = Math.round((dEscala - dHoje) / 86400000);
+        if (diff === 0) chips.push('🎸 Escalado(a) hoje!');
+        else if (diff === 1) chips.push('🎸 Escalado(a) amanhã');
+        else chips.push(`🎸 Escalado(a) em ${diff} dias`);
+        chipEscalaDone = true;
+      }
+    }
+    if (!chipEscalaDone) {
+      const diasParaDom = dow === 0 ? 0 : 7 - dow;
+      if (dow === 0) chips.push('📅 É domingo!');
+      else if (diasParaDom === 1) chips.push('📅 Domingo amanhã');
+      else chips.push(`📅 Dom em ${diasParaDom} dias`);
+    }
 
     const ultimoLogin = parseInt(localStorage.getItem('cifrei_last_login') || '0');
     const diasSemLogin = ultimoLogin ? Math.floor((Date.now() - ultimoLogin) / 86400000) : 0;
@@ -7930,8 +8003,6 @@ function toggleVoto(title) {
 
 // Expõe as funções para os onclicks do HTML
 // ── ESCALA ────────────────────────────────────────────────────────────────────
-let _escalasCache = null;
-
 async function _garantirFirebase() {
   if (fbDb) return true;
   return await initFirebase();
