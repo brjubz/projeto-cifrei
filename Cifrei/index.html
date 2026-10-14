@@ -437,9 +437,12 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-nav-btn:hover:not(:disabled){background:rgba(52,211,153,.14);border-color:rgba(52,211,153,.35);color:#34d399;box-shadow:0 0 12px rgba(52,211,153,.12);}
 .lctrl-nav-btn:disabled{opacity:.2;cursor:default;}
 .lctrl-nav-cnt{font-size:12px;font-weight:700;color:rgba(52,211,153,.55);font-family:var(--font-chord);letter-spacing:.3px;}
-.lctrl-blank-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 14px;cursor:pointer;color:rgba(170,195,185,.55);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.lctrl-blank-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 14px;cursor:pointer;color:rgba(170,195,185,.55);font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all .18s;position:relative;}
 .lctrl-blank-btn:hover{background:rgba(255,255,255,.09);color:rgba(220,235,230,.75);}
-.lctrl-blank-btn.on{background:linear-gradient(135deg,rgba(20,20,25,.95),rgba(10,10,15,.95));border-color:rgba(200,210,215,.3);color:#e0eae5;box-shadow:0 0 14px rgba(0,0,0,.4);}
+.lctrl-blank-btn.on{background:linear-gradient(135deg,rgba(251,191,36,.18),rgba(245,158,11,.1));border-color:rgba(251,191,36,.55);color:#fbbf24;box-shadow:0 0 18px rgba(251,191,36,.2),0 0 0 1px rgba(251,191,36,.15) inset;font-weight:800;}
+.lctrl-blank-btn.on svg{filter:drop-shadow(0 0 4px rgba(251,191,36,.6));}
+.lctrl-blank-btn .lctrl-blank-dot{width:5px;height:5px;border-radius:50%;background:rgba(170,195,185,.25);flex-shrink:0;transition:all .18s;}
+.lctrl-blank-btn.on .lctrl-blank-dot{background:#fbbf24;box-shadow:0 0 6px rgba(251,191,36,.9);animation:sonoLedBlink 1.2s ease infinite;}
 .lctrl-current-song{font-size:11px;color:rgba(52,211,153,.45);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 @keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
 /* ── LCTRL BÍBLIA + TEMA ─────────────────────────────────────────── */
@@ -11768,6 +11771,7 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
         <div style="display:flex;align-items:center;gap:10px;">
           <span class="lctrl-nav-cnt" id="lctrl-nav-cnt">—</span>
           <button id="lctrl-blank-btn" class="lctrl-blank-btn" onclick="_ltToggleBlank()" title="Tela de espera / B">
+            <span class="lctrl-blank-dot"></span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
             Tela de espera
           </button>
