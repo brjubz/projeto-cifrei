@@ -308,82 +308,104 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lyrics-transmit-btn{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.28);border-radius:8px;padding:5px 11px;cursor:pointer;display:flex;align-items:center;gap:5px;color:#34d399;font-size:10px;font-weight:700;letter-spacing:.3px;transition:all .2s;flex-shrink:0;align-self:flex-start;margin-top:4px;}
 .lyrics-transmit-btn:hover{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.48);box-shadow:0 0 10px rgba(52,211,153,.15);}
 /* Overlay */
-.lctrl-overlay{position:fixed;inset:0;z-index:9998;display:none;flex-direction:column;background:#080c0a;}
+.lctrl-overlay{position:fixed;inset:0;z-index:9998;display:none;flex-direction:column;background:radial-gradient(ellipse at 20% 0%,rgba(10,30,20,.97) 0%,rgba(4,10,7,.99) 60%);overflow:hidden;}
+.lctrl-overlay::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 100%,rgba(52,211,153,.04) 0%,transparent 60%);pointer-events:none;}
 .lctrl-overlay.open{display:flex;}
 /* Top bar */
-.lctrl-header{display:flex;align-items:center;gap:10px;padding:10px 18px;background:#0a110e;border-bottom:1px solid rgba(52,211,153,.1);flex-shrink:0;}
+.lctrl-header{display:flex;align-items:center;gap:10px;padding:10px 20px;background:rgba(6,16,11,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(52,211,153,.1);flex-shrink:0;}
 .lctrl-header-title{font-family:var(--font-chord);font-size:13px;font-weight:800;color:#e5f0ea;display:flex;align-items:center;gap:7px;flex:1;}
 .lctrl-live-badge{background:rgba(100,120,110,.12);border:1px solid rgba(100,120,110,.2);border-radius:99px;padding:3px 10px;font-size:9px;font-weight:800;color:var(--faint);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:5px;transition:all .3s;}
 .lctrl-live-badge.on{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.32);color:#f87171;}
 .lctrl-live-badge .ldot{width:6px;height:6px;border-radius:50%;background:rgba(150,180,160,.4);flex-shrink:0;}
 .lctrl-live-badge.on .ldot{background:#ef4444;animation:sonoLedBlink 1.4s ease infinite;}
-.lctrl-proj-btn{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.28);border-radius:8px;padding:5px 12px;cursor:pointer;color:#34d399;font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.lctrl-proj-btn{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);border-radius:9px;padding:5px 12px;cursor:pointer;color:#34d399;font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .15s;backdrop-filter:blur(8px);}
 .lctrl-proj-btn:hover{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.5);}
-.lctrl-close-btn{background:none;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px 12px;cursor:pointer;color:var(--faint);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;transition:all .15s;}
+.lctrl-close-btn{background:none;border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:5px 12px;cursor:pointer;color:var(--faint);font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px;transition:all .15s;}
 .lctrl-close-btn:hover{border-color:rgba(239,68,68,.4);color:#f87171;}
 /* Greeting bar */
-.lctrl-greeting{display:flex;align-items:center;gap:16px;padding:14px 20px 12px;background:linear-gradient(135deg,rgba(10,20,14,.95),rgba(8,16,12,.95));border-bottom:1px solid rgba(52,211,153,.08);flex-shrink:0;}
-.lctrl-avatar{width:44px;height:44px;border-radius:50%;border:2px solid rgba(52,211,153,.35);background:linear-gradient(135deg,rgba(52,211,153,.2),rgba(45,214,137,.1));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#34d399;flex-shrink:0;overflow:hidden;}
-.lctrl-avatar img{width:100%;height:100%;object-fit:cover;}
+.lctrl-greeting{display:flex;align-items:center;gap:16px;padding:12px 20px;background:rgba(8,20,13,.5);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(52,211,153,.08);flex-shrink:0;}
+.lctrl-avatar{width:46px;height:46px;border-radius:50%;border:2px solid rgba(52,211,153,.3);background:linear-gradient(135deg,rgba(52,211,153,.18),rgba(16,185,129,.08));display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:800;color:#34d399;flex-shrink:0;overflow:hidden;box-shadow:0 0 14px rgba(52,211,153,.12);}
+.lctrl-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .lctrl-greeting-text{flex:1;min-width:0;}
-.lctrl-greeting-name{font-family:var(--font-chord);font-size:14px;font-weight:800;color:#e5f0ea;margin-bottom:2px;}
-.lctrl-greeting-sub{font-size:11px;color:rgba(52,211,153,.7);font-weight:600;}
-.lctrl-instructions{display:flex;align-items:center;gap:16px;flex-shrink:0;}
-.lctrl-inst-item{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(200,220,210,.55);font-weight:600;}
-.lctrl-inst-key{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.2);border-radius:5px;padding:1px 6px;font-family:var(--font-chord);font-size:10px;color:#34d399;font-weight:800;}
+.lctrl-greeting-name{font-family:var(--font-chord);font-size:15px;font-weight:800;color:#e5f0ea;margin-bottom:2px;}
+.lctrl-greeting-sub{font-size:11px;color:rgba(52,211,153,.65);font-weight:600;}
+.lctrl-instructions{display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.lctrl-inst-item{display:flex;align-items:center;gap:5px;font-size:10px;color:rgba(200,220,210,.45);font-weight:600;}
+.lctrl-inst-key{background:rgba(52,211,153,.09);border:1px solid rgba(52,211,153,.18);border-radius:5px;padding:2px 7px;font-family:var(--font-chord);font-size:10px;color:#34d399;font-weight:800;}
 /* Body */
 .lctrl-body{flex:1;display:flex;overflow:hidden;}
-/* Songs panel */
-.lctrl-songs-panel{width:215px;flex-shrink:0;border-right:1px solid rgba(52,211,153,.07);overflow-y:auto;padding:8px 0;background:rgba(4,10,7,.4);}
-.lctrl-songs-panel-title{font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.4);text-transform:uppercase;padding:8px 16px 6px;}
-.lctrl-song-row{padding:9px 16px;cursor:pointer;transition:background .12s;border-left:3px solid transparent;display:flex;align-items:center;gap:8px;}
+/* Songs panel — glassmorphism lateral */
+.lctrl-songs-panel{width:220px;flex-shrink:0;border-right:1px solid rgba(52,211,153,.07);overflow-y:auto;padding:8px 0;background:rgba(4,12,8,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:relative;}
+.lctrl-songs-panel-title{font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.38);text-transform:uppercase;padding:10px 16px 6px;}
+.lctrl-song-row{padding:8px 14px 8px 12px;cursor:pointer;transition:background .12s;border-left:3px solid transparent;display:flex;align-items:center;gap:8px;}
 .lctrl-song-row:hover{background:rgba(52,211,153,.05);}
 .lctrl-song-row.active{background:rgba(52,211,153,.08);border-left-color:#34d399;}
-.lctrl-song-num{font-family:var(--font-chord);font-size:10px;font-weight:800;color:rgba(52,211,153,.35);flex-shrink:0;width:16px;}
-.lctrl-song-name{font-size:12px;font-weight:600;color:#c8d8cc;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.lctrl-song-num{font-family:var(--font-chord);font-size:10px;font-weight:800;color:rgba(52,211,153,.32);flex-shrink:0;width:16px;}
+.lctrl-song-name{font-size:12px;font-weight:600;color:#b8ccc0;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
 .lctrl-song-row.active .lctrl-song-name{color:#e5f0ea;}
 .lctrl-song-noletras{font-size:11px;color:var(--faint);font-style:italic;padding:12px 16px;}
 /* Main area */
-.lctrl-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:16px 22px 14px;}
-/* Dois cards de preview lado a lado */
-.lctrl-preview-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex-shrink:0;margin-bottom:10px;}
-.lctrl-pcard{height:136px;border-radius:13px;border:1px solid rgba(255,255,255,.07);background:rgba(8,20,12,.8);padding:9px 14px 10px;position:relative;display:flex;flex-direction:column;transition:border-color .25s,box-shadow .25s;}
-.lctrl-pcard-label{font-size:8px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;flex-shrink:0;margin-bottom:7px;color:rgba(150,170,160,.4);transition:color .2s;}
-.lctrl-pcard-text{font-size:13px;font-weight:600;line-height:1.62;white-space:pre-line;overflow-y:auto;flex:1;color:rgba(200,215,208,.45);transition:color .2s;scrollbar-width:none;}
+.lctrl-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:14px 20px 12px;}
+/* ── OVERLAY GLASSMORPHISM ───────────────────────── */
+/* Dois cards assimétricos: prévia (1/3) + projetando (2/3) */
+.lctrl-preview-cards{display:grid;grid-template-columns:1fr 2fr;gap:14px;flex-shrink:0;margin-bottom:10px;}
+.lctrl-pcard{border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(10,22,16,.55);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);padding:12px 16px 12px;position:relative;display:flex;flex-direction:column;transition:border-color .3s,box-shadow .3s;min-height:170px;}
+.lctrl-pcard-label{font-size:8px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;flex-shrink:0;margin-bottom:8px;color:rgba(150,170,160,.38);transition:color .25s;display:flex;align-items:center;gap:6px;}
+.lctrl-pcard-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5;flex-shrink:0;}
+.lctrl-pcard-text{font-size:14px;font-weight:600;line-height:1.68;white-space:pre-line;overflow-y:auto;flex:1;color:rgba(200,215,208,.38);transition:color .25s;scrollbar-width:none;}
 .lctrl-pcard-text::-webkit-scrollbar{display:none;}
-.lctrl-pcard-idle{font-style:italic;color:rgba(150,170,160,.3);font-size:12px;}
-/* Card PRÉVIA — âmbar quando ativo */
-.lctrl-pcard.lctrl-pcard-preview.has-content{border-color:rgba(251,191,36,.22);}
-.lctrl-pcard.lctrl-pcard-preview.has-content .lctrl-pcard-label{color:rgba(251,191,36,.65);}
-.lctrl-pcard.lctrl-pcard-preview.has-content .lctrl-pcard-text{color:#fde68a;}
-/* Card PROJETANDO — verde quando ativo */
-.lctrl-pcard.lctrl-pcard-projecting.has-content{border-color:rgba(52,211,153,.3);box-shadow:0 0 18px rgba(52,211,153,.07);}
-.lctrl-pcard.lctrl-pcard-projecting.has-content .lctrl-pcard-label{color:rgba(52,211,153,.75);}
-.lctrl-pcard.lctrl-pcard-projecting.has-content .lctrl-pcard-text{color:#cdf0e0;}
+.lctrl-pcard-idle{font-style:italic;color:rgba(150,170,160,.25);font-size:12px;}
+/* Card PRÉVIA — âmbar */
+.lctrl-pcard.lctrl-pcard-preview.has-content{border-color:rgba(251,191,36,.25);background:rgba(20,15,4,.6);}
+.lctrl-pcard.lctrl-pcard-preview.has-content .lctrl-pcard-label{color:rgba(251,191,36,.7);}
+.lctrl-pcard.lctrl-pcard-preview.has-content .lctrl-pcard-text{color:#fde68a;font-size:13px;}
+/* Card PROJETANDO — destaque verde total */
+.lctrl-pcard.lctrl-pcard-projecting{background:rgba(6,20,13,.65);}
+.lctrl-pcard.lctrl-pcard-projecting.has-content{border-color:rgba(52,211,153,.4);box-shadow:0 0 40px rgba(52,211,153,.12),inset 0 0 30px rgba(52,211,153,.04);background:rgba(4,18,11,.75);}
+.lctrl-pcard.lctrl-pcard-projecting.has-content .lctrl-pcard-label{color:#34d399;}
+.lctrl-pcard.lctrl-pcard-projecting.has-content .lctrl-pcard-dot{animation:sonoLedBlink 1.4s ease infinite;opacity:1;}
+.lctrl-pcard.lctrl-pcard-projecting.has-content .lctrl-pcard-text{color:#e0f7ee;font-size:17px;font-weight:700;line-height:1.72;text-shadow:0 0 20px rgba(52,211,153,.18);}
 /* Hint */
-.lctrl-preview-hint{text-align:center;font-size:10px;color:rgba(52,211,153,.3);margin-bottom:10px;flex-shrink:0;font-weight:600;letter-spacing:.3px;}
-/* Strophes grid */
-.lctrl-strophes-label{font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.4);text-transform:uppercase;margin-bottom:8px;flex-shrink:0;}
+.lctrl-preview-hint{text-align:center;font-size:10px;color:rgba(52,211,153,.28);margin-bottom:8px;flex-shrink:0;font-weight:600;letter-spacing:.3px;}
+/* Strophes */
+.lctrl-strophes-label{font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.35);text-transform:uppercase;margin-bottom:8px;flex-shrink:0;}
 .lctrl-strophes-scroll{flex:1;overflow-y:auto;min-height:0;}
-.lctrl-strophes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:7px;align-items:start;}
-.lctrl-strophe-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 12px 11px;cursor:pointer;transition:all .14s;position:relative;user-select:none;height:108px;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;}
+.lctrl-strophes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;align-items:start;}
+.lctrl-strophe-card{background:rgba(10,22,16,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 13px 12px;cursor:pointer;transition:all .15s;position:relative;user-select:none;min-height:120px;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;}
 .lctrl-strophe-card::-webkit-scrollbar{display:none;}
-.lctrl-strophe-card:hover{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.2);}
-/* preview = 1 click */
-.lctrl-strophe-card.preview{background:rgba(251,191,36,.07);border-color:rgba(251,191,36,.28);}
-.lctrl-strophe-card.preview .lctrl-strophe-dot{background:#fbbf24;box-shadow:0 0 5px rgba(251,191,36,.5);}
-/* active = projetando (2 clicks) */
-.lctrl-strophe-card.active{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.42);box-shadow:0 0 12px rgba(52,211,153,.08);}
-.lctrl-strophe-section{font-size:8px;font-weight:800;letter-spacing:.8px;color:rgba(52,211,153,.6);text-transform:uppercase;margin-bottom:5px;flex-shrink:0;}
+.lctrl-strophe-card:hover{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.22);}
+.lctrl-strophe-card.preview{background:rgba(30,22,4,.55);border-color:rgba(251,191,36,.3);}
+.lctrl-strophe-card.preview .lctrl-strophe-dot{background:#fbbf24;box-shadow:0 0 6px rgba(251,191,36,.6);}
+.lctrl-strophe-card.active{background:rgba(4,20,12,.7);border-color:rgba(52,211,153,.45);box-shadow:0 0 14px rgba(52,211,153,.1);}
+.lctrl-strophe-section{font-size:8px;font-weight:800;letter-spacing:.8px;color:rgba(52,211,153,.55);text-transform:uppercase;margin-bottom:5px;flex-shrink:0;}
 .lctrl-strophe-card.preview .lctrl-strophe-section{color:#fbbf24;}
 .lctrl-strophe-card.active .lctrl-strophe-section{color:#34d399;}
-.lctrl-strophe-preview{font-size:11px;color:rgba(210,225,215,.72);line-height:1.47;white-space:pre-line;flex:1;overflow-y:auto;scrollbar-width:none;}
-.lctrl-strophe-preview::-webkit-scrollbar{display:none;}
-.lctrl-strophe-card.preview .lctrl-strophe-preview{color:#fde68a;}
-.lctrl-strophe-card.active .lctrl-strophe-preview{color:#d4eedd;}
-.lctrl-strophe-dot{position:absolute;top:8px;right:8px;width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 5px rgba(52,211,153,.5);display:none;}
+.lctrl-strophe-preview{font-size:11.5px;color:rgba(210,228,218,.7);line-height:1.52;white-space:pre-line;flex:1;}
+.lctrl-strophe-card.preview .lctrl-strophe-preview{color:#fef3c7;}
+.lctrl-strophe-card.active .lctrl-strophe-preview{color:#ccf0e0;}
+.lctrl-strophe-dot{position:absolute;top:9px;right:9px;width:6px;height:6px;border-radius:50%;background:#34d399;box-shadow:0 0 6px rgba(52,211,153,.6);display:none;}
 .lctrl-strophe-card.preview .lctrl-strophe-dot,.lctrl-strophe-card.active .lctrl-strophe-dot{display:block;}
 .lctrl-preview-idle{font-size:12px;color:var(--faint);font-style:italic;}
+/* Botão de editar letra na lista de músicas */
+.lctrl-song-edit-btn{background:none;border:none;padding:2px 4px;cursor:pointer;color:rgba(52,211,153,.3);border-radius:5px;flex-shrink:0;display:flex;align-items:center;opacity:0;transition:opacity .15s,color .15s;margin-left:auto;}
+.lctrl-song-row:hover .lctrl-song-edit-btn,.lctrl-song-row.active .lctrl-song-edit-btn{opacity:1;}
+.lctrl-song-edit-btn:hover{color:#34d399;background:rgba(52,211,153,.12);}
+/* Modal de edição de letra */
+.lctrl-edit-modal{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;background:rgba(4,12,8,.92);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);}
+.lctrl-edit-modal.open{display:flex;}
+.lctrl-edit-header{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid rgba(52,211,153,.1);flex-shrink:0;}
+.lctrl-edit-title{font-family:var(--font-chord);font-size:14px;font-weight:800;color:#e5f0ea;flex:1;}
+.lctrl-edit-song-name{font-size:12px;color:rgba(52,211,153,.6);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lctrl-edit-save-btn{background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.35);border-radius:9px;padding:6px 16px;cursor:pointer;color:#34d399;font-size:12px;font-weight:800;transition:all .15s;}
+.lctrl-edit-save-btn:hover{background:rgba(52,211,153,.25);border-color:rgba(52,211,153,.55);}
+.lctrl-edit-save-btn:disabled{opacity:.4;cursor:default;}
+.lctrl-edit-cancel-btn{background:none;border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:6px 14px;cursor:pointer;color:var(--faint);font-size:12px;font-weight:600;}
+.lctrl-edit-cancel-btn:hover{border-color:rgba(239,68,68,.35);color:#f87171;}
+.lctrl-edit-body{flex:1;padding:16px 20px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.lctrl-edit-hint{font-size:10px;color:rgba(52,211,153,.4);font-weight:600;}
+.lctrl-edit-textarea{flex:1;background:rgba(8,22,14,.7);border:1px solid rgba(52,211,153,.15);border-radius:12px;padding:14px 16px;color:#d4eedd;font-size:13px;line-height:1.65;font-family:var(--font-chord);resize:none;outline:none;scrollbar-width:thin;}
+.lctrl-edit-textarea:focus{border-color:rgba(52,211,153,.35);}
+.lctrl-edit-status{font-size:11px;color:var(--faint);text-align:right;flex-shrink:0;min-height:16px;}
 /* Nav */
 .lctrl-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;flex-shrink:0;border-top:1px solid rgba(52,211,153,.07);margin-top:8px;}
 .lctrl-nav-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;padding:8px 18px;cursor:pointer;color:#c8d8cc;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;transition:all .14s;}
@@ -10268,31 +10290,42 @@ function _ltParsearEstrofes(letra) {
 }
 
 function _ltGetNomeUsuario() {
+  const n = localStorage.getItem('cifrei_username');
+  if (n) return n;
   try {
     const p = JSON.parse(localStorage.getItem('cifrei_perms') || '{}');
     if (p.nome) return p.nome;
-    const u = JSON.parse(localStorage.getItem('cifrei_user') || '{}');
-    if (u.nome) return u.nome;
   } catch(e){}
-  // Tenta pegar do DOM (header de equipe ou perfil)
-  const perfilEl = document.querySelector('[data-meu-nome]');
-  if (perfilEl) return perfilEl.dataset.meuNome;
   return null;
+}
+
+function _ltPopularGreeting() {
+  const nome = _ltGetNomeUsuario();
+  const foto = localStorage.getItem('cifrei_foto');
+  const nomeEl = document.getElementById('lctrl-greeting-name');
+  const subEl  = document.getElementById('lctrl-greeting-sub');
+  const av     = document.getElementById('lctrl-avatar');
+  if (nome && nomeEl) {
+    const primeiro = nome.split(' ')[0];
+    nomeEl.textContent = `Olá, ${primeiro}!`;
+    if (subEl) subEl.textContent = nome + ' • Módulo de projeção — data show';
+    if (av) {
+      if (foto) {
+        av.innerHTML = `<img src="${_ltEsc(foto)}" alt="${_ltEsc(primeiro)}" onerror="this.parentElement.innerHTML='${primeiro.charAt(0).toUpperCase()}'">`;
+      } else {
+        av.textContent = primeiro.charAt(0).toUpperCase();
+      }
+    }
+  } else if (foto && av) {
+    av.innerHTML = `<img src="${_ltEsc(foto)}" alt="avatar">`;
+  }
 }
 
 function abrirTransmitirLetras() {
   const overlay = document.getElementById('lctrl-overlay');
   if (!overlay) return;
   overlay.classList.add('open');
-  // Preenche saudação com nome do usuário
-  const nome = _ltGetNomeUsuario();
-  const nomeEl = document.getElementById('lctrl-greeting-name');
-  if (nomeEl && nome) {
-    const primeiro = nome.split(' ')[0];
-    nomeEl.textContent = `Olá, ${primeiro}!`;
-    const av = document.getElementById('lctrl-avatar');
-    if (av) av.textContent = primeiro.charAt(0).toUpperCase();
-  }
+  _ltPopularGreeting();
   // Escuta mensagens do popup
   if (!_LT._msgListener) {
     _LT._msgListener = (e) => {
@@ -10350,10 +10383,13 @@ function _ltRenderSongs() {
     const row = document.createElement('div');
     const temLetra = !!(s.letra?.trim());
     row.className = 'lctrl-song-row' + (_LT.songIdx === i ? ' active' : '');
-    if (!temLetra) row.style.opacity = '0.38';
+    if (!temLetra) row.style.opacity = '0.55';
     row.dataset.idx = i;
-    row.innerHTML = `<span class="lctrl-song-num">${i+1}</span><span class="lctrl-song-name">${_ltEsc(s.title)}</span>`;
-    if (temLetra) row.addEventListener('click', () => _ltSelectSong(i));
+    row.innerHTML = `<span class="lctrl-song-num">${i+1}</span><span class="lctrl-song-name">${_ltEsc(s.title)}</span><button class="lctrl-song-edit-btn" title="Editar letra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>`;
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.lctrl-song-edit-btn')) { _ltAbrirEditarLetra(i); return; }
+      if (temLetra) _ltSelectSong(i);
+    });
     list.appendChild(row);
   });
 }
@@ -10432,6 +10468,102 @@ function _ltProjetar(idx) {
   }
   const badge = document.getElementById('lctrl-live-badge');
   if (badge) { badge.classList.add('on'); badge.innerHTML = '<span class="ldot"></span>AO VIVO'; }
+}
+
+// ── EDITAR LETRA ──────────────────────────────────────────────────
+const _GIST_ID_BANCO_LT = 'ac2d9ca53f29fa99ac1c5f4be584b2b1';
+
+function _ltAbrirEditarLetra(songIdx) {
+  const song = S.songs[songIdx];
+  if (!song) return;
+  _LT._editIdx = songIdx;
+  const modal = document.getElementById('lctrl-edit-modal');
+  const ta    = document.getElementById('lctrl-edit-textarea');
+  const sn    = document.getElementById('lctrl-edit-song-name');
+  const st    = document.getElementById('lctrl-edit-status');
+  if (!modal || !ta) return;
+  if (sn) sn.textContent = song.title;
+  if (st) st.textContent = '';
+  ta.value = song.letra?.trim() || '';
+  modal.classList.add('open');
+  setTimeout(() => ta.focus(), 80);
+}
+
+function _ltFecharEditarLetra() {
+  document.getElementById('lctrl-edit-modal')?.classList.remove('open');
+  _LT._editIdx = -1;
+}
+
+async function _ltConfirmarSalvarLetra() {
+  const idx  = _LT._editIdx;
+  const song = S.songs[idx];
+  if (!song) return;
+  const ta   = document.getElementById('lctrl-edit-textarea');
+  const btn  = document.getElementById('lctrl-edit-save-btn');
+  const st   = document.getElementById('lctrl-edit-status');
+  if (!ta) return;
+  const novaLetra = ta.value.trim();
+  if (btn) btn.disabled = true;
+  if (st) st.textContent = 'Salvando…';
+  // 1. Atualiza em memória
+  song.letra = novaLetra;
+  const bancEntry = S.banco?.find(b => b.title?.toLowerCase() === song.title?.toLowerCase());
+  if (bancEntry) bancEntry.letra = novaLetra;
+  // 2. Atualiza raw do banco para persistência no Gist
+  let ok = false;
+  try {
+    const token = localStorage.getItem('adm_token');
+    if (token && S._bancoRaw) {
+      // Localiza a entrada da música no raw e atualiza o bloco [LETRA]...[/LETRA]
+      const escapeRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      const titleRe = new RegExp(`(^${escapeRegex(song.title)}\\s*\\n)([\\s\\S]*?)(?=\\n*--END--|$)`, 'm');
+      const newLetraBlock = novaLetra ? `\n[LETRA]\n${novaLetra}\n[/LETRA]` : '';
+      let newRaw;
+      if (titleRe.test(S._bancoRaw)) {
+        newRaw = S._bancoRaw.replace(titleRe, (m, header, body) => {
+          const cleanBody = body.replace(/\n*\[LETRA\][\s\S]*?\[\/LETRA\]/g, '').trimEnd();
+          return header + cleanBody + newLetraBlock;
+        });
+      } else {
+        newRaw = S._bancoRaw; // título não encontrado no raw — só atualiza em memória
+      }
+      if (newRaw !== S._bancoRaw) {
+        S._bancoRaw = newRaw;
+        // Descobre nome do arquivo e faz PATCH
+        const meta = await fetch(`https://api.github.com/gists/${_GIST_ID_BANCO_LT}`,
+          { headers: { Authorization: `token ${token}` } });
+        if (meta.ok) {
+          const data = await meta.json();
+          const filename = Object.keys(data.files || {})[0] || 'banco.txt';
+          const patch = await fetch(`https://api.github.com/gists/${_GIST_ID_BANCO_LT}`, {
+            method: 'PATCH',
+            headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ files: { [filename]: { content: newRaw } } })
+          });
+          ok = patch.ok;
+        }
+      } else {
+        ok = true; // raw não mudou (música não estava no banco), mas memória foi atualizada
+      }
+    } else {
+      ok = true; // sem token — só salva em memória para esta sessão
+    }
+  } catch(e) {
+    console.error('[transmitter] erro ao salvar letra:', e);
+  }
+  if (st) st.textContent = ok ? '✓ Letra salva com sucesso!' : '⚠️ Salvo em memória (banco offline)';
+  if (btn) btn.disabled = false;
+  // Se a música editada é a atual, re-renderiza estrofes
+  if (idx === _LT.songIdx) {
+    _LT.strophes = _ltParsearEstrofes(song.letra);
+    _LT.stropheIdx = -1; _LT.previewIdx = -1;
+    _ltRenderStrophes();
+    _ltAtualizarBox();
+    _ltAtualizarNav();
+  }
+  // Re-renderiza lista para mostrar músicas sem letra
+  _ltRenderSongs();
+  setTimeout(() => _ltFecharEditarLetra(), 1400);
 }
 
 function _ltAtualizarBox() {
@@ -10532,12 +10664,13 @@ function _ltAbrirJanela() {
     </div>
     <div class="lctrl-greeting-text">
       <div class="lctrl-greeting-name" id="lctrl-greeting-name">Olá, Sonoplasta!</div>
-      <div class="lctrl-greeting-sub">Módulo de projeção de letras — data show</div>
+      <div class="lctrl-greeting-sub" id="lctrl-greeting-sub">Módulo de projeção de letras — data show</div>
     </div>
     <div class="lctrl-instructions">
       <div class="lctrl-inst-item"><span class="lctrl-inst-key">1×</span> prévia</div>
       <div class="lctrl-inst-item"><span class="lctrl-inst-key">2×</span> projetar</div>
-      <div class="lctrl-inst-item"><span class="lctrl-inst-key">← →</span> navegar</div>
+      <div class="lctrl-inst-item"><span class="lctrl-inst-key">← →</span> projeta e navega</div>
+      <div class="lctrl-inst-item"><span class="lctrl-inst-key">✏️</span> editar letra</div>
       <div class="lctrl-inst-item"><span class="lctrl-inst-key">B</span> tela preta</div>
     </div>
   </div>
@@ -10579,6 +10712,23 @@ function _ltAbrirJanela() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
+    </div>
+  </div>
+  <!-- Modal de edição de letra -->
+  <div class="lctrl-edit-modal" id="lctrl-edit-modal">
+    <div class="lctrl-edit-header">
+      <div class="lctrl-edit-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editar Letra
+      </div>
+      <span class="lctrl-edit-song-name" id="lctrl-edit-song-name">—</span>
+      <button class="lctrl-edit-cancel-btn" onclick="_ltFecharEditarLetra()">Cancelar</button>
+      <button class="lctrl-edit-save-btn" id="lctrl-edit-save-btn" onclick="_ltConfirmarSalvarLetra()">Salvar letra</button>
+    </div>
+    <div class="lctrl-edit-body">
+      <div class="lctrl-edit-hint">Digite cada estrofe separada por uma linha em branco. Use [Refrão], [Verso 1], etc. para nomear seções.</div>
+      <textarea class="lctrl-edit-textarea" id="lctrl-edit-textarea" placeholder="Digite a letra aqui…&#10;&#10;Separe as estrofes com linhas em branco."></textarea>
+      <div class="lctrl-edit-status" id="lctrl-edit-status"></div>
     </div>
   </div>
 </div>
