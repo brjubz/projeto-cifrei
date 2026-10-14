@@ -481,7 +481,7 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-bible-verse-nav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(30px,1fr));gap:4px;padding:8px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,0,0,.18);}
 .lctrl-bible-verse-nav-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:5px;padding:5px 2px;font-size:12px;font-weight:700;color:#96b0a6;cursor:pointer;text-align:center;transition:all .09s;line-height:1;}
 .lctrl-bible-verse-nav-btn:hover{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.35);color:#fff;}
-.lctrl-bible-verse-nav-btn.selected{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.5);color:#34d399;}
+.lctrl-bible-verse-nav-btn.selected{background:rgba(52,211,153,.35);border-color:#34d399;color:#fff;font-size:13px;box-shadow:0 0 0 2px rgba(52,211,153,.25);}
 .lctrl-bible-verse-nav-btn.preview{background:rgba(251,191,36,.15);border-color:#fbbf24;color:#fbbf24;}
 .lctrl-bible-verse-nav-btn.projecting{background:rgba(52,211,153,.3);border-color:#34d399;color:#fff;}
 .lctrl-bible-verse-txt-scroll{flex:1;overflow-y:auto;}
@@ -499,9 +499,13 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-biblio-search-inp:focus{border-color:rgba(52,211,153,.35);}
 .lctrl-biblio-cnt{font-size:10px;color:rgba(52,211,153,.45);padding:2px 10px 5px;font-weight:700;flex-shrink:0;}
 .lctrl-biblio-body{flex:1;overflow-y:auto;}
-.lctrl-biblio-row{display:flex;align-items:center;width:100%;border-bottom:1px solid rgba(255,255,255,.03);padding:6px 10px;gap:6px;}
+.lctrl-biblio-row{display:flex;align-items:center;width:100%;border-bottom:1px solid rgba(255,255,255,.03);padding:6px 10px;gap:6px;cursor:pointer;transition:background .09s;border-left:3px solid transparent;}
+.lctrl-biblio-row:hover{background:rgba(52,211,153,.06);}
+.lctrl-biblio-row.selected{background:rgba(52,211,153,.1);border-left-color:#34d399;}
 .lctrl-biblio-title{flex:1;min-width:0;font-size:12.5px;color:#c2d5cc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.lctrl-biblio-meta{font-size:10.5px;color:var(--faint);flex-shrink:0;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;}
+.lctrl-biblio-meta{font-size:10.5px;color:var(--faint);flex-shrink:0;max-width:65px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;}
+.lctrl-biblio-add{background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.25);border-radius:7px;padding:3px 8px;font-size:11px;font-weight:700;color:#34d399;cursor:pointer;flex-shrink:0;transition:all .1s;white-space:nowrap;}
+.lctrl-biblio-add:hover{background:rgba(52,211,153,.25);border-color:#34d399;}
 /* ── DECK DE ESCALAS (swipe) ─────────────────────────────────────── */
 @keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
 @keyframes slideInLeft{from{opacity:0;transform:translateX(-60px)}to{opacity:1;transform:translateX(0)}}
@@ -11198,6 +11202,8 @@ function _ltTabBiblioteca() {
   _ltRenderBiblioteca();
 }
 
+let _ltBiblioSelected = -1;
+
 function _ltRenderBiblioteca(filter) {
   const body = document.getElementById('lctrl-biblio-body');
   const cnt  = document.getElementById('lctrl-biblio-cnt');
@@ -11217,12 +11223,55 @@ function _ltRenderBiblioteca(filter) {
     body.innerHTML = '<div style="padding:14px 10px;font-size:12px;color:var(--faint);">Nenhuma música encontrada.</div>';
     return;
   }
-  body.innerHTML = filtrada.map(s =>
-    '<div class="lctrl-biblio-row">' +
-    '<span class="lctrl-biblio-title">' + _ltEsc(s.title || '') + '</span>' +
-    (s.artist ? '<span class="lctrl-biblio-meta">' + _ltEsc(s.artist) + '</span>' : '') +
-    '</div>'
-  ).join('');
+  body.innerHTML = '';
+  filtrada.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'lctrl-biblio-row' + (i === _ltBiblioSelected ? ' selected' : '');
+    row.dataset.idx = i;
+    row.innerHTML =
+      '<span class="lctrl-biblio-title">' + _ltEsc(s.title || '') + '</span>' +
+      (s.artist ? '<span class="lctrl-biblio-meta">' + _ltEsc(s.artist) + '</span>' : '') +
+      '<button class="lctrl-biblio-add" title="Adicionar à lista">+</button>';
+    // click na row = preview
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.lctrl-biblio-add')) return;
+      _ltBiblioSelected = i;
+      body.querySelectorAll('.lctrl-biblio-row').forEach((r, ri) => r.classList.toggle('selected', ri === i));
+      _ltBiblioPreview(s);
+    });
+    // click no botão + = adicionar à lista
+    row.querySelector('.lctrl-biblio-add').addEventListener('click', (e) => {
+      e.stopPropagation();
+      _ltBiblioAddToLista(s, e.currentTarget);
+    });
+    body.appendChild(row);
+  });
+}
+
+function _ltBiblioPreview(song) {
+  const previewEl  = document.getElementById('lctrl-preview-text');
+  const previewCard = document.getElementById('lctrl-pcard-preview');
+  if (!previewEl) return;
+  const texto = song.letra?.trim()
+    ? song.letra.trim().split(/\n{2,}/)[0]  // primeira estrofe
+    : '(' + _ltEsc(song.title) + ')';
+  previewEl.innerHTML = '<strong style="display:block;font-size:11px;color:rgba(52,211,153,.7);margin-bottom:4px;">' + _ltEsc(song.title) + '</strong>' + _ltEsc(texto).replace(/\n/g,'<br>');
+  previewCard?.classList.add('has-content');
+}
+
+function _ltBiblioAddToLista(song, btn) {
+  // Adiciona à lista de projeção (S.songs) somente em memória — não sync com app Cifrei
+  const jaExiste = S.songs.some(s => (s.title||'').toLowerCase() === (song.title||'').toLowerCase());
+  if (!jaExiste) {
+    S.songs.push({ title: song.title, artist: song.artist || '', letra: song.letra || '', _fromBanco: true });
+    _ltRenderSongs();
+  }
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = jaExiste ? 'já na lista' : '✓';
+    btn.style.color = jaExiste ? '#fbbf24' : '#34d399';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1800);
+  }
 }
 
 function _ltBibliotecaFiltrar(val) { _ltRenderBiblioteca(val); }
@@ -11267,7 +11316,7 @@ function _ltBibliaOpenBook(bookNum) {
   _ltBibliaSetNav(
     '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaRenderBooks()">Bíblia</button>' +
     '<span class="lctrl-bible-nav-sep">›</span>' +
-    '<span class="lctrl-bible-nav-cur">' + name + '</span>'
+    '<span class="lctrl-bible-nav-cur" style="cursor:pointer" onclick="_ltBibliaRenderBooks()">' + name + '</span>'
   );
   const total = _BIBLE_CHAPS[bookNum];
   const body = document.getElementById('lctrl-bible-body');
@@ -11287,9 +11336,9 @@ function _ltBibliaOpenChap(bookNum, chapNum) {
   _ltBibliaSetNav(
     '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaRenderBooks()">Bíblia</button>' +
     '<span class="lctrl-bible-nav-sep">›</span>' +
-    '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaOpenBook(' + bookNum + ')">' + name + '</button>' +
+    '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaRenderBooks()">' + name + '</button>' +
     '<span class="lctrl-bible-nav-sep">›</span>' +
-    '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaOpenBook(' + bookNum + ')">Cap. ' + chapNum + ' ▾</button>'
+    '<span class="lctrl-bible-nav-cur">Cap. ' + chapNum + '</span>'
   );
   const body = document.getElementById('lctrl-bible-body');
   if (!body) return;
@@ -11317,7 +11366,7 @@ function _ltBibliaOpenVerso(bookNum, chapNum, verseNum) {
   _ltBibliaSetNav(
     '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaRenderBooks()">Bíblia</button>' +
     '<span class="lctrl-bible-nav-sep">›</span>' +
-    '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaOpenBook(' + bookNum + ')">' + name + '</button>' +
+    '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaRenderBooks()">' + name + '</button>' +
     '<span class="lctrl-bible-nav-sep">›</span>' +
     '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaOpenChap(' + bookNum + ',' + chapNum + ')">Cap. ' + chapNum + ' ▾</button>'
   );
@@ -11540,9 +11589,9 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
     <div class="lctrl-songs-panel">
       <div class="lctrl-songs-panel-title">Músicas</div>
       <div class="lctrl-tabs">
-        <button class="lctrl-tab-btn active" id="lctrl-tab-musicas" onclick="_ltTabMusicas()">Músicas</button>
+        <button class="lctrl-tab-btn active" id="lctrl-tab-musicas" onclick="_ltTabMusicas()">Lista</button>
         <button class="lctrl-tab-btn" id="lctrl-tab-biblia" onclick="_ltTabBiblia()">📖 Bíblia</button>
-        <button class="lctrl-tab-btn" id="lctrl-tab-biblioteca" onclick="_ltTabBiblioteca()">📚 Banco</button>
+        <button class="lctrl-tab-btn" id="lctrl-tab-biblioteca" onclick="_ltTabBiblioteca()">🎵 Canções</button>
       </div>
       <div id="lctrl-songs-list"></div>
       <div class="lctrl-bible-panel" id="lctrl-bible-panel">
