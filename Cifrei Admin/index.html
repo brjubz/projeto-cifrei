@@ -6013,7 +6013,7 @@ async function _iaBuscarCifra(titulo, artista, urlDireta) {
   return null;
 }
 
-function _parsearJinaMd(md, url) {
+function _parsearJinaMd(md, url) { // build:1791937918
   // Formato Jina: "Title: Nome - Artista - Cifra Club\nURL Source: ...\nMarkdown Content:\n..."
   const titleMatch = md.match(/^Title:\s*(.+)$/m);
   const rawTitle = titleMatch ? titleMatch[1].trim() : '';
