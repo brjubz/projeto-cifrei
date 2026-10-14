@@ -435,6 +435,11 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 /* ── BÍBLIA HOLYRICS-STYLE ────────────────────────────── */
 .lctrl-bible-panel{flex:1;overflow:hidden;display:none;flex-direction:column;}
 .lctrl-bible-panel.active{display:flex;}
+/* Campo de busca de livros */
+.lctrl-bible-search-wrap{padding:6px 8px 4px;flex-shrink:0;}
+.lctrl-bible-search-inp{width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:5px 10px;color:#d4e8de;font-size:12px;outline:none;transition:border-color .12s;}
+.lctrl-bible-search-inp:focus{border-color:rgba(52,211,153,.4);}
+.lctrl-bible-search-inp::placeholder{color:rgba(150,170,160,.4);}
 /* Breadcrumb nav */
 .lctrl-bible-nav{display:flex;align-items:center;gap:2px;padding:5px 8px;flex-shrink:0;background:rgba(0,0,0,.25);border-bottom:1px solid rgba(255,255,255,.06);}
 .lctrl-bible-nav-btn{background:none;border:none;color:rgba(52,211,153,.7);font-size:11px;font-weight:600;cursor:pointer;padding:2px 5px;border-radius:4px;transition:all .1s;white-space:nowrap;}
@@ -11149,23 +11154,37 @@ function _ltBibliaSetNav(html) {
   if (nav) nav.innerHTML = html;
 }
 
-function _ltBibliaRenderBooks() {
+function _ltBibliaRenderBooks(filter) {
   _bibliaNav = { level: 'books', book: null, chap: null };
-  _ltBibliaSetNav('<span class="lctrl-bible-nav-cur">Bíblia ARA</span>');
+  _ltBibliaSetNav('<span class="lctrl-bible-nav-cur">Bíblia</span>');
+  const sw = document.getElementById('lctrl-bible-search-wrap');
+  if (sw) sw.style.display = '';
+  const inp = document.getElementById('lctrl-bible-search-inp');
+  if (inp && !filter) inp.value = '';
   const body = document.getElementById('lctrl-bible-body');
   if (!body) return;
-  const esc = s => s.replace(/"/g, '&quot;');
-  body.innerHTML = _BIBLE_SECS.map(([sec, books]) =>
-    '<div class="lctrl-bible-section-hdr">' + sec + '</div>' +
-    books.map(n =>
-      '<button class="lctrl-bible-book-btn" onclick="_ltBibliaOpenBook(' + n + ')">' + _BIBLE_NAMES[n] + '</button>'
-    ).join('')
-  ).join('');
+  const q = (filter || '').trim();
+  const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+  const qn = norm(q);
+  body.innerHTML = _BIBLE_SECS.map(([sec, books]) => {
+    const filtered = q ? books.filter(n => norm(_BIBLE_NAMES[n]).includes(qn)) : books;
+    if (!filtered.length) return '';
+    return '<div class="lctrl-bible-section-hdr">' + sec + '</div>' +
+      filtered.map(n =>
+        '<button class="lctrl-bible-book-btn" onclick="_ltBibliaOpenBook(' + n + ')">' + _BIBLE_NAMES[n] + '</button>'
+      ).join('');
+  }).join('');
+}
+
+function _ltBibliaFiltrar(val) {
+  if (_bibliaNav.level === 'books') _ltBibliaRenderBooks(val);
 }
 
 function _ltBibliaOpenBook(bookNum) {
   _bibliaNav = { level: 'chaps', book: bookNum, chap: null };
   const name = _BIBLE_NAMES[bookNum];
+  const sw = document.getElementById('lctrl-bible-search-wrap');
+  if (sw) sw.style.display = 'none';
   _ltBibliaSetNav(
     '<button class="lctrl-bible-nav-btn" onclick="_ltBibliaRenderBooks()">Bíblia</button>' +
     '<span class="lctrl-bible-nav-sep">›</span>' +
@@ -11216,7 +11235,7 @@ function _ltBibliaOpenChap(bookNum, chapNum) {
 async function _ltBibliaFetchCap(bookNum, chapter) {
   const key = bookNum + ':' + chapter;
   if (_BIBLE_CACHE.has(key)) return _BIBLE_CACHE.get(key);
-  const r = await fetch('https://api.getbible.net/v2/ara/' + bookNum + '/' + chapter + '.json');
+  const r = await fetch('https://api.getbible.net/v2/almeida/' + bookNum + '/' + chapter + '.json');
   if (!r.ok) throw new Error('HTTP ' + r.status);
   const data = await r.json();
   const verses = data && data.verses
@@ -11317,8 +11336,11 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
       </div>
       <div id="lctrl-songs-list"></div>
       <div class="lctrl-bible-panel" id="lctrl-bible-panel">
+        <div class="lctrl-bible-search-wrap" id="lctrl-bible-search-wrap">
+          <input class="lctrl-bible-search-inp" id="lctrl-bible-search-inp" type="text" placeholder="Buscar livro…" oninput="_ltBibliaFiltrar(this.value)">
+        </div>
         <div class="lctrl-bible-nav" id="lctrl-bible-nav">
-          <span class="lctrl-bible-nav-cur">Bíblia ARA</span>
+          <span class="lctrl-bible-nav-cur">Bíblia</span>
         </div>
         <div class="lctrl-bible-body" id="lctrl-bible-body"></div>
       </div>
