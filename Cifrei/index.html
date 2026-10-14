@@ -337,8 +337,8 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 /* Songs panel — glassmorphism lateral */
 .lctrl-songs-panel{width:240px;min-width:160px;max-width:420px;flex-shrink:0;border-right:1px solid rgba(52,211,153,.07);overflow:hidden;padding:0;background:rgba(4,12,8,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:relative;display:flex;flex-direction:column;}
 /* Handle de redimensionamento da sidebar */
-.lctrl-resize-handle{width:5px;flex-shrink:0;cursor:col-resize;background:transparent;position:relative;z-index:10;transition:background .15s;}
-.lctrl-resize-handle:hover,.lctrl-resize-handle.dragging{background:rgba(52,211,153,.25);}
+.lctrl-resize-handle{width:8px;flex-shrink:0;cursor:col-resize;background:rgba(255,255,255,.03);position:relative;z-index:10;transition:background .15s;border-left:1px solid rgba(52,211,153,.07);border-right:1px solid rgba(52,211,153,.07);}
+.lctrl-resize-handle:hover,.lctrl-resize-handle.dragging{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.35);}
 .lctrl-songs-panel-title{font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.38);text-transform:uppercase;padding:10px 16px 6px;display:none;}
 #lctrl-songs-list{flex:1;overflow-y:auto;padding:4px 0 8px;scrollbar-width:thin;}
 .lctrl-song-row{padding:8px 14px 8px 12px;cursor:pointer;transition:background .12s;border-left:3px solid transparent;display:flex;align-items:center;gap:8px;}
@@ -348,14 +348,16 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-song-name{font-size:12px;font-weight:600;color:#b8ccc0;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
 .lctrl-song-row.active .lctrl-song-name{color:#e5f0ea;}
 .lctrl-song-noletras{font-size:11px;color:var(--faint);font-style:italic;padding:12px 16px;}
-/* Main area */
-.lctrl-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:14px 20px 12px;}
+/* Main area — coluna geral (linha 3cols + nav em baixo) */
+.lctrl-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:10px 14px 8px;}
+.lctrl-3cols{flex:1;display:flex;flex-direction:row;gap:10px;min-height:0;overflow:hidden;}
+.lctrl-col-strophes{flex:1.1;min-width:0;display:flex;flex-direction:column;overflow:hidden;}
+.lctrl-col-preview{flex:1;min-width:0;display:flex;flex-direction:column;}
+.lctrl-col-projecting{flex:1.5;min-width:0;display:flex;flex-direction:column;}
 /* ── OVERLAY GLASSMORPHISM ───────────────────────── */
-/* Dois cards assimétricos: prévia (1/3) + projetando (2/3) */
-.lctrl-preview-cards{display:flex;flex-direction:column-reverse;gap:8px;flex-shrink:0;margin-bottom:10px;}
-.lctrl-pcard{border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(10,22,16,.55);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);padding:12px 16px 12px;position:relative;display:flex;flex-direction:column;transition:border-color .3s,box-shadow .3s;overflow:hidden;}
-.lctrl-pcard-preview{height:68px;}
-.lctrl-pcard-projecting{height:160px;}
+/* Cards nas colunas: cada um ocupa a coluna inteira */
+.lctrl-preview-cards{display:contents;}
+.lctrl-pcard{border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(10,22,16,.55);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);padding:12px 14px;position:relative;display:flex;flex-direction:column;transition:border-color .3s,box-shadow .3s;overflow:hidden;flex:1;min-height:0;}
 .lctrl-pcard-label{font-size:8px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;flex-shrink:0;margin-bottom:8px;color:rgba(150,170,160,.38);transition:color .25s;display:flex;align-items:center;gap:6px;}
 .lctrl-pcard-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5;flex-shrink:0;}
 .lctrl-pcard-text{font-size:14px;font-weight:600;line-height:1.68;white-space:pre-line;overflow-y:auto;flex:1;min-height:0;color:rgba(200,215,208,.38);transition:color .25s;scrollbar-width:thin;scrollbar-color:rgba(52,211,153,.2) transparent;}
@@ -462,14 +464,16 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-bible-chap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(30px,1fr));gap:4px;padding:8px;}
 .lctrl-bible-chap-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:5px;padding:5px 2px;font-size:12px;font-weight:700;color:#96b0a6;cursor:pointer;text-align:center;transition:all .09s;line-height:1;}
 .lctrl-bible-chap-btn:hover{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.35);color:#fff;}
-/* Versículos */
-.lctrl-bible-verse{display:flex;align-items:flex-start;gap:7px;padding:4px 8px 4px 6px;cursor:pointer;transition:background .09s;border-left:2px solid transparent;}
-.lctrl-bible-verse:hover{background:rgba(52,211,153,.07);border-left-color:rgba(52,211,153,.3);}
-.lctrl-bible-verse.preview{background:rgba(251,191,36,.08);border-left-color:#fbbf24;}
-.lctrl-bible-verse.preview .lctrl-bible-verse-num{color:rgba(251,191,36,.7);}
-.lctrl-bible-verse.projecting{background:rgba(52,211,153,.13);border-left-color:#34d399;}
-.lctrl-bible-verse-num{font-size:9.5px;font-weight:800;color:rgba(52,211,153,.55);min-width:16px;padding-top:3px;flex-shrink:0;text-align:right;}
-.lctrl-bible-verse-text{font-size:12px;color:#c0d4ca;line-height:1.48;}
+/* Grid de versículos em blocos (como capítulos mas com texto) */
+.lctrl-bible-verse-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:5px;padding:6px;}
+.lctrl-bible-verse{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:6px 8px 7px;cursor:pointer;transition:all .1s;display:flex;flex-direction:column;gap:3px;}
+.lctrl-bible-verse:hover{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.25);}
+.lctrl-bible-verse.preview{background:rgba(251,191,36,.1);border-color:#fbbf24;}
+.lctrl-bible-verse.projecting{background:rgba(52,211,153,.15);border-color:#34d399;}
+.lctrl-bible-verse-num{font-size:11px;font-weight:800;color:rgba(52,211,153,.7);line-height:1;}
+.lctrl-bible-verse.preview .lctrl-bible-verse-num{color:rgba(251,191,36,.9);}
+.lctrl-bible-verse.projecting .lctrl-bible-verse-num{color:#34d399;}
+.lctrl-bible-verse-text{font-size:10.5px;color:rgba(180,205,192,.7);line-height:1.38;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
 .lctrl-tema-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:6px 12px;cursor:pointer;color:var(--faint);font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;transition:all .14s;flex-shrink:0;}
 .lctrl-tema-btn:hover{background:rgba(255,255,255,.09);color:var(--muted);}
 .lctrl-tema-btn.light{color:#fbbf24;border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08);}
@@ -11223,7 +11227,7 @@ function _ltBibliaOpenChap(bookNum, chapNum) {
     .then(verses => {
       if (_bibliaNav.book !== bookNum || _bibliaNav.chap !== chapNum) return;
       const ref = name + ' ' + chapNum;
-      body.innerHTML = verses.map(v => {
+      const cards = verses.map(v => {
         const vref = ref + ':' + v.v;
         const cls = _bibliaProjectingVerse === vref ? ' projecting' : (_bibliaPreviewVerse === vref ? ' preview' : '');
         const txt = v.t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -11235,6 +11239,7 @@ function _ltBibliaOpenChap(bookNum, chapNum) {
           '<span class="lctrl-bible-verse-text">' + txt + '</span>' +
           '</div>';
       }).join('');
+      body.innerHTML = '<div class="lctrl-bible-verse-grid">' + cards + '</div>';
     })
     .catch(() => {
       if (body) body.innerHTML = '<div style="padding:12px 8px;font-size:11px;color:#ef4444;">⚠ Erro. Verifique a conexão.</div>';
@@ -11320,32 +11325,30 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
 // ── RESIZE SIDEBAR ────────────────────────────────────────────────
 (function() {
   const handle = document.getElementById('lctrl-resize-handle');
-  const panel = handle && handle.previousElementSibling;
+  const panel = document.querySelector('.lctrl-songs-panel');
   if (!handle || !panel) return;
-  // Restaurar largura salva
-  const saved = localStorage.getItem('cifrei-sidebar-w');
-  if (saved) panel.style.width = saved + 'px';
-  let startX = 0, startW = 0;
+  try { const s = localStorage.getItem('cifrei-sidebar-w'); if (s) panel.style.width = s + 'px'; } catch(e) {}
+  let startX = 0, startW = 0, active = false;
   handle.addEventListener('mousedown', e => {
-    startX = e.clientX;
-    startW = panel.offsetWidth;
+    e.preventDefault();
+    startX = e.clientX; startW = panel.offsetWidth; active = true;
     handle.classList.add('dragging');
-    document.body.style.cursor = 'col-resize';
+    document.body.style.setProperty('cursor','col-resize','important');
     document.body.style.userSelect = 'none';
-    const onMove = ev => {
-      const w = Math.min(420, Math.max(160, startW + ev.clientX - startX));
-      panel.style.width = w + 'px';
-    };
-    const onUp = () => {
-      handle.classList.remove('dragging');
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      try { localStorage.setItem('cifrei-sidebar-w', panel.offsetWidth); } catch(e) {}
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-    };
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+  });
+  document.addEventListener('mousemove', e => {
+    if (!active) return;
+    const w = Math.min(480, Math.max(150, startW + e.clientX - startX));
+    panel.style.width = w + 'px';
+    panel.style.minWidth = w + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    if (!active) return;
+    active = false;
+    handle.classList.remove('dragging');
+    document.body.style.removeProperty('cursor');
+    document.body.style.userSelect = '';
+    try { localStorage.setItem('cifrei-sidebar-w', panel.offsetWidth); } catch(e) {}
   });
 })();
 // ── fim RESIZE SIDEBAR ─────────────────────────────────────────────
@@ -11426,21 +11429,29 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
     </div>
     <div class="lctrl-resize-handle" id="lctrl-resize-handle"></div>
     <div class="lctrl-main">
-      <div class="lctrl-preview-cards">
+      <div class="lctrl-3cols">
+      <!-- COLUNA ESQUERDA: estrofes -->
+      <div class="lctrl-col-strophes">
+        <div class="lctrl-strophes-label">Estrofes &nbsp;<span style="font-weight:400;opacity:.55;font-size:9px;text-transform:none;letter-spacing:0">1× prévia &nbsp;·&nbsp; 2× projetar</span></div>
+        <div class="lctrl-strophes-scroll">
+          <div class="lctrl-strophes-grid" id="lctrl-strophes-grid"></div>
+        </div>
+      </div>
+      <!-- COLUNA MEIO: prévia -->
+      <div class="lctrl-col-preview">
         <div class="lctrl-pcard lctrl-pcard-preview" id="lctrl-pcard-preview">
           <div class="lctrl-pcard-label">Prévia</div>
           <div class="lctrl-pcard-text" id="lctrl-preview-text"><span class="lctrl-pcard-idle">—</span></div>
         </div>
+      </div>
+      <!-- COLUNA DIREITA: projetando agora -->
+      <div class="lctrl-col-projecting">
         <div class="lctrl-pcard lctrl-pcard-projecting" id="lctrl-pcard-projecting">
           <div class="lctrl-pcard-label">Projetando agora</div>
           <div class="lctrl-pcard-text" id="lctrl-projecting-text"><span class="lctrl-pcard-idle">—</span></div>
         </div>
       </div>
-      <div class="lctrl-preview-hint">1× clique = prévia &nbsp;•&nbsp; 2× clique = projetar no data show</div>
-      <div class="lctrl-strophes-label">Estrofes</div>
-      <div class="lctrl-strophes-scroll">
-        <div class="lctrl-strophes-grid" id="lctrl-strophes-grid"></div>
-      </div>
+      </div><!-- fim lctrl-3cols -->
       <div class="lctrl-nav">
         <button id="lctrl-nav-prev" class="lctrl-nav-btn" onclick="_ltNavPrev()" disabled>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><polyline points="15 18 9 12 15 6"/></svg>
