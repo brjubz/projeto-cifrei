@@ -292,6 +292,15 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 @media(min-width:480px){.song-item:hover .play-icon{display:flex;}}
 .del-btn{padding:14px;background:none;border:none;cursor:pointer;color:var(--faint);transition:background .15s,color .15s,transform .15s;display:flex;}
 .song-added-by{font-family:var(--font-chord);font-size:10px;font-weight:700;color:var(--muted);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:99px;padding:2px 8px;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis;letter-spacing:.2px;display:inline-block;vertical-align:middle;}
+/* turn accent — EBD (amber) / Culto (purple) */
+.song-item.ebd{border-left:3px solid rgba(251,191,36,.45);}
+.song-item.culto{border-left:3px solid rgba(192,132,252,.45);}
+.song-item.ebd .song-num{background:rgba(251,191,36,.12);color:#fbbf24;}
+.song-item.ebd:hover .song-num{background:#fbbf24;color:#000;box-shadow:0 0 14px rgba(251,191,36,.5);}
+.song-item.culto .song-num{background:rgba(192,132,252,.12);color:#c084fc;}
+.song-item.culto:hover .song-num{background:#c084fc;color:#000;box-shadow:0 0 14px rgba(192,132,252,.5);}
+/* list header gradient title */
+.list-title-grad{background:linear-gradient(135deg,#fff 30%,rgba(255,255,255,.55));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 @keyframes slideUp{from{transform:translateY(100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
 /* ── DECK DE ESCALAS (swipe) ─────────────────────────────────────── */
 @keyframes slideInRight{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
@@ -315,9 +324,21 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
   border:1px solid rgba(255,255,255,.09);
   border-radius:var(--radius-card);padding:20px;backdrop-filter:blur(20px);
   box-shadow:var(--shadow-card);
+  position:relative;overflow:hidden;
 }
-.escala-dot{width:6px;height:6px;border-radius:99px;background:rgba(255,255,255,.2);transition:all .25s;}
-.escala-dot.active{width:20px;background:var(--green);}
+.escala-card-inner.proxima{
+  background:linear-gradient(145deg,rgba(18,28,18,.95) 0%,rgba(14,20,14,.95) 100%);
+  border-color:rgba(52,211,153,.22);
+  box-shadow:var(--shadow-card),0 0 30px rgba(52,211,153,.06);
+}
+.escala-card-inner.proxima::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(52,211,153,.8),rgba(110,231,183,.6),transparent);
+  pointer-events:none;
+}
+.escala-dot{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.18);transition:all .28s cubic-bezier(.22,1,.36,1);}
+.escala-dot.active{width:22px;background:var(--green);box-shadow:0 0 8px rgba(52,211,153,.45);}
+.escala-indicador-wrap{font-size:11px;color:var(--faint);font-weight:700;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:1px;}
 .escala-membro-card{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;}
 .escala-membro-card.ministro{background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.2);}
 .escala-membro-card.comum{background:rgba(24,24,27,.6);border:1px solid rgba(63,63,70,.25);}
@@ -1279,23 +1300,23 @@ window.addEventListener('unhandledrejection', function(e) {
   <!-- LIST -->
   <div class="view active" id="view-list">
     <div class="list-header">
-      <div>
-        <div style="display:flex; align-items:center;">
-          <h2>Setlist</h2>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <h2 class="list-title-grad">Setlist</h2>
           <div id="presence-avatars" class="presence-wrap"></div>
         </div>
-        <p id="list-cnt-txt">0 músicas</p>
-        <div style="display:flex;align-items:center;gap:8px;">
-        <div class="week-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          Repertório da semana
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;">
+          <p id="list-cnt-txt" style="margin:0;color:var(--muted);font-size:12px;"></p>
+          <div class="week-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Repertório da semana
+          </div>
         </div>
-        <button onclick="abrirDiagnostico()" title="Diagnóstico" style="background:none;border:1px solid rgba(82,82,91,.4);border-radius:8px;padding:3px 7px;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--faint);font-size:10px;font-weight:700;letter-spacing:.3px;transition:border-color .2s,color .2s;" onmouseenter="this.style.borderColor='rgba(161,161,170,.5)';this.style.color='var(--muted)'" onmouseleave="this.style.borderColor='rgba(82,82,91,.4)';this.style.color='var(--faint)'">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41"/><path d="M4.93 4.93l1.41 1.41"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M20 12h2"/><path d="M2 12h2"/><path d="M19.07 19.07l-1.41-1.41"/><path d="M4.93 19.07l1.41-1.41"/></svg>
-          Diagnóstico
-        </button>
       </div>
-      </div>
+      <button onclick="abrirDiagnostico()" title="Diagnóstico" style="background:none;border:1px solid rgba(82,82,91,.35);border-radius:8px;padding:5px 9px;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--faint);font-size:10px;font-weight:700;letter-spacing:.3px;transition:border-color .2s,color .2s;flex-shrink:0;align-self:flex-start;margin-top:4px;" onmouseenter="this.style.borderColor='rgba(161,161,170,.5)';this.style.color='var(--muted)'" onmouseleave="this.style.borderColor='rgba(82,82,91,.35)';this.style.color='var(--faint)'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41"/><path d="M4.93 4.93l1.41 1.41"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M20 12h2"/><path d="M2 12h2"/><path d="M19.07 19.07l-1.41-1.41"/><path d="M4.93 19.07l1.41-1.41"/></svg>
+        Diagnóstico
+      </button>
     </div>
     <div class="song-list" id="song-list"></div>
   </div>
@@ -4925,7 +4946,9 @@ function renderList(){
 
   // EBD songs
   ebdSongs.forEach((s,i)=>{
-    c.appendChild(buildSongItem(s, i));
+    const el = buildSongItem(s, i);
+    el.classList.add('ebd');
+    c.appendChild(el);
   });
 
   // Culto header (só se tiver músicas)
@@ -4944,7 +4967,9 @@ function renderList(){
     `;
     c.appendChild(cultoDivider);
     cultoSongs.forEach((s,i)=>{
-      c.appendChild(buildSongItem(s, limiteEBD + i));
+      const el = buildSongItem(s, limiteEBD + i);
+      el.classList.add('culto');
+      c.appendChild(el);
     });
   }
 
@@ -7945,7 +7970,7 @@ function _deckRender(animDir) {
     track.innerHTML = '';
     _deckEscalas.forEach(escala => {
       const div = document.createElement('div');
-      div.className = 'escala-card-inner';
+      div.className = 'escala-card-inner' + (escala._isProxima ? ' proxima' : '');
       div.style.cssText = `min-width:${CARD_W}px;width:${CARD_W}px;flex-shrink:0;box-sizing:border-box;`;
       div.innerHTML = _buildEscalaCardHTML(escala, true);
       track.appendChild(div);
