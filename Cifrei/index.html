@@ -3142,6 +3142,7 @@ function _bootCifrei() {
   if (savedName && sessaoValida) {
     _atualizarWelcomeCard();
     _fbInitPromise = initFirebase();
+    _fbInitPromise.then(() => _carregarHomeAviso());
   } else {
     const modal = document.getElementById('modal-boas-vindas');
     if (modal) modal.style.display = 'flex';
@@ -3402,9 +3403,6 @@ function _atualizarWelcomeCard() {
   }
 
   card.style.display = 'flex';
-
-  // Quadro de avisos — busca assíncrona do Firestore
-  _carregarHomeAviso();
 }
 
 async function _carregarHomeAviso() {
