@@ -302,8 +302,10 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 /* list header gradient title */
 .list-title-grad{background:linear-gradient(135deg,#fff 30%,rgba(255,255,255,.55));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 
-/* === LYRICS TRANSMITTER (desktop only) === */
-@media(max-width:767px){.lyrics-transmit-btn{display:none!important;}}
+/* === LYRICS TRANSMITTER === */
+/* Na view-list esconder em mobile; no sono sempre visível */
+#view-list .lyrics-transmit-btn{display:none;}
+@media(min-width:768px){#view-list .lyrics-transmit-btn{display:flex;}}
 .lyrics-transmit-btn{background:linear-gradient(135deg,rgba(192,132,252,.14),rgba(139,92,246,.09));border:1px solid rgba(192,132,252,.28);border-radius:8px;padding:5px 11px;cursor:pointer;display:flex;align-items:center;gap:5px;color:#c084fc;font-size:10px;font-weight:700;letter-spacing:.3px;transition:all .2s;flex-shrink:0;align-self:flex-start;margin-top:4px;}
 .lyrics-transmit-btn:hover{background:linear-gradient(135deg,rgba(192,132,252,.22),rgba(139,92,246,.16));border-color:rgba(192,132,252,.48);box-shadow:0 0 10px rgba(192,132,252,.15);}
 /* Overlay */
@@ -1374,16 +1376,10 @@ window.addEventListener('unhandledrejection', function(e) {
           </div>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">
-        <button onclick="abrirTransmitirLetras()" class="lyrics-transmit-btn" title="Projetar letras no data show">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-          Transmitir
-        </button>
-        <button onclick="abrirDiagnostico()" title="Diagnóstico" style="background:none;border:1px solid rgba(82,82,91,.35);border-radius:8px;padding:5px 9px;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--faint);font-size:10px;font-weight:700;letter-spacing:.3px;transition:border-color .2s,color .2s;" onmouseenter="this.style.borderColor='rgba(161,161,170,.5)';this.style.color='var(--muted)'" onmouseleave="this.style.borderColor='rgba(82,82,91,.35)';this.style.color='var(--faint)'">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41"/><path d="M4.93 4.93l1.41 1.41"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M20 12h2"/><path d="M2 12h2"/><path d="M19.07 19.07l-1.41-1.41"/><path d="M4.93 19.07l1.41-1.41"/></svg>
-          Diagnóstico
-        </button>
-      </div>
+      <button onclick="abrirDiagnostico()" title="Diagnóstico" style="background:none;border:1px solid rgba(82,82,91,.35);border-radius:8px;padding:5px 9px;cursor:pointer;display:flex;align-items:center;gap:4px;color:var(--faint);font-size:10px;font-weight:700;letter-spacing:.3px;transition:border-color .2s,color .2s;flex-shrink:0;align-self:flex-start;margin-top:4px;" onmouseenter="this.style.borderColor='rgba(161,161,170,.5)';this.style.color='var(--muted)'" onmouseleave="this.style.borderColor='rgba(82,82,91,.35)';this.style.color='var(--faint)'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41"/><path d="M4.93 4.93l1.41 1.41"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M20 12h2"/><path d="M2 12h2"/><path d="M19.07 19.07l-1.41-1.41"/><path d="M4.93 19.07l1.41-1.41"/></svg>
+        Diagnóstico
+      </button>
     </div>
     <div class="song-list" id="song-list"></div>
   </div>
@@ -1739,9 +1735,15 @@ window.addEventListener('unhandledrejection', function(e) {
 
         <!-- Card setlist / repertório -->
         <div class="sono-card">
-          <div class="sono-section-label">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-            Repertório
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <div class="sono-section-label" style="margin-bottom:0;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              Repertório
+            </div>
+            <button onclick="abrirTransmitirLetras()" class="lyrics-transmit-btn" title="Projetar letras no data show" style="margin-top:0;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              Transmitir
+            </button>
           </div>
           <div id="sono-setlist-lista" style="display:flex;flex-direction:column;">
             <div style="color:var(--faint);font-size:12px;text-align:center;padding:12px;">Carregando...</div>
@@ -10241,23 +10243,38 @@ function abrirTransmitirLetras() {
     _LT.channel = new BroadcastChannel('cifrei-lyrics');
     _LT.channel.onmessage = (e) => { if (e.data?.type === 'ready' && _LT.stropheIdx >= 0) _ltProjetar(_LT.stropheIdx); };
   }
+  // Keyboard nav
+  if (!overlay._keyHandler) {
+    overlay._keyHandler = function(e) {
+      if (!overlay.classList.contains('open')) return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); _ltNavNext(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); _ltNavPrev(); }
+      else if (e.key === 'b' || e.key === 'B') _ltToggleBlank();
+      else if (e.key === 'Escape') fecharTransmitirLetras();
+    };
+    document.addEventListener('keydown', overlay._keyHandler);
+  }
+  // Se setlist ainda não carregou, carrega primeiro
+  if (!S.songs.length) {
+    const list = document.getElementById('lctrl-songs-list');
+    if (list) list.innerHTML = '<div class="lctrl-song-noletras" style="padding:14px 16px;">Carregando repertório…</div>';
+    _carregarSetlistAsync().then(() => {
+      _ltRenderSongs();
+      _ltAutoSelectFirst();
+    });
+    return;
+  }
   _ltRenderSongs();
-  // Auto-select first song with letra
-  if (_LT.songIdx < 0) {
+  _ltAutoSelectFirst();
+}
+
+function _ltAutoSelectFirst() {
+  if (_LT.songIdx >= 0 && S.songs[_LT.songIdx]) {
+    _ltSelectSong(_LT.songIdx);
+  } else {
     const first = S.songs.findIndex(s => s.letra?.trim());
     if (first >= 0) _ltSelectSong(first);
-  } else {
-    _ltSelectSong(_LT.songIdx);
   }
-  // Keyboard nav
-  overlay._keyHandler = overlay._keyHandler || function(e) {
-    if (!overlay.classList.contains('open')) return;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); _ltNavNext(); }
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); _ltNavPrev(); }
-    else if (e.key === 'b' || e.key === 'B') _ltToggleBlank();
-    else if (e.key === 'Escape') fecharTransmitirLetras();
-  };
-  document.addEventListener('keydown', overlay._keyHandler);
 }
 
 function fecharTransmitirLetras() {
@@ -10271,9 +10288,11 @@ function _ltRenderSongs() {
   if (!list) return;
   list.innerHTML = '';
   if (!S.songs.length) {
-    list.innerHTML = '<div class="lctrl-song-noletras">Setlist vazio.</div>';
+    list.innerHTML = '<div class="lctrl-song-noletras" style="padding:12px 16px;">Setlist vazio.</div>';
     return;
   }
+  // Tenta enriquecer letras do banco caso ainda não estejam
+  if (typeof _enriquecerSetlistComLetras === 'function') _enriquecerSetlistComLetras();
   S.songs.forEach((s, i) => {
     const row = document.createElement('div');
     const temLetra = !!(s.letra?.trim());
