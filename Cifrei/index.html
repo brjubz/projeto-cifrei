@@ -1322,24 +1322,12 @@ window.addEventListener('unhandledrejection', function(e) {
     </div><!-- /home-cards-grid -->
 
     <!-- Quadro de Avisos — gerenciado pelo admin (oculto se sem mensagem) -->
-    <div id="home-aviso-wrap" style="display:none;width:100%;animation:cardIn .5s cubic-bezier(.22,1,.36,1) .2s both;padding:2px 3px 6px;">
-      <div style="background:linear-gradient(160deg,rgba(251,191,36,.11) 0%,rgba(245,158,11,.06) 60%,rgba(217,119,6,.04) 100%);border:1px solid rgba(251,191,36,.28);border-radius:3px 12px 12px 3px;padding:14px 18px 14px 22px;position:relative;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.22),0 1px 0 rgba(251,191,36,.08) inset;transform:rotate(-0.4deg);">
-        <!-- Faixa lateral esquerda — cor do post-it -->
-        <div style="position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(180deg,#fbbf24 0%,#f59e0b 100%);border-radius:3px 0 0 3px;"></div>
-        <!-- Pino no topo direito -->
-        <div style="position:absolute;top:10px;right:14px;opacity:.7;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="rgba(251,191,36,.6)" stroke="rgba(251,191,36,.4)" stroke-width="1.5"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
-        </div>
-        <!-- Label -->
-        <div style="font-size:9px;font-weight:900;letter-spacing:2px;color:rgba(251,191,36,.5);text-transform:uppercase;margin-bottom:7px;display:flex;align-items:center;gap:6px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="rgba(251,191,36,.5)" stroke-width="2.5" width="10" height="10"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-          Quadro de Avisos
-        </div>
-        <!-- Texto -->
-        <div id="home-aviso-texto" style="font-size:13.5px;font-weight:500;color:rgba(255,237,180,.92);line-height:1.68;white-space:pre-wrap;padding-right:20px;"></div>
-        <!-- Link opcional -->
-        <a id="home-aviso-link" href="#" target="_blank" rel="noopener" style="display:none;margin-top:11px;align-items:center;gap:5px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.22);border-radius:7px;padding:5px 11px;font-size:11.5px;font-weight:700;color:#fbbf24;text-decoration:none;width:fit-content;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    <div id="home-aviso-wrap" style="display:none;width:100%;animation:cardIn .5s cubic-bezier(.22,1,.36,1) .2s both;">
+      <div style="background:rgba(250,220,100,.06);border:1px solid rgba(250,220,100,.13);border-radius:10px;padding:12px 15px;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.18);">
+        <div style="font-size:9px;font-weight:700;letter-spacing:1.8px;color:rgba(250,220,100,.35);text-transform:uppercase;margin-bottom:6px;">Aviso</div>
+        <div id="home-aviso-texto" style="font-size:13px;font-weight:400;color:rgba(255,240,185,.75);line-height:1.65;white-space:pre-wrap;"></div>
+        <a id="home-aviso-link" href="#" target="_blank" rel="noopener" style="display:none;margin-top:9px;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:rgba(250,220,100,.5);text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="10" height="10"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           <span id="home-aviso-link-texto">Saiba mais</span>
         </a>
       </div>
