@@ -337,8 +337,10 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 /* Songs panel — glassmorphism lateral */
 .lctrl-songs-panel{width:240px;min-width:160px;max-width:420px;flex-shrink:0;border-right:1px solid rgba(52,211,153,.07);overflow:hidden;padding:0;background:rgba(4,12,8,.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);position:relative;display:flex;flex-direction:column;}
 /* Handle de redimensionamento da sidebar */
-.lctrl-resize-handle{width:8px;flex-shrink:0;cursor:col-resize;background:rgba(255,255,255,.03);position:relative;z-index:10;transition:background .15s;border-left:1px solid rgba(52,211,153,.07);border-right:1px solid rgba(52,211,153,.07);}
+.lctrl-resize-handle{width:12px;flex-shrink:0;cursor:col-resize;background:rgba(255,255,255,.04);position:relative;z-index:10;transition:background .15s;border-left:1px solid rgba(52,211,153,.1);border-right:1px solid rgba(52,211,153,.1);display:flex;align-items:center;justify-content:center;}
+.lctrl-resize-handle::after{content:'';display:block;width:3px;height:24px;border-left:1px solid rgba(52,211,153,.25);border-right:1px solid rgba(52,211,153,.25);border-radius:1px;}
 .lctrl-resize-handle:hover,.lctrl-resize-handle.dragging{background:rgba(52,211,153,.18);border-color:rgba(52,211,153,.35);}
+.lctrl-resize-handle:hover::after,.lctrl-resize-handle.dragging::after{border-color:rgba(52,211,153,.7);}
 .lctrl-songs-panel-title{font-size:9px;font-weight:800;letter-spacing:1.5px;color:rgba(52,211,153,.38);text-transform:uppercase;padding:10px 16px 6px;display:none;}
 #lctrl-songs-list{flex:1;overflow-y:auto;padding:4px 0 8px;scrollbar-width:thin;}
 .lctrl-song-row{padding:8px 14px 8px 12px;cursor:pointer;transition:background .12s;border-left:3px solid transparent;display:flex;align-items:center;gap:8px;}
@@ -350,10 +352,10 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-song-noletras{font-size:11px;color:var(--faint);font-style:italic;padding:12px 16px;}
 /* Main area — coluna geral (linha 3cols + nav em baixo) */
 .lctrl-main{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:10px 14px 8px;}
-.lctrl-3cols{flex:1;display:flex;flex-direction:row;gap:10px;min-height:0;overflow:hidden;}
-.lctrl-col-strophes{flex:1.1;min-width:0;display:flex;flex-direction:column;overflow:hidden;}
-.lctrl-col-preview{flex:1;min-width:0;display:flex;flex-direction:column;}
-.lctrl-col-projecting{flex:1.5;min-width:0;display:flex;flex-direction:column;}
+.lctrl-3cols{flex:1;display:flex;flex-direction:row;gap:0;min-height:0;overflow:hidden;}
+.lctrl-col-strophes{flex:1.1;min-width:120px;display:flex;flex-direction:column;overflow:hidden;}
+.lctrl-col-preview{flex:1;min-width:120px;display:flex;flex-direction:column;}
+.lctrl-col-projecting{flex:1.5;min-width:120px;display:flex;flex-direction:column;}
 /* ── OVERLAY GLASSMORPHISM ───────────────────────── */
 /* Cards nas colunas: cada um ocupa a coluna inteira */
 .lctrl-preview-cards{display:contents;}
@@ -489,6 +491,8 @@ main{max-width:860px;margin:0 auto;padding:28px 20px;}
 .lctrl-bible-verse-item:hover{background:rgba(52,211,153,.06);}
 .lctrl-bible-verse-item.preview{background:rgba(251,191,36,.07);border-left-color:#fbbf24;}
 .lctrl-bible-verse-item.projecting{background:rgba(52,211,153,.1);border-left-color:#34d399;}
+.lctrl-bible-verse-item.selected{background:rgba(52,211,153,.06);border-left-color:rgba(52,211,153,.4);}
+.lctrl-bible-verse-item.selected .lctrl-bible-verse-item-num{color:#34d399;}
 .lctrl-bible-verse-item-num{font-size:10px;font-weight:800;color:rgba(52,211,153,.6);min-width:18px;flex-shrink:0;line-height:1.6;}
 .lctrl-bible-verse-item-text{font-size:12.5px;color:#c2d5cc;line-height:1.6;}
 /* ── BIBLIOTECA ────────────────────────────────────────────────────── */
@@ -10998,7 +11002,13 @@ function _ltAtualizarNav() {
 function _ltNavPrev() {
   if (_LT.bibleMode) {
     const { bookNum, chapNum, verses, idx } = _LT.bibleMode;
-    if (idx > 0) _ltBibliaProjetarVerso(bookNum, chapNum, verses[idx-1].v);
+    if (idx > 0) {
+      _ltBibliaProjetarVerso(bookNum, chapNum, verses[idx-1].v);
+    } else if (chapNum > 1) {
+      _ltBibliaFetchCap(bookNum, chapNum - 1).then(vs => {
+        if (vs && vs.length) _ltBibliaProjetarVerso(bookNum, chapNum - 1, vs[vs.length - 1].v);
+      });
+    }
     return;
   }
   const ref = _LT.stropheIdx >= 0 ? _LT.stropheIdx : _LT.previewIdx;
@@ -11007,7 +11017,13 @@ function _ltNavPrev() {
 function _ltNavNext() {
   if (_LT.bibleMode) {
     const { bookNum, chapNum, verses, idx } = _LT.bibleMode;
-    if (idx < verses.length - 1) _ltBibliaProjetarVerso(bookNum, chapNum, verses[idx+1].v);
+    if (idx < verses.length - 1) {
+      _ltBibliaProjetarVerso(bookNum, chapNum, verses[idx+1].v);
+    } else if (chapNum < _BIBLE_CHAPS[bookNum]) {
+      _ltBibliaFetchCap(bookNum, chapNum + 1).then(vs => {
+        if (vs && vs.length) _ltBibliaProjetarVerso(bookNum, chapNum + 1, vs[0].v);
+      });
+    }
     return;
   }
   const ref = _LT.stropheIdx >= 0 ? _LT.stropheIdx : _LT.previewIdx;
@@ -11432,6 +11448,7 @@ function _ltBibliaOpenVerso(bookNum, chapNum, verseNum) {
     let cls = '';
     if (_bibliaProjectingVerse === vref) cls = ' projecting';
     else if (_bibliaPreviewVerse === vref) cls = ' preview';
+    else if (v.v === verseNum) cls = ' selected';
     const txt = v.t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     txtList += '<div class="lctrl-bible-verse-item' + cls + '" ' +
       'id="bv-' + bookNum + '-' + chapNum + '-' + v.v + '" ' +
@@ -11567,6 +11584,43 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
 })();
 // ── fim RESIZE SIDEBAR ─────────────────────────────────────────────
 
+// ── RESIZE 3 COLUNAS ──────────────────────────────────────────────
+(function() {
+  function initColResize(handleId, leftColId, storageKey) {
+    const handle = document.getElementById(handleId);
+    const leftCol = document.getElementById(leftColId);
+    if (!handle || !leftCol) return;
+    try {
+      const w = localStorage.getItem(storageKey);
+      if (w) { leftCol.style.flex = 'none'; leftCol.style.width = parseInt(w) + 'px'; leftCol.style.minWidth = '0'; }
+    } catch(e) {}
+    let startX = 0, startW = 0, active = false;
+    handle.addEventListener('mousedown', e => {
+      e.preventDefault();
+      startX = e.clientX; startW = leftCol.offsetWidth; active = true;
+      handle.classList.add('dragging');
+      document.body.style.setProperty('cursor', 'col-resize', 'important');
+      document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', e => {
+      if (!active) return;
+      const w = Math.max(120, startW + e.clientX - startX);
+      leftCol.style.flex = 'none'; leftCol.style.width = w + 'px'; leftCol.style.minWidth = '0';
+    });
+    document.addEventListener('mouseup', () => {
+      if (!active) return;
+      active = false;
+      handle.classList.remove('dragging');
+      document.body.style.removeProperty('cursor');
+      document.body.style.userSelect = '';
+      try { localStorage.setItem(storageKey, leftCol.offsetWidth); } catch(e) {}
+    });
+  }
+  initColResize('lctrl-col-handle-1', 'lctrl-col-strophes', 'cifrei-col-strophes-w');
+  initColResize('lctrl-col-handle-2', 'lctrl-col-preview', 'cifrei-col-preview-w');
+})();
+// ── fim RESIZE 3 COLUNAS ───────────────────────────────────────────
+
 // Registrar listeners
 (function() {
   const cifraEl = document.getElementById('cifra');
@@ -11653,21 +11707,23 @@ function _ltBibliaProjetarVerso(bookNum, chapNum, verseNum) {
     <div class="lctrl-main">
       <div class="lctrl-3cols">
       <!-- COLUNA ESQUERDA: estrofes -->
-      <div class="lctrl-col-strophes">
+      <div class="lctrl-col-strophes" id="lctrl-col-strophes">
         <div class="lctrl-strophes-label">Estrofes &nbsp;<span style="font-weight:400;opacity:.55;font-size:9px;text-transform:none;letter-spacing:0">1× prévia &nbsp;·&nbsp; 2× projetar</span></div>
         <div class="lctrl-strophes-scroll">
           <div class="lctrl-strophes-grid" id="lctrl-strophes-grid"></div>
         </div>
       </div>
+      <div class="lctrl-resize-handle" id="lctrl-col-handle-1"></div>
       <!-- COLUNA MEIO: prévia -->
-      <div class="lctrl-col-preview">
+      <div class="lctrl-col-preview" id="lctrl-col-preview">
         <div class="lctrl-pcard lctrl-pcard-preview" id="lctrl-pcard-preview">
           <div class="lctrl-pcard-label">Prévia</div>
           <div class="lctrl-pcard-text" id="lctrl-preview-text"><span class="lctrl-pcard-idle">—</span></div>
         </div>
       </div>
+      <div class="lctrl-resize-handle" id="lctrl-col-handle-2"></div>
       <!-- COLUNA DIREITA: projetando agora -->
-      <div class="lctrl-col-projecting">
+      <div class="lctrl-col-projecting" id="lctrl-col-projecting">
         <div class="lctrl-pcard lctrl-pcard-projecting" id="lctrl-pcard-projecting">
           <div class="lctrl-pcard-label">Projetando agora</div>
           <div class="lctrl-pcard-text" id="lctrl-projecting-text"><span class="lctrl-pcard-idle">—</span></div>
