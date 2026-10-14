@@ -3410,7 +3410,7 @@ function _atualizarWelcomeCard() {
 async function _carregarHomeAviso() {
   try {
     if (!fbDb || !window._fbDoc || !window._fbGetDoc) return;
-    const snap = await window._fbGetDoc(window._fbDoc(fbDb, 'config', 'home_aviso'));
+    const snap = await window._fbGetDoc(window._fbDoc(fbDb, 'salas', 'home_aviso'));
     if (!snap.exists()) return;
     const d = snap.data() || {};
     const msg = d.mensagem?.trim() || '';
