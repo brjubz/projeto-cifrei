@@ -1388,7 +1388,7 @@ window.addEventListener('unhandledrejection', function(e) {
         </div>
         <div class="hc-body">
           <div class="hc-label">Repertório Semanal</div>
-          <div class="hc-sub" id="home-sub-setlist">Setlist do próximo domingo</div>
+          <div class="hc-sub" id="home-sub-setlist">EBD (manhã) · Culto (noite)</div>
         </div>
         <div class="hc-arrow">›</div>
       </div>
@@ -3328,7 +3328,7 @@ function _brtNow() {
 
 function getSaudacao(nome) {
   const h = _brtNow().getHours();
-  const periodo = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+  const periodo = h < 5 ? 'Boa madrugada' : h < 12 ? 'Bom dia' : h < 14 ? 'Bom almoço' : h < 18 ? 'Boa tarde' : 'Boa noite';
   return `${periodo}, ${nome}!`;
 }
 
@@ -3390,74 +3390,118 @@ function _gerarMensagemHome() {
       `De volta depois de ${diasSemLogin} dias. Que bom te ver de volta!`,
     ]);
   } else if (dow === 0) {
-    // Domingo — pools exclusivos por papel
-    if (isManha) {
+    // Domingo: dois louvores — EBD manhã (ensaio 8h, EBD 9h) e Culto noite (ensaio 18h, 19h)
+    const cedo  = h < 8;          // antes do ensaio da EBD
+    const ebd   = h >= 8 && h < 13;  // ensaio + EBD
+    const entre = h >= 13 && h < 17; // entre os dois louvores
+    const preC  = h >= 17 && h < 19; // ensaio do culto
+    // h >= 19: culto em andamento
+
+    if (h < 13) {
+      // Manhã = EBD (não é culto!)
       if (isMin) msg = _pick([
-        'Domingo de manhã. Que o Espírito guie cada palavra da ministração hoje.',
-        'É dia de culto. O Senhor vai à frente — você declara o que Ele já preparou.',
-        'Manhã de domingo. Descanse a voz e confie na unção do Espírito.',
-        'Culto hoje! Que a ministração abra o coração do povo para a Palavra.',
+        cedo ? 'Ensaio da EBD às 8h! Vai chegando — 3 músicas de manhã.' :
+               'EBD hoje de manhã. Que o Espírito guie cada palavra da ministração.',
+        'Domingo tem dois louvores. Começa bem a EBD — Deus cuida do restante.',
+        'Manhã de domingo: 3 músicas na EBD. Cada uma é uma oração ao Senhor.',
       ]);
       else if (isVoice) msg = _pick([
-        'Domingo de manhã. Aquece bem a voz — você é a ponte entre a letra e o coração.',
-        'Dia de culto! Hidratação e fé. A congregação vai seguir sua voz.',
-        'Manhã de domingo. Cada nota cantada é uma oração.',
-        'Culto hoje! Tonalidade conferida com o pastor de louvor?',
+        cedo ? 'Ensaio da EBD às 8h! Aquece a voz antes de sair de casa.' :
+               '3 músicas na EBD de manhã — cada nota cantada é uma oração.',
+        'Hidratação e fé. A voz é o instrumento mais exposto — cuida bem.',
+        'Aquece bem a voz — você é a ponte entre a letra e o coração da EBD.',
       ]);
       else if (isGuitar) msg = _pick([
-        'Domingo de manhã. Afinação verificada?',
-        'Dia de culto! Uma última revisão de capo e transposições faz diferença.',
-        'Manhã de domingo. Violão afinado, coração preparado.',
+        cedo ? 'Já afinou a guitarra? Ensaio da EBD às 8h!' :
+               'EBD de manhã. Afinação verificada? 3 músicas pra hoje.',
+        'Violão afinado, coração preparado. Vai chegando pro ensaio!',
+        ebd ? 'Ensaio da EBD! Capo e transposições das 3 músicas conferidos?' :
+              'Manhã de domingo. Tudo afinado pro louvor da EBD.',
       ]);
       else if (isBass) msg = _pick([
-        'O grave ancora todo mundo. Hoje a congregação vai sentir o fundamento.',
-        'Dia de culto! Linha de baixo definida pra cada música?',
-        'Manhã de domingo. O baixo sustenta o louvor — você sustenta o baixo.',
+        cedo ? 'Ensaio às 8h! O grave tá pronto pra EBD?' :
+               'Manhã de domingo. O baixo sustenta o louvor — você sustenta o baixo.',
+        'O grave ancora todo mundo. A congregação da EBD vai sentir o fundamento.',
       ]);
       else if (isDrums) msg = _pick([
-        'Bateria afinada, kick marcado. Agora é só confiar no ensaio.',
-        'Dia de culto! Dinâmica de domingo difere do ensaio — confia no que foi preparado.',
-        'Manhã de domingo. O tempo começa em você.',
+        cedo ? 'Bateria pronta? Ensaio da EBD às 8h — não atrasa!' :
+               'EBD de manhã. O tempo começa em você.',
+        'Kick marcado, dinâmica certa. Confia no que foi preparado.',
       ]);
       else if (isKeys) msg = _pick([
-        'Patches e transposições conferidas? Domingo não tem segunda chance ao vivo.',
-        'Dia de culto! Pad atmosférico ou piano solo — a congregação vai sentir a escolha.',
-        'Manhã de domingo. Das 88 teclas, você vai usar exatamente as certas.',
+        cedo ? 'Patches conferidos? Ensaio às 8h — não atrasa!' :
+               'EBD de manhã. Das teclas, você vai usar exatamente as certas.',
+        'Pad atmosférico ou piano — a congregação da EBD vai sentir a escolha.',
       ]);
       else if (isSono) msg = _pick([
-        'Mesa zerada, ganhos conferidos? O som do culto começa em você.',
-        'Dia de culto! Roteiro de microfones revisado?',
-        'Manhã de domingo. Seu trabalho abre o caminho para o louvor alcançar a congregação.',
+        cedo ? 'Mesa zerada antes do ensaio? Começamos às 8h!' :
+               'Manhã de EBD. Roteiro de microfones revisado?',
+        'Seu trabalho abre o caminho para o louvor da EBD alcançar cada coração.',
       ]);
       else msg = _pick([
-        'Domingo de manhã. Que o Espírito guie cada nota do culto hoje.',
-        'Culto hoje! O povo vem com expectativa; leve isso consigo no louvor.',
-        'Manhã de domingo. Servir com música é um privilégio.',
+        cedo ? 'Ensaio da EBD às 8h — vai chegando!' :
+               '3 músicas na EBD de manhã. Que cada uma alcance o coração da congregação.',
+        'Domingo tem dois louvores. A EBD de manhã abre o caminho.',
+      ]);
+    } else if (entre) {
+      // Entre os dois louvores
+      msg = _pick([
+        'EBD encerrada! Almoça bem e descansa — ensaio do culto às 18h.',
+        'Entre os dois louvores. EBD foi bem? Culto esta noite às 19h.',
+        'Almoço merecido! 3 músicas na EBD, mais 4 no culto esta noite.',
+        'Intervalo entre EBD e culto. Recupera as energias — retorno às 18h.',
+      ]);
+    } else if (preC) {
+      // Ensaio do culto (17-19h)
+      if (isMin) msg = _pick([
+        h < 18 ? 'Ensaio do culto às 18h! Vai chegando.' :
+                 'Ensaio do culto! Que cada transição seja guiada pelo Espírito.',
+        'Pré-culto. Afina o coração junto com os instrumentos.',
+      ]);
+      else if (isVoice) msg = _pick([
+        h < 18 ? 'Ensaio às 18h! Vai chegando e aquece a voz.' :
+                 'Ensaio do culto! A congregação vai seguir sua voz esta noite.',
+        'Pré-culto: confirma as entradas difíceis das 4 músicas.',
+      ]);
+      else if (isGuitar) msg = _pick([
+        h < 18 ? 'Ensaio às 18h! Já afinou a guitarra pro culto?' :
+                 'Ensaio! Uma última revisão de capo e transposições.',
+        'Pré-culto — confia no que foi preparado no ensaio.',
+      ]);
+      else if (isSono) msg = _pick([
+        h < 18 ? 'Ensaio às 18h! Roteiro do culto revisado?' :
+                 'Ensaio do culto! Mesa zerada, ganhos conferidos?',
+      ]);
+      else msg = _pick([
+        h < 18 ? 'Ensaio do culto às 18h — vai chegando!' :
+                 'Ensaio em andamento! 4 músicas pro culto desta noite.',
+        'Culto às 19h. Confia no que foi ensaiado.',
       ]);
     } else {
+      // 19h+ — culto em andamento
       if (isMin) msg = _pick([
         'Hora de ministrar. O Senhor vai à frente.',
-        'É domingo! Que cada transição da ministração seja guiada pelo Espírito.',
+        'Culto desta noite! Que cada transição da ministração seja guiada pelo Espírito.',
         'Momento do culto. Que a ministração prepare o coração da congregação para a Palavra.',
       ]);
       else if (isVoice) msg = _pick([
         'A congregação vai seguir sua voz. Lidere com fé.',
-        'É domingo! Que cada palavra cantada chegue ao coração da congregação.',
+        'É culto! Que cada palavra cantada chegue ao coração da congregação.',
         'Hora do louvor. Cante como se fosse a última vez.',
       ]);
       else if (isCifraUser) msg = _pick([
-        isGuitar ? 'É domingo! Violão afinado, coração alinhado.' : 'É domingo! Hora de servir com o instrumento.',
+        isGuitar ? 'É culto! Violão afinado, coração alinhado.' : 'É culto! Hora de servir com o instrumento.',
         'O ritmo do culto começa com você. Confia no que foi ensaiado.',
-        'É domingo! Que a excelência técnica sirva à adoração.',
+        'Que a excelência técnica sirva à adoração desta noite.',
       ]);
       else if (isSono) msg = _pick([
         'Sem o som, não há culto. Sua mesa é tão essencial quanto o púlpito.',
-        'É domingo! Monitor nos instrumentos, ganho nos cantores. Vamos!',
+        'É culto! Monitor nos instrumentos, ganho nos cantores. Vamos!',
       ]);
       else msg = _pick([
-        'É domingo! Que o louvor de hoje edifique a congregação.',
-        'Dia do culto. Servir com música é um privilégio, não uma tarefa.',
-        'Domingo chegou. Que a Palavra e o louvor falem ao coração da congregação.',
+        'Culto desta noite. Que o louvor edifique a congregação.',
+        'Domingo à noite. Servir com música é um privilégio, não uma tarefa.',
+        'Hora do culto. Que a Palavra e o louvor falem ao coração da congregação.',
       ]);
     }
   } else if (diasParaDom <= 2) {
@@ -3561,11 +3605,15 @@ function _gerarMensagemHome() {
     // Segunda, terça, quarta — pools exclusivos
     const diasNome = ['', 'segunda', 'terça', 'quarta'][dow];
     const dn = diasNome.charAt(0).toUpperCase() + diasNome.slice(1);
-    if (isMin) msg = _pick([
-      `${dn}-feira. Bom momento pra orar pela ministração do próximo culto.`,
-      'Início de semana é quando a intimidade com Deus começa a preparar o domingo.',
-      `${dn}-feira. Que o próximo culto já comece a ser gestado na sua vida devocional.`,
-    ]);
+    if (isMin) {
+      const minPool = [
+        `${dn}-feira. Bom momento pra orar pelos dois louvores deste domingo.`,
+        'Início de semana é quando a intimidade com Deus começa a preparar o domingo.',
+        `${dn}-feira. Que a EBD e o culto de domingo já comecem a ser gestados na sua devoção.`,
+      ];
+      if (dow === 2) minPool.unshift('Terça-feira: prazo ideal para definir o setlist — 3 músicas pra EBD e 4 pro culto. O ministério precisa de tempo pra se preparar!');
+      msg = _pick(minPool);
+    }
     else if (isVoice) msg = _pick([
       `${dn}-feira. Bom momento pra memorizar as letras do próximo setlist.`,
       'Início de semana: aquece a voz com leveza — o culto ainda está longe.',
@@ -3711,7 +3759,7 @@ function _atualizarWelcomeCard() {
   }
 
   // Período separado do nome (h já é horário de Brasília)
-  const periodo = h < 12 ? 'Bom dia,' : h < 18 ? 'Boa tarde,' : 'Boa noite,';
+  const periodo = h < 5 ? 'Boa madrugada,' : h < 12 ? 'Bom dia,' : h < 14 ? 'Bom almoço,' : h < 18 ? 'Boa tarde,' : 'Boa noite,';
   const elPeriod = document.getElementById('hw-period');
   const elName   = document.getElementById('hw-name');
   if (elPeriod) elPeriod.textContent = periodo;
@@ -5651,7 +5699,7 @@ function buildSongItem(s, globalIdx) {
         <div class="song-num">${globalIdx+1}</div>
         <div class="song-info">
           <div class="song-title">${esc(s.title)}${(s.verified || S.banco.find(b=>b.title.toLowerCase()===s.title.toLowerCase())?.verified) ? VERIFIED_SVG : ''}</div>
-          ${s.artist ? `<div style="font-size:11px;color:var(--faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">${esc(s.artist)}</div>` : ''}
+          ${s.artist ? `<div style="font-size:12px;color:rgba(170,200,185,.82);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;font-weight:500;">${esc(s.artist)}</div>` : ''}
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:3px;">
             <span class="song-key">Tom: ${tomDisplay}${s.tp&&s.tp!==0?` <span style="color:var(--faint);font-size:10px;">(${s.tp>0?'+':''}${s.tp})</span>`:''}</span>
             ${s.addedBy ? `<span class="song-added-by" title="Adicionado por ${esc(s.addedBy)}">${esc(s.addedBy)}</span>` : ''}
