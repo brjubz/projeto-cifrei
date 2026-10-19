@@ -4317,13 +4317,12 @@ async function resetManualSetlist() {
 async function carregarHistoricoSetlist() {
   if (!fbDb || !window._fbCollection || !window._fbGetDocs) return [];
   try {
-    const { query, orderBy, limit } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
     const col = window._fbCollection(fbDb, 'historico_setlists');
-    const q = query(col, orderBy('timestamp', 'desc'), limit(8));
-    const snap = await window._fbGetDocs(q);
+    const snap = await window._fbGetDocs(col);
     const hist = [];
     snap.forEach(d => hist.push(d.data()));
-    return hist;
+    hist.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    return hist.slice(0, 8);
   } catch(e) { return []; }
 }
 

@@ -5021,6 +5021,9 @@ async function adicionarAoSetlist(title){
   if(!song)return;
   if(S.songs.some(s=>s.title===title)){showToast('Já está no setlist!');return;}
 
+  // Snapshot antes de awaits — protege S.songs de reset remoto durante carregamento
+  const _snapSongs = [...S.songs];
+
   // Garante content antes de adicionar
   if (!song.content) {
     if (S._bancoRaw) {
@@ -5038,6 +5041,8 @@ async function adicionarAoSetlist(title){
   }
 
   const _quemAdicionou = (localStorage.getItem('cifrei_username') || '').trim();
+  // Restaura snapshot se S.songs foi resetado remotamente durante o await acima
+  if (S.songs.length < _snapSongs.length) S.songs = _snapSongs;
   S.songs.push({...song, addedBy: _quemAdicionou || undefined});
   renderList();
   document.getElementById('nav-cnt').textContent=S.songs.length;
