@@ -1,0 +1,31 @@
+name: Zerar Setlist (domingo 23h59 BRT)
+
+on:
+  schedule:
+    # domingo 23:59 BRT = segunda 02:59 UTC
+    - cron: '59 2 * * 1'
+  workflow_dispatch: # permite rodar manualmente pelo GitHub
+
+jobs:
+  zerar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: scripts/package-lock.json
+
+      - name: Instalar dependências
+        run: npm install
+        working-directory: scripts
+
+      - name: Zerar setlist
+        run: node zerar-setlist.js
+        working-directory: scripts
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+          GIST_ID_SETLIST: 4ddc9a95ef4e523dcafff049a31caeb2
