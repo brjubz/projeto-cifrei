@@ -4788,15 +4788,19 @@ function _urlBase64ToUint8Array(base64) {
 }
 
 async function _push_init() {
-  if (!VAPID_PUBLIC_KEY) return; // chaves não configuradas ainda
+  if (!VAPID_PUBLIC_KEY) return;
   try {
-    const perm = localStorage.getItem('cifrei_push_perm');
-    if (perm === 'dismissed' || perm === 'granted') return;
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
     const reg = await navigator.serviceWorker.ready;
     const existing = await reg.pushManager.getSubscription();
     if (existing) { await _push_salvarSubscription(existing); return; }
-    // Mostra banner se permissão não foi pedida ainda
+    // Permissão já concedida mas sem subscrição — inscreve silenciosamente
+    if (Notification.permission === 'granted') {
+      await _push_ativar(); return;
+    }
+    // Permissão dispensada pelo usuário — não pergunta mais
+    if (localStorage.getItem('cifrei_push_perm') === 'dismissed') return;
+    // Permissão ainda não pedida — mostra banner após 4s
     if (Notification.permission === 'default') {
       setTimeout(() => {
         const b = document.getElementById('push-banner');
