@@ -8275,7 +8275,7 @@ async function confirmarImportarCifraClub() {
 
 // ── NOTIFICAÇÕES ──────────────────────────────────────────────────────────────
 const NOTIF_COL = 'notificacoes_config';
-const PUSH_FILA_COL = 'notif_push_fila';
+const PUSH_FILA_COL = 'notificacoes_config'; // push_job reutiliza a mesma col (permissão já existe)
 let _notifEditandoId = null;
 let _notifSlides = [];
 
@@ -8290,10 +8290,10 @@ async function carregarPushHistorico() {
     const devsSnap = await window._fbGetDocs(window._fbCollection(fbDb, 'push_subscriptions'));
     if (cnt) cnt.textContent = `${devsSnap.size} dispositivo${devsSnap.size !== 1 ? 's' : ''} registrado${devsSnap.size !== 1 ? 's' : ''}`;
 
-    // Histórico de envios
+    // Histórico de envios (filtra só tipo push_job)
     const snap = await window._fbGetDocs(window._fbCollection(fbDb, PUSH_FILA_COL));
     let jobs = [];
-    snap.forEach(d => jobs.push({ id: d.id, ...d.data() }));
+    snap.forEach(d => { const j = { id: d.id, ...d.data() }; if (j.tipo === 'push_job') jobs.push(j); });
     jobs.sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
 
     if (!jobs.length) {
@@ -8386,11 +8386,19 @@ async function _preencherSelectUsuarios() {
   const sel = document.getElementById('push-usuario-login');
   if (!sel || !fbDb || !window._fbGetDocs) return;
   try {
-    const snap = await window._fbGetDocs(window._fbCollection(fbDb, 'usuarios'));
-    const usuarios = [];
-    snap.forEach(d => { const u = d.data(); if (u.login && u.nome) usuarios.push(u); });
-    usuarios.sort((a,b) => a.nome.localeCompare(b.nome,'pt'));
-    sel.innerHTML = usuarios.map(u => `<option value="${esc(u.login)}">${esc(u.nome)}</option>`).join('');
+    // Usa avatars_musicos (todos os músicos) — value=nome para matching em push_subscriptions
+    if (window._avatarsAdmCache && Object.keys(window._avatarsAdmCache).length) {
+      const musicos = Object.values(window._avatarsAdmCache)
+        .filter(u => u.nome)
+        .sort((a,b) => a.nome.localeCompare(b.nome,'pt'));
+      sel.innerHTML = musicos.map(u => `<option value="${esc(u.nome)}">${esc(u.nome)}</option>`).join('');
+    } else {
+      const snap = await window._fbGetDocs(window._fbCollection(fbDb, 'avatars_musicos'));
+      const musicos = [];
+      snap.forEach(d => { const u = d.data(); if (u.nome) musicos.push(u); });
+      musicos.sort((a,b) => a.nome.localeCompare(b.nome,'pt'));
+      sel.innerHTML = musicos.map(u => `<option value="${esc(u.nome)}">${esc(u.nome)}</option>`).join('');
+    }
   } catch(e) { sel.innerHTML = '<option value="">Erro ao carregar</option>'; }
 }
 
@@ -8416,7 +8424,7 @@ async function salvarPush() {
     }
   }
 
-  const payload = { titulo, corpo, destino, agendadoPara, status: 'pendente', criadoEm: Date.now(), url: '/' };
+  const payload = { tipo: 'push_job', titulo, corpo, destino, agendadoPara, status: 'pendente', criadoEm: Date.now(), url: '/' };
   if (destino === 'escalada') payload.escaladaData = document.getElementById('push-escala-data').value;
   if (destino === 'usuario')  payload.destinoLogin  = document.getElementById('push-usuario-login').value;
 
@@ -8477,6 +8485,7 @@ async function carregarNotificacoes() {
     const snap = await window._fbGetDocs(window._fbCollection(fbDb, NOTIF_COL));
     let notifs = [];
     snap.forEach(d => notifs.push({ id: d.id, ...d.data() }));
+    notifs = notifs.filter(n => n.tipo !== 'push_job'); // exclui jobs de push real
 
     // Cria o tutorial padrão se não existir
     if (!notifs.find(n => n.id === 'onboarding_tutorial')) {
