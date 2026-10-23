@@ -4811,7 +4811,8 @@ async function _push_init() {
 }
 
 async function _push_ativar() {
-  document.getElementById('push-banner').style.display = 'none';
+  const banner = document.getElementById('push-banner');
+  if (banner) banner.style.display = 'none';
   try {
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({
