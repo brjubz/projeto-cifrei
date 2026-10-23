@@ -8386,19 +8386,18 @@ async function _preencherSelectUsuarios() {
   const sel = document.getElementById('push-usuario-login');
   if (!sel || !fbDb || !window._fbGetDocs) return;
   try {
-    // Usa avatars_musicos (todos os músicos) — value=nome para matching em push_subscriptions
-    if (window._avatarsAdmCache && Object.keys(window._avatarsAdmCache).length) {
-      const musicos = Object.values(window._avatarsAdmCache)
-        .filter(u => u.nome)
-        .sort((a,b) => a.nome.localeCompare(b.nome,'pt'));
-      sel.innerHTML = musicos.map(u => `<option value="${esc(u.nome)}">${esc(u.nome)}</option>`).join('');
-    } else {
-      const snap = await window._fbGetDocs(window._fbCollection(fbDb, 'avatars_musicos'));
-      const musicos = [];
-      snap.forEach(d => { const u = d.data(); if (u.nome) musicos.push(u); });
-      musicos.sort((a,b) => a.nome.localeCompare(b.nome,'pt'));
-      sel.innerHTML = musicos.map(u => `<option value="${esc(u.nome)}">${esc(u.nome)}</option>`).join('');
+    // Lê usuarios (todos com login) — value=nome para matching em push_subscriptions
+    const snap = await window._fbGetDocs(window._fbCollection(fbDb, 'usuarios'));
+    const nomes = new Set();
+    snap.forEach(d => { const u = d.data(); if (u.nome) nomes.add(u.nome.trim()); });
+    // Complementa com avatars_musicos caso haja músicos sem login
+    if (window._avatarsAdmCache) {
+      Object.values(window._avatarsAdmCache).forEach(u => { if (u.nome) nomes.add(u.nome.trim()); });
     }
+    const lista = [...nomes].sort((a,b) => a.localeCompare(b,'pt'));
+    sel.innerHTML = lista.length
+      ? lista.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('')
+      : '<option value="">Nenhum usuário encontrado</option>';
   } catch(e) { sel.innerHTML = '<option value="">Erro ao carregar</option>'; }
 }
 
@@ -8428,11 +8427,12 @@ async function salvarPush() {
   if (destino === 'escalada') payload.escaladaData = document.getElementById('push-escala-data').value;
   if (destino === 'usuario')  payload.destinoLogin  = document.getElementById('push-usuario-login').value;
 
+  if (!fbDb || !window._fbSetDoc || !window._fbDoc) { erroEl.textContent = 'Firebase não conectado.'; erroEl.style.display = 'block'; return; }
   const btn = document.getElementById('push-salvar-btn');
   btn.disabled = true; btn.textContent = 'Salvando…';
   try {
-    const id = 'push_' + Date.now();
-    await window._fbSetDoc(window._fbDoc(fbDb, PUSH_FILA_COL, id), payload);
+    const id = 'notif_push_' + Date.now();
+    await window._fbSetDoc(window._fbDoc(fbDb, PUSH_FILA_COL, id), payload, { merge: true });
     fecharModalPush();
     await carregarPushHistorico();
     showToast(quando === 'agora' ? 'Push agendado — enviado em até 15min ✓' : 'Push agendado ✓');
