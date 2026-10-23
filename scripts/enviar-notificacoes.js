@@ -27,7 +27,8 @@ async function resolverSubscriptions(destino, escaladaData, destinoLogin) {
   if (destino === 'todos') return subs;
 
   if (destino === 'usuario') {
-    return subs.filter(s => s.login === destinoLogin);
+    // destinoLogin guarda o nome do músico (do select de avatars_musicos)
+    return subs.filter(s => s.login === destinoLogin || s.nome === destinoLogin);
   }
 
   if (destino === 'escalada' && escaladaData) {
@@ -58,14 +59,12 @@ async function resolverSubscriptions(destino, escaladaData, destinoLogin) {
 
 async function main() {
   const agora = Date.now();
-  const filaSnap = await db.collection('notif_push_fila')
-    .where('status', '==', 'pendente')
-    .get();
+  const filaSnap = await db.collection('notificacoes_config').get();
 
   const pendentes = [];
   filaSnap.forEach(d => {
     const n = { id: d.id, ...d.data() };
-    if ((n.agendadoPara || 0) <= agora) pendentes.push(n);
+    if (n.tipo === 'push_job' && n.status === 'pendente' && (n.agendadoPara || 0) <= agora) pendentes.push(n);
   });
 
   if (!pendentes.length) { console.log('✅ Nenhuma notificação pendente.'); process.exit(0); }
@@ -73,14 +72,14 @@ async function main() {
 
   for (const notif of pendentes) {
     console.log(`\n→ Enviando: "${notif.titulo}" (${notif.destino})`);
-    await db.collection('notif_push_fila').doc(notif.id).update({ status: 'enviando' });
+    await db.collection('notificacoes_config').doc(notif.id).update({ status: 'enviando' });
 
     let subs = [];
     try {
       subs = await resolverSubscriptions(notif.destino, notif.escaladaData || null, notif.destinoLogin || null);
     } catch(e) {
       console.error('  ❌ Erro ao resolver destinatários:', e.message);
-      await db.collection('notif_push_fila').doc(notif.id).update({ status: 'erro', erros: [e.message], enviadaEm: Date.now() });
+      await db.collection('notificacoes_config').doc(notif.id).update({ status: 'erro', erros: [e.message], enviadaEm: Date.now() });
       continue;
     }
 
@@ -107,7 +106,7 @@ async function main() {
       }
     }
 
-    await db.collection('notif_push_fila').doc(notif.id).update({
+    await db.collection('notificacoes_config').doc(notif.id).update({
       status: falhas === subs.length && subs.length > 0 ? 'erro' : 'enviada',
       enviadaEm: Date.now(),
       totalEnviadas: enviadas,
