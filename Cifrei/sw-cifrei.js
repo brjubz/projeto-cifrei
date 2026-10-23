@@ -29,15 +29,33 @@ self.addEventListener('fetch', e => {
   );
 });
 
+// Recebe push e exibe notificação
+self.addEventListener('push', e => {
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; } catch(_) { data = { title: 'Cifrei', body: e.data?.text() || '' }; }
+  const title = data.title || 'Cifrei';
+  const options = {
+    body: data.body || '',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-96.png',
+    data: { url: data.url || '/' },
+    vibrate: [200, 100, 200],
+    tag: data.tag || 'cifrei-push',
+    renotify: true,
+  };
+  e.waitUntil(self.registration.showNotification(title, options));
+});
+
 // Clique na notificação
 self.addEventListener('notificationclick', e => {
   e.notification.close();
+  const url = e.notification.data?.url || '/';
   e.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
       for (const c of clients) {
-        if (c.url.includes(self.location.origin) && 'focus' in c) return c.focus();
+        if (c.url.includes(self.location.origin) && 'focus' in c) { c.focus(); return; }
       }
-      return self.clients.openWindow('/');
+      return self.clients.openWindow(url);
     })
   );
 });
