@@ -1278,6 +1278,7 @@ async function _btnEntrarClick() {
     document.getElementById('modal-boas-vindas').style.display = 'none';
     if (dbg) dbg.textContent = '';
     _atualizarWelcomeCard();
+    _push_init();
     // Firebase inicia em background
     if (typeof window.initFirebase === 'function') window.initFirebase();
   } catch(e) {
@@ -1359,6 +1360,21 @@ window.addEventListener('unhandledrejection', function(e) {
   
   <!-- MENSAGEM DE BOAS VINDAS (legacy, oculto) -->
   <div class="splash-welcome" id="splash-welcome" style="display:none;"></div>
+
+  <!-- BANNER PUSH NOTIFICATION -->
+  <div id="push-banner" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:8000;width:calc(100% - 32px);max-width:400px;background:linear-gradient(135deg,rgba(24,24,30,.97),rgba(18,18,24,.99));border:1px solid rgba(52,211,153,.3);border-radius:16px;padding:14px 16px;box-shadow:0 8px 32px rgba(0,0,0,.5);backdrop-filter:blur(20px);">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="font-size:24px;">🔔</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;">Ativar notificações</div>
+        <div style="font-size:11px;color:var(--muted);">Receba avisos mesmo com o app fechado</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button onclick="_push_ativar()" style="background:var(--green);color:#000;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;">Ativar</button>
+        <button onclick="_push_dispensar()" style="background:transparent;color:var(--faint);border:none;border-radius:8px;padding:6px 8px;font-size:18px;cursor:pointer;line-height:1;">×</button>
+      </div>
+    </div>
+  </div>
 
   <!-- HOME -->
   <div class="home-area" id="home-area" style="display:none;">
@@ -2253,6 +2269,11 @@ const MY_FIREBASE_CONFIG = {
 const GIST_ID_SETLIST = '4ddc9a95ef4e523dcafff049a31caeb2';
 const GIST_ID_BANCO   = 'ac2d9ca53f29fa99ac1c5f4be584b2b1';
 
+// ── PUSH NOTIFICATIONS ──────────────────────────────────────────────────────
+// Gere as chaves com: node scripts/gerar-vapid-keys.js
+// Depois cole a publicKey aqui e adicione privateKey como segredo VAPID_PRIVATE_KEY no GitHub
+const VAPID_PUBLIC_KEY = ''; // ex: 'BAbCdEfG...'
+
 // ── FIREBASE PRESENÇA EM TEMPO REAL ──
 let fbDb, fbAuth, fbUser, hbInterval, presenceUnsub;
 // Unsubscribe handles para listeners de sincronização — evitam leituras orfãs
@@ -2476,6 +2497,12 @@ async function initFirebase() {
     window._fbDeleteDoc  = deleteDoc;
     window._fbOnSnapshot = onSnapshot;
     window._fbDb         = fbDb;
+    // Renova subscription push (caso Firebase ainda não estivesse pronto no login)
+    if (VAPID_PUBLIC_KEY && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg =>
+        reg.pushManager.getSubscription().then(sub => { if (sub) _push_salvarSubscription(sub); })
+      ).catch(() => {});
+    }
     return true;
   } catch(e) { console.warn('initFirebase erro:', e.message); return false; }
 }
@@ -4750,6 +4777,68 @@ async function _carregarMusicasRecentes() {
       }
     });
   } catch(e) { _musicasRecentes = new Map(); }
+}
+
+// ── PUSH NOTIFICATIONS ───────────────────────────────────────────────────────
+
+function _urlBase64ToUint8Array(base64) {
+  const b = base64.replace(/-/g,'+').replace(/_/g,'/');
+  const raw = atob(b);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function _push_init() {
+  if (!VAPID_PUBLIC_KEY) return; // chaves não configuradas ainda
+  try {
+    const perm = localStorage.getItem('cifrei_push_perm');
+    if (perm === 'dismissed' || perm === 'granted') return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const reg = await navigator.serviceWorker.ready;
+    const existing = await reg.pushManager.getSubscription();
+    if (existing) { await _push_salvarSubscription(existing); return; }
+    // Mostra banner se permissão não foi pedida ainda
+    if (Notification.permission === 'default') {
+      setTimeout(() => {
+        const b = document.getElementById('push-banner');
+        if (b) b.style.display = 'block';
+      }, 4000);
+    }
+  } catch(e) {}
+}
+
+async function _push_ativar() {
+  document.getElementById('push-banner').style.display = 'none';
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: _urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+    await _push_salvarSubscription(sub);
+    localStorage.setItem('cifrei_push_perm', 'granted');
+    showToast('Notificações ativadas ✓');
+  } catch(e) {
+    showToast('Não foi possível ativar notificações');
+  }
+}
+
+function _push_dispensar() {
+  document.getElementById('push-banner').style.display = 'none';
+  localStorage.setItem('cifrei_push_perm', 'dismissed');
+}
+
+async function _push_salvarSubscription(sub) {
+  if (!fbDb || !window._fbDoc || !window._fbSetDoc) return;
+  const login = localStorage.getItem('cifrei_login') || localStorage.getItem('cifrei_username') || 'desconhecido';
+  const nome  = localStorage.getItem('cifrei_username') || login;
+  try {
+    await window._fbSetDoc(window._fbDoc(fbDb, 'push_subscriptions', login), {
+      login, nome,
+      subscription: sub.toJSON(),
+      updatedAt: Date.now(),
+      platform: /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ? 'mobile' : 'web',
+    });
+  } catch(e) {}
 }
 
 // Retorna {cor, label, semanas} ou null
