@@ -68,7 +68,7 @@ async function main() {
   // 1. Ler setlist atual do Firestore
   const setlistRef = db.collection('salas').doc('setlist_musico');
   const snap = await setlistRef.get();
-  const songs = snap.exists ? parseSongs(snap.data()?.content || '') : [];
+  const songs = snap.exists ? parseSongs(snap.data()?.setlistContent || '') : [];
   console.log(`📋 Setlist: ${songs.length} música(s)`);
 
   // 2. Salvar histórico (apenas se houver músicas)

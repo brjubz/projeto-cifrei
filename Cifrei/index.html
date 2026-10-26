@@ -2606,11 +2606,8 @@ async function startOnlinePresence() {
     if (ts <= _ultimoSetlistSync) return;
     if (d.autor === fbUser?.uid) { _ultimoSetlistSync = ts; return; }
     _ultimoSetlistSync = ts;
-    const oldTp = {};
-    S.songs.forEach(s => oldTp[s.title] = s.tp);
     if (d.setlistContent) {
       S.songs = parseSongs(d.setlistContent);
-      S.songs.forEach(s => { if (oldTp[s.title] !== undefined) s.tp = oldTp[s.title]; });
       // Persiste no cache local — garante que F5 reflita a mudança do peer
       _salvarCacheSetlist(d.setlistContent);
       try { localStorage.removeItem('cifrei_setlist_local_ts'); } catch(e) {}
@@ -2635,8 +2632,6 @@ async function startOnlinePresence() {
     const tipo = data.tipo || 'setlist';
     try {
       if (tipo === 'setlist' || tipo === 'ambos') {
-        const oldTp = {};
-        S.songs.forEach(s => oldTp[s.title] = s.tp);
         let songs = null;
         if (data.setlistContent) {
           songs = parseSongs(data.setlistContent);
@@ -2649,8 +2644,6 @@ async function startOnlinePresence() {
           if (txt) { _salvarCacheSetlist(txt); try { localStorage.removeItem('cifrei_setlist_local_ts'); } catch(e) {} }
         }
         S.songs = songs;
-        S.songs.forEach(s => { if (oldTp[s.title] !== undefined) s.tp = oldTp[s.title]; });
-        _aplicarTomPreferencias(S.songs);
         document.getElementById('nav-cnt').textContent = S.songs.length || '';
         if (document.getElementById('view-list').classList.contains('active')) renderList();
         // Re-renderiza sonoplastia se estiver ativa
@@ -5135,9 +5128,12 @@ async function adicionarAoSetlist(title){
   }
 
   const _quemAdicionou = (localStorage.getItem('cifrei_username') || '').trim();
-  // Restaura snapshot se S.songs foi resetado remotamente durante o await acima
-  if (S.songs.length < _snapSongs.length) S.songs = _snapSongs;
-  S.songs.push({...song, addedBy: _quemAdicionou || undefined});
+  // Restaura snapshot incondicionalmente — qualquer update remoto durante o await é ignorado;
+  // o listener receberá nossa publicação logo em seguida e sincronizará corretamente.
+  S.songs = [..._snapSongs];
+  if (!S.songs.some(s => s.title === title)) {
+    S.songs.push({...song, addedBy: _quemAdicionou || undefined});
+  }
   renderList();
   document.getElementById('nav-cnt').textContent=S.songs.length;
   renderBanco(S.bancoFiltrado);
