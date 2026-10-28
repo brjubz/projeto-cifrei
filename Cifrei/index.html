@@ -4066,6 +4066,7 @@ document.addEventListener('visibilitychange', () => {
 
 function isChord(l){
   if(!l||!l.trim())return false;
+  l=l.replace(/♯/g,'#').replace(/♭/g,'b');
   const ws=l.trim().split(/\s+/);
   let chords=0, texts=0;
   for(const w of ws){
@@ -4157,6 +4158,9 @@ function parseSongs(raw){
 
   // Sempre carrega do Firestore — é a fonte de verdade para os links
   _carregarLinksPlaylistFirestore();
+
+  // Normaliza símbolos musicais unicode → ASCII antes de parsear
+  raw = raw.replace(/♯/g,'#').replace(/♭/g,'b');
 
   // Remove as tags antes de parsear
   const rawLimpo = raw.replace(/\[PLAYLIST_YT:[^\]]*\]\n?/g,'')
@@ -6552,7 +6556,7 @@ function renderCifra(content){
     }
     return dl;
   }
-  const lines=content.split('\n');
+  const lines=content.replace(/♯/g,'#').replace(/♭/g,'b').split('\n');
   for(let i=0;i<lines.length;i++){
     const line=lines[i];
     if(isChord(line)){
