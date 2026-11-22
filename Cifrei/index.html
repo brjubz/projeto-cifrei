@@ -1649,7 +1649,7 @@ window.addEventListener('unhandledrejection', function(e) {
 
     <div class="cifra-box" id="gesture-area">
       <div class="cifra-content" id="cifra"></div>
-      <textarea id="edit-area" style="display:none;" spellcheck="false" placeholder="Edite a cifra aqui..."></textarea>
+      <textarea id="edit-area" style="display:none;" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" data-gramm="false" placeholder="Edite a cifra aqui..."></textarea>
     </div>
 
     <!-- Botão Finalizar Louvor: fixo no fim do conteúdo da página (não flutuante) -->
@@ -6070,7 +6070,21 @@ function toggleEditMode() {
       if (!S.preview) _publicarMudancaSetlist();
       if (_salaAtualId || minhaSalaRef) atualizarSalaComLetra(S.idx, s.letra);
     } else {
-      s.content = ta.value;
+      const novoConteudo = ta.value;
+      // Proteção: bloqueia save de conteúdo vazio ou suspeito
+      if (!novoConteudo.trim()) {
+        showToast('⚠️ Conteúdo vazio — edição cancelada para proteger a cifra.', 'error');
+        return;
+      }
+      const linhasOriginal = (_editOriginalContent || '').split('\n').filter(l => isChord(l)).length;
+      const linhasNovo = novoConteudo.split('\n').filter(l => isChord(l)).length;
+      if (linhasOriginal > 0 && linhasNovo === 0) {
+        showToast('⚠️ Nenhum acorde detectado — verifique a cifra antes de salvar.', 'error');
+        return;
+      }
+      // Backup de emergência antes de sobrescrever
+      try { localStorage.setItem('cifrei_backup_cifra_' + s.title, JSON.stringify({ content: _editOriginalContent, ts: Date.now() })); } catch(e) {}
+      s.content = novoConteudo;
       s.key = firstChord(s.content) || '-';
       ta.style.display = 'none'; ci.style.display = 'block';
       isEditing = false; renderReader();
