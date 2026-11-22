@@ -3291,6 +3291,8 @@ function _bootCifrei() {
   const sessaoValida = localStorage.getItem('cifrei_codigo_ok') === '1' && !!temLogin;
 
   if (savedName && sessaoValida) {
+    // Atualiza timestamp de acesso a cada abertura (não só no login manual)
+    try { localStorage.setItem('cifrei_last_login', String(Date.now())); } catch(e) {}
     _atualizarWelcomeCard();
     _fbInitPromise = initFirebase();
     _fbInitPromise.then(async () => {
