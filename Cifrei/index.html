@@ -4385,12 +4385,15 @@ async function _carregarSetlistAsync() {
     } catch(e) {}
   }
 
-  // 4. Fallback final: cache local (se rede falhou completamente)
-  if (!songs?.length) {
+  // 4. Fallback final: cache local — SÓ se a rede falhou completamente
+  // rawContent !== null significa que a rede respondeu (mesmo que setlist seja vazio/zerado)
+  // Nesse caso NÃO usa cache para não mostrar setlist antigo após zeragem
+  if (rawContent === null) {
     const cached = _lerCacheSetlist();
     if (cached) songs = parseSongs(cached);
-  } else if (rawContent) {
-    _salvarCacheSetlist(rawContent); // salva para uso offline futuro
+  } else {
+    // Rede respondeu: atualiza cache com conteúdo mais recente (incluindo placeholder de zeragem)
+    _salvarCacheSetlist(rawContent);
   }
 
   S.songs = songs || [];
