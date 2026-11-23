@@ -4073,7 +4073,9 @@ function isChord(l){
   let chords=0, texts=0;
   for(const w of ws){
     const cl=w.replace(/^[|()[\]\-,.:*%]+|[|()[\]\-,.:*%]+$/g,'');
-    if(!cl||/^(intro|solo|interl|ponte|final|refrão|refrao|bridge|chorus|bis|2x|3x|4x|dedilhado|repete|riff|base)$/i.test(cl))continue;
+    if(!cl)continue;
+    const cln=cl.replace(/\./g,''); // normaliza N.C. → NC
+    if(/^(intro|solo|interl[uú]dio?|interludio|interlude|ponte|final|refrão|refrao|bridge|chorus|bis|verso|estrofe|coro|pré|pre|passagem|vamp|fim|tag|coda|outro|nc|dedilhado|repete|riff|base|\d+x|x\d+|\d+)$/i.test(cln))continue;
     if(CRE.test(cl)) chords++; else texts++;
   }
   return chords > 0 && texts === 0;
